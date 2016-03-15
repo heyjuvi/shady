@@ -4,6 +4,7 @@ using Gtk;
 public class ShaderArea : GLArea
 {
 	private GLuint program;
+	private GLuint fragmentShader;
 	private GLuint[] vao={1337};
 	private GLint time_loc;
 	private GLint res_loc;
@@ -30,15 +31,18 @@ public class ShaderArea : GLArea
 			glShaderSource(vertexShader,1,vertexSourceArray,null);
 			glCompileShader(vertexShader);
 	
-			GLuint fragmentShader=glCreateShader(GL_FRAGMENT_SHADER);
+			fragmentShader=glCreateShader(GL_FRAGMENT_SHADER);
 			glShaderSource(fragmentShader,1,fragmentSourceArray,null);
 			glCompileShader(fragmentShader);
 	
 			program = glCreateProgram();
+
 			glAttachShader(program, vertexShader);
 			glAttachShader(program, fragmentShader);
+
 			glLinkProgram(program);
-	
+
+
 			glGenVertexArrays (1, vao);
 			glBindVertexArray (vao[0]);
 	
@@ -64,7 +68,8 @@ public class ShaderArea : GLArea
 			glBindBuffer (GL_ARRAY_BUFFER, 0);
 			glBindVertexArray (0);
 
-			//glDeleteBuffers(1,vbo);
+			glDeleteBuffers(1,vbo);
+
 			start_time=get_monotonic_time();
 		});
 		this.render.connect(on_render);
@@ -90,10 +95,7 @@ public class ShaderArea : GLArea
 
 		glBindVertexArray (vao[0]);
 
-		//glFrontFace(GL_CW);
-
 		glDrawArrays(GL_TRIANGLE_FAN,0,4);
-		//glDrawArrays(GL_TRIANGLES,0,3);
 
 		glBindVertexArray (0);
 		glUseProgram (0);
@@ -103,5 +105,14 @@ public class ShaderArea : GLArea
 		this.queue_draw();
 
 		return true;
+	}
+
+	public void recompile(string shaderSource){
+			string[] sourceArray = { shaderSource, null };
+
+			glShaderSource(fragmentShader,1,sourceArray,null);
+			glCompileShader(fragmentShader);
+
+			glLinkProgram(program);
 	}
 }
