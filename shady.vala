@@ -14,6 +14,7 @@ public class Shady : Window
 
 	private ScrolledWindow scrolledSource;
 	private SourceView sourceView;
+	private SourceMarkAttributes sourceMarkAttributes;
 	private SourceBuffer sourceBuffer;
 	private SourceLanguage sourceLanguage;
 	private SourceLanguageManager sourceLanguageManager;
@@ -33,12 +34,20 @@ public class Shady : Window
 
 		sourceBuffer = new SourceBuffer.with_language(sourceLanguage);
 
+		sourceMarkAttributes = new SourceMarkAttributes();
+		sourceMarkAttributes.icon_name = "media-playback-start";
+		sourceMarkAttributes.query_tooltip_text.connect((mark) => {
+			return "testtestest";
+		});
+
 		sourceView = new SourceView.with_buffer(sourceBuffer);
 		sourceView.show_line_numbers = true;
 		sourceView.show_line_marks = true;
 		sourceView.indent_on_tab = true;
 		sourceView.auto_indent = true;
 		sourceView.highlight_current_line = true;
+
+		sourceView.set_mark_attributes("compile-error", sourceMarkAttributes, 0);
 
 		scrolledSource = new ScrolledWindow(null, null);
 		scrolledSource.set_size_request(400, 480);
@@ -77,9 +86,10 @@ public class Shady : Window
 
 		Button test = new Button.with_label("test");
 		test.clicked.connect(() => {
-			/*TextIter lineIter;
-			sourceBuffer.get_iter_at_line(out lineIter, 1);
-			sourceBuffer.create_source_mark("err1", "error", lineIter);*/
+			TextIter lineIter;
+			sourceBuffer.get_iter_at_line(out lineIter, foobar);
+			foobar++;
+			sourceBuffer.create_source_mark(null, "compile-error", lineIter);
 		});
 
 		headerBar.add(buttonRun);
@@ -89,4 +99,5 @@ public class Shady : Window
 
 		add(paned);
 	}
+	int foobar = 0;
 }
