@@ -1,5 +1,6 @@
 using GL;
 using Gtk;
+using Pango;
 
 public class Shady : Window
 {
@@ -48,6 +49,7 @@ public class Shady : Window
 		sourceView.highlight_current_line = true;
 
 		sourceView.set_mark_attributes("compile-error", sourceMarkAttributes, 0);
+		sourceView.override_font(FontDescription.from_string("Monospace"));
 
 		scrolledSource = new ScrolledWindow(null, null);
 		scrolledSource.set_size_request(400, 480);
