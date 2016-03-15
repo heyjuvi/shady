@@ -25,23 +25,19 @@ public class ShaderArea : GLArea
 			const string fragmentSource="uniform vec3 iResolution; uniform float iGlobalTime; void main(void){ gl_FragColor=vec4(10.*length(vec2(iGlobalTime*-.1,-.25) + gl_FragCoord.xy/iResolution.x),1,1,1);}";
 	
 			const string[] vertexSourceArray = { vertexSource, null };
-			const string[] fragmentSourceArray = { fragmentSource, null };
 	
 			GLuint vertexShader=glCreateShader(GL_VERTEX_SHADER);
 			glShaderSource(vertexShader,1,vertexSourceArray,null);
 			glCompileShader(vertexShader);
 	
 			fragmentShader=glCreateShader(GL_FRAGMENT_SHADER);
-			glShaderSource(fragmentShader,1,fragmentSourceArray,null);
-			glCompileShader(fragmentShader);
 	
 			program = glCreateProgram();
 
 			glAttachShader(program, vertexShader);
 			glAttachShader(program, fragmentShader);
 
-			glLinkProgram(program);
-
+			compile(fragmentSource);
 
 			glGenVertexArrays (1, vao);
 			glBindVertexArray (vao[0]);
@@ -107,7 +103,7 @@ public class ShaderArea : GLArea
 		return true;
 	}
 
-	public void recompile(string shaderSource){
+	public void compile(string shaderSource){
 			string[] sourceArray = { shaderSource, null };
 
 			glShaderSource(fragmentShader,1,sourceArray,null);
