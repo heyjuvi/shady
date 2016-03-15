@@ -4,6 +4,10 @@ using Gtk;
 public class Shady : Window
 {
 	private HeaderBar headerBar;
+	private Image playIcon;
+	private Image pauseIcon;
+	private Button buttonRun;
+
 	private Paned paned;
 
 	private ShaderArea shaderArea;
@@ -30,10 +34,11 @@ public class Shady : Window
 		sourceBuffer = new SourceBuffer.with_language(sourceLanguage);
 
 		sourceView = new SourceView.with_buffer(sourceBuffer);
-		sourceView.set_show_line_numbers(true);
-		sourceView.set_show_line_marks(true);
-		sourceView.set_indent_on_tab(true);
-		sourceView.set_auto_indent(true);
+		sourceView.show_line_numbers = true;
+		sourceView.show_line_marks = true;
+		sourceView.indent_on_tab = true;
+		sourceView.auto_indent = true;
+		sourceView.highlight_current_line = true;
 
 		scrolledSource = new ScrolledWindow(null, null);
 		scrolledSource.set_size_request(400, 480);
@@ -42,9 +47,43 @@ public class Shady : Window
 
 		paned.pack2(scrolledSource, true, true);
 
+		playIcon = new Image.from_icon_name("media-playback-start", IconSize.BUTTON);
+		pauseIcon = new Image.from_icon_name("media-playback-pause", IconSize.BUTTON);
+
+		buttonRun = new Button();
+		buttonRun.set_image(playIcon);
+		buttonRun.set_valign(Align.CENTER);
+
+		buttonRun.clicked.connect(() => {
+			if (shaderArea.paused)
+			{
+				shaderArea.paused = false;
+				shaderArea.compile(sourceBuffer.text);
+				shaderArea.queue_draw();
+
+				buttonRun.set_image(pauseIcon);
+			}
+			else
+			{
+				shaderArea.paused = true;
+				buttonRun.set_image(playIcon);
+			}
+		});
+
 		headerBar = new HeaderBar();
+
 		headerBar.set_title("Titel");
 		headerBar.set_subtitle("Untertitel");
+
+		Button test = new Button.with_label("test");
+		test.clicked.connect(() => {
+			/*TextIter lineIter;
+			sourceBuffer.get_iter_at_line(out lineIter, 1);
+			sourceBuffer.create_source_mark("err1", "error", lineIter);*/
+		});
+
+		headerBar.add(buttonRun);
+		headerBar.add(test);
 
 		set_titlebar(headerBar);
 

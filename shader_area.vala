@@ -15,8 +15,14 @@ public class ShaderArea : GLArea
 	private int64 start_time;
 	private int64 curr_time;
 
+	private bool initialized;
+
+	public bool paused { get; set; default = true; }
+
 	public ShaderArea()
 	{
+		this.initialized = false;
+
 		this.realize.connect(() => {
 			this.make_current();
 	
@@ -71,40 +77,53 @@ public class ShaderArea : GLArea
 			glDeleteBuffers(1,vbo);
 
 			start_time=get_monotonic_time();
+
+			initialized = true;
 		});
+		//this.size_allocate.connect(render_gl);
 		this.render.connect(on_render);
 	}
 
 	private bool on_render()
 	{
-		glClearColor(0, 0, 0, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		int width=this.get_allocated_width();
-		int height=this.get_allocated_height();
-
-		glViewport(0, 0, width, height);
-
-		glUseProgram(program);
-
-		curr_time=get_monotonic_time();
-		float time = (curr_time - start_time) / 1000000.0f;
-
-		glUniform1f(time_loc, time);
-		glUniform3f(res_loc, width, height, 0);
-
-		glBindVertexArray (vao[0]);
-
-		glDrawArrays(GL_TRIANGLE_FAN,0,4);
-
-		glBindVertexArray (0);
-		glUseProgram (0);
-
-		glFlush();
-
-		this.queue_draw();
+		if (!paused)
+		{
+			this.render_gl();
+			this.queue_draw();
+		}
 
 		return true;
+	}
+
+	public void render_gl()
+	{
+		if (this.initialized)
+		{
+			glClearColor(0, 0, 0, 1);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			int width=this.get_allocated_width();
+			int height=this.get_allocated_height();
+
+			glViewport(0, 0, width, height);
+
+			glUseProgram(program);
+
+			curr_time=get_monotonic_time();
+			float time = (curr_time - start_time) / 1000000.0f;
+
+			glUniform1f(time_loc, time);
+			glUniform3f(res_loc, width, height, 0);
+
+			glBindVertexArray (vao[0]);
+
+			glDrawArrays(GL_TRIANGLE_FAN,0,4);
+
+			glBindVertexArray (0);
+			glUseProgram (0);
+
+			glFlush();
+		}
 	}
 
 	public void compile(string shaderSource) throws ShaderError {
