@@ -1,6 +1,10 @@
 using GL;
 using Gtk;
 
+public errordomain ShaderError {
+	COMPILATION
+}
+
 public class ShaderArea : GLArea
 {
 	private GLuint program;
@@ -103,11 +107,22 @@ public class ShaderArea : GLArea
 		return true;
 	}
 
-	public void compile(string shaderSource){
+	public void compile(string shaderSource) throws ShaderError {
 			string[] sourceArray = { shaderSource, null };
 
 			glShaderSource(fragmentShader,1,sourceArray,null);
 			glCompileShader(fragmentShader);
+
+			GLint success[] = {0};
+			glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, success);
+
+			if(success[0]== GL_FALSE){
+				GLint logSize[] = {0};
+				glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, logSize);
+				GLubyte[] log = new GLubyte[logSize[0]];
+				glGetShaderInfoLog(fragmentShader, logSize[0], logSize, log);
+				throw new ShaderError.COMPILATION((string)log);
+			}
 
 			glLinkProgram(program);
 	}
