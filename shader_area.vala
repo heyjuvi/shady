@@ -32,7 +32,7 @@ public class ShaderArea : GLArea
 				return;
 			}
 	
-			const string vertexSource="attribute vec2 vertex;void main(void) {gl_Position = vec4(vertex,1,1);}";
+			const string vertexSource="attribute vec2 v;void main(void) {gl_Position = vec4(v,1,1);}";
 	
 			const string[] vertexSourceArray = { vertexSource, null };
 	
@@ -63,7 +63,7 @@ public class ShaderArea : GLArea
 			glBindBuffer (GL_ARRAY_BUFFER, vbo[0]);
 			glBufferData (GL_ARRAY_BUFFER, vertices.length * sizeof (GLfloat), (GLvoid[]) vertices, GL_STATIC_DRAW);
 	
-			GLuint attrib=glGetAttribLocation (program, "vertex");
+			GLuint attrib=glGetAttribLocation (program, "v");
 	
 			glEnableVertexAttribArray (attrib);
 			glVertexAttribPointer (attrib, 2, GL_FLOAT, (GLboolean)GL_FALSE, 0, null);
@@ -132,8 +132,9 @@ public class ShaderArea : GLArea
 
 	public void compile(string shaderSource) throws ShaderError {
 
-			string shaderPrefix="uniform vec3 iResolution;uniform float iGlobalTime;";
-			string shaderSuffix="void main(void){vec4 col;mainImage(col,gl_FragCoord.xy);gl_FragColor=col;}";
+			string shaderPrefix="#version 330\nprecision highp float;precision highp int;out vec4 fragColor;uniform vec3 iResolution;uniform float iGlobalTime;";
+
+			string shaderSuffix="void main(void){vec4 col;mainImage(col,gl_FragCoord.xy);fragColor=col;}";
 
 			string fullShaderSource=shaderPrefix+shaderSource+shaderSuffix;
 			string[] sourceArray = { fullShaderSource, null };
