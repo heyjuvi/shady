@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<gresources>
+	<gresource prefix="/org/hasi/shady">
+		<!-- ui -->
+		<file preprocess="xml-stripblanks" alias="gtk/menus.ui">ui/app-menu.ui</file>
+		<file preprocess="xml-stripblanks">ui/app-window.ui</file>
+
+		<!-- style -->
+		<file>data/css/shady.css</file>
+	</gresource>
+</gresources>
