@@ -136,9 +136,11 @@ public class ShaderArea : GLArea
 
 	public void compile(string shaderSource) throws ShaderError
 	{
-		string shaderPrefix="uniform vec3 iResolution;\nuniform float iGlobalTime;\n\n";
+		string shaderPrefix="#version 330\nprecision highp float;precision highp int;out vec4 fragColor;uniform vec3 iResolution;uniform float iGlobalTime;";
 
-		string fullShaderSource = shaderPrefix+shaderSource;
+		string shaderSuffix="void main(void){vec4 col;mainImage(col,gl_FragCoord.xy);fragColor=col;}";
+		string fullShaderSource = shaderPrefix+shaderSource+shaderSuffix;
+
 		string[] sourceArray = { fullShaderSource, null };
 
 		glShaderSource(fragmentShader, 1, sourceArray,null);

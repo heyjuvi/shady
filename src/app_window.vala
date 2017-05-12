@@ -34,7 +34,7 @@ namespace Shady
 
 			paned = new Paned(Orientation.HORIZONTAL);
 
-			string defaultShader = "void main(void){\n\tgl_FragColor=vec4(10.*length(vec2(iGlobalTime*-.1,-.25) + gl_FragCoord.xy/iResolution.x),1,1,1);\n}";
+			string defaultShader="void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n\tvec2 uv = fragCoord.xy / iResolution.xy;\n\tfragColor = vec4(uv,0.5+0.5*sin(iGlobalTime),1.0);\n}";
 
 			shaderArea = new ShaderArea(defaultShader);
 			shaderArea.set_size_request(400, 480);
