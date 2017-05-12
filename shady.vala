@@ -76,8 +76,7 @@ public class Shady : Window
 
 		headerBar = new HeaderBar();
 
-		headerBar.set_title("Titel");
-		headerBar.set_subtitle("Untertitel");
+		headerBar.set_title("Shady");
 
 		headerBar.add(buttonRun);
 
