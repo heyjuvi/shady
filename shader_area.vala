@@ -14,10 +14,11 @@ public class ShaderArea : GLArea
 	private GLint res_loc;
 	private int64 start_time;
 	private int64 curr_time;
+	private int64 pause_time;
 
 	private bool initialized;
 
-	public bool paused { get; set; default = true; }
+	public bool paused { get; set; default = false; }
 
 	public ShaderArea()
 	{
@@ -86,11 +87,8 @@ public class ShaderArea : GLArea
 
 	private bool on_render()
 	{
-		if (!paused)
-		{
-			this.render_gl();
-			this.queue_draw();
-		}
+		this.render_gl();
+		this.queue_draw();
 
 		return true;
 	}
@@ -109,8 +107,15 @@ public class ShaderArea : GLArea
 
 			glUseProgram(program);
 
-			curr_time=get_monotonic_time();
-			float time = (curr_time - start_time) / 1000000.0f;
+			float time;
+
+			if(!paused){
+				curr_time=get_monotonic_time();
+				time = (curr_time - start_time) / 1000000.0f;
+			}
+			else{
+				time = (pause_time - start_time) / 1000000.0f;
+			}
 
 			glUniform1f(time_loc, time);
 			glUniform3f(res_loc, width, height, 0);
@@ -144,5 +149,21 @@ public class ShaderArea : GLArea
 			}
 
 			glLinkProgram(program);
+	}
+
+	public void pause(bool pause_status){
+		paused=pause_status;
+		if(pause_status==true){
+			pause_time=get_monotonic_time();
+		}
+		else{
+			start_time+=get_monotonic_time() - pause_time;
+		}
+	}
+
+	public void reset_time(){
+		start_time=curr_time;
+		//this.render_gl();
+		this.queue_draw();
 	}
 }

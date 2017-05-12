@@ -5,9 +5,13 @@ using Pango;
 public class Shady : Window
 {
 	private HeaderBar headerBar;
+	private Image resetIcon;
 	private Image playIcon;
 	private Image pauseIcon;
+	private Image compileIcon;
+	private Button buttonReset;
 	private Button buttonRun;
+	private Button buttonCompile;
 
 	private Paned paned;
 
@@ -51,38 +55,62 @@ public class Shady : Window
 
 		paned.pack2(scrolledSource, true, true);
 
+		resetIcon = new Image.from_icon_name("media-skip-backward", IconSize.BUTTON);
 		playIcon = new Image.from_icon_name("media-playback-start", IconSize.BUTTON);
 		pauseIcon = new Image.from_icon_name("media-playback-pause", IconSize.BUTTON);
+		compileIcon = new Image.from_icon_name("media-playback-start", IconSize.BUTTON);
+
+		buttonReset = new Button();
+		buttonReset.set_image(resetIcon);
+		buttonReset.set_valign(Align.CENTER);
+		buttonReset.set_halign(Align.START);
 
 		buttonRun = new Button();
-		buttonRun.set_image(playIcon);
+		buttonRun.set_image(pauseIcon);
 		buttonRun.set_valign(Align.CENTER);
+		buttonRun.set_halign(Align.START);
+
+		buttonCompile = new Button();
+		buttonCompile.set_image(compileIcon);
+		buttonCompile.set_valign(Align.CENTER);
+		buttonCompile.set_halign(Align.END);
+
+		buttonReset.clicked.connect(() => {
+			shaderArea.reset_time();
+		});
 
 		buttonRun.clicked.connect(() => {
 			if (shaderArea.paused)
 			{
-				shaderArea.paused = false;
-				shaderArea.compile(sourceBuffer.text);
+				shaderArea.pause(false);
 				shaderArea.queue_draw();
 
 				buttonRun.set_image(pauseIcon);
 			}
 			else
 			{
-				shaderArea.paused = true;
+				shaderArea.pause(true);
 				buttonRun.set_image(playIcon);
 			}
+		});
+
+		buttonCompile.clicked.connect(() => {
+			shaderArea.compile(sourceBuffer.text);
+
+			//shaderArea.render_gl();
+			shaderArea.queue_draw();
 		});
 
 		headerBar = new HeaderBar();
 
 		headerBar.set_title("Shady");
 
+		headerBar.add(buttonReset);
 		headerBar.add(buttonRun);
+		headerBar.add(buttonCompile);
 
 		set_titlebar(headerBar);
 
 		add(paned);
 	}
-	int foobar = 0;
 }
