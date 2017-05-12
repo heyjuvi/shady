@@ -20,7 +20,7 @@ public class ShaderArea : GLArea
 
 	public bool paused { get; set; default = false; }
 
-	public ShaderArea()
+	public ShaderArea(string fragmentSource)
 	{
 		this.initialized = false;
 
@@ -33,7 +33,6 @@ public class ShaderArea : GLArea
 			}
 	
 			const string vertexSource="attribute vec2 vertex;void main(void) {gl_Position = vec4(vertex,1,1);}";
-			const string fragmentSource="uniform vec3 iResolution; uniform float iGlobalTime; void main(void){ gl_FragColor=vec4(10.*length(vec2(iGlobalTime*-.1,-.25) + gl_FragCoord.xy/iResolution.x),1,1,1);}";
 	
 			const string[] vertexSourceArray = { vertexSource, null };
 	
