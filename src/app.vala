@@ -12,7 +12,7 @@ namespace Shady
 			            flags: ApplicationFlags.FLAGS_NONE);
 		}
 
-		/*protected override void startup()
+		protected override void startup()
 		{
 			base.startup();
 
@@ -20,14 +20,13 @@ namespace Shady
 
 			// use only minimal window decorations
 			gtk_settings.gtk_decoration_layout = ":close";
-		}*/
+		}
 
 		protected override void activate()
 		{
 			var window = new Shady.AppWindow(this);
-			window.title = "Shady";
 
-			//load_css();
+			load_css();
 
 			window.show();
 		}
