@@ -27,7 +27,7 @@ public class Shady : Window
 	{
 		paned = new Paned(Orientation.HORIZONTAL);
 
-		string defaultShader="uniform vec3 iResolution;\nuniform float iGlobalTime;\n\nvoid main(void){\n\tgl_FragColor=vec4(10.*length(vec2(iGlobalTime*-.1,-.25) + gl_FragCoord.xy/iResolution.x),1,1,1);\n}";
+		string defaultShader="void main(void){\n\tgl_FragColor=vec4(10.*length(vec2(iGlobalTime*-.1,-.25) + gl_FragCoord.xy/iResolution.x),1,1,1);\n}";
 
 		shaderArea = new ShaderArea(defaultShader);
 		shaderArea.set_size_request(400, 480);
