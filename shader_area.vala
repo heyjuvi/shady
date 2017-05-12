@@ -132,9 +132,10 @@ public class ShaderArea : GLArea
 
 	public void compile(string shaderSource) throws ShaderError {
 
-			string shaderPrefix="uniform vec3 iResolution;\nuniform float iGlobalTime;\n\n";
+			string shaderPrefix="uniform vec3 iResolution;uniform float iGlobalTime;";
+			string shaderSuffix="void main(void){vec4 col;mainImage(col,gl_FragCoord.xy);gl_FragColor=col;}";
 
-			string fullShaderSource=shaderPrefix+shaderSource;
+			string fullShaderSource=shaderPrefix+shaderSource+shaderSuffix;
 			string[] sourceArray = { fullShaderSource, null };
 
 			glShaderSource(fragmentShader,1,sourceArray,null);
@@ -166,7 +167,5 @@ public class ShaderArea : GLArea
 
 	public void reset_time(){
 		start_time=curr_time;
-		//this.render_gl();
-		this.queue_draw();
 	}
 }
