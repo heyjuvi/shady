@@ -34,7 +34,7 @@ namespace Shady
 
 			paned = new Paned(Orientation.HORIZONTAL);
 
-			string defaultShader="void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n\tvec2 uv = fragCoord.xy / iResolution.xy;\n\tfragColor = vec4(uv,0.5+0.5*sin(iGlobalTime),1.0);\n}";
+			string defaultShader = "void main(void){\n\tgl_FragColor=vec4(10.*length(vec2(iGlobalTime*-.1,-.25) + gl_FragCoord.xy/iResolution.x),1,1,1);\n}";
 
 			shaderArea = new ShaderArea(defaultShader);
 			shaderArea.set_size_request(400, 480);
@@ -50,6 +50,7 @@ namespace Shady
 			sourceBuffer.text=defaultShader;
 
 			sourceView = new SourceView.with_buffer(sourceBuffer);
+
 			sourceView.show_line_numbers = true;
 			sourceView.show_line_marks = true;
 			sourceView.indent_on_tab = true;
@@ -60,7 +61,6 @@ namespace Shady
 
 			scrolledSource = new ScrolledWindow(null, null);
 			scrolledSource.set_size_request(400, 480);
-			scrolledSource.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
 
 			scrolledSource.add(sourceView);
 
@@ -77,7 +77,7 @@ namespace Shady
 			buttonReset.set_halign(Align.START);
 
 			buttonRun = new Button();
-			buttonRun.set_image(playIcon);
+			buttonRun.set_image(pauseIcon);
 			buttonRun.set_valign(Align.CENTER);
 			buttonRun.set_halign(Align.START);
 
@@ -94,6 +94,7 @@ namespace Shady
 				if (shaderArea.paused)
 				{
 					shaderArea.pause(false);
+					shaderArea.queue_draw();
 
 					buttonRun.set_image(pauseIcon);
 				}
@@ -106,6 +107,9 @@ namespace Shady
 
 			buttonCompile.clicked.connect(() => {
 				shaderArea.compile(sourceBuffer.text);
+
+				//shaderArea.render_gl();
+				shaderArea.queue_draw();
 			});
 
 			header_bar.set_title("Shady");

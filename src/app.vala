@@ -24,7 +24,7 @@ namespace Shady
 
 		protected override void activate()
 		{
-			var window = new Shady.AppWindow(this);
+			window = new Shady.AppWindow(this);
 
 			load_css();
 
