@@ -108,7 +108,7 @@ namespace Shady
 					scrolled_source.show();
 				}
 
-				return true;
+				return false;
 			});
 		}
 
