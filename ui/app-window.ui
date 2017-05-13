@@ -11,8 +11,89 @@
 				<property name="show_close_button">True</property>
 
 				<child>
-					<placeholder />
+					<object class="GtkButton" id="reset_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="receives_default">False</property>
+
+						<signal name="clicked" handler="reset_button_clicked" />
+
+						<child>
+							<object class="GtkImage">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="icon_name">media-skip-backward-symbolic</property>
+							</object>
+						</child>
+					</object>
+					<packing>
+						<property name="pack-type">start</property>
+						<property name="position">0</property>
+					</packing>
 				</child>
+
+				<child>
+					<object class="GtkButton" id="play_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="receives_default">False</property>
+
+						<signal name="clicked" handler="play_button_clicked" />
+
+						<child>
+							<object class="GtkImage" id="play_button_image">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="icon_name">media-playback-pause-symbolic</property>
+							</object>
+						</child>
+					</object>
+					<packing>
+						<property name="pack-type">start</property>
+						<property name="position">1</property>
+					</packing>
+				</child>
+
+				<child type="title">
+					<object class="GtkImage">
+						<property name="visible">True</property>
+						<property name="can_focus">False</property>
+						<property name="resource">/org/hasi/shady/data/images/shady_logo_title.png</property>
+					</object>
+				</child>
+
+				<child>
+					<object class="GtkButton" id="compile_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="receives_default">False</property>
+
+						<signal name="clicked" handler="compile_button_clicked" />
+
+						<style>
+							<class name="suggested-action" />
+						</style>
+
+						<child>
+							<object class="GtkImage">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="icon_name">system-run-symbolic</property>
+							</object>
+						</child>
+					</object>
+					<packing>
+						<property name="pack-type">end</property>
+						<property name="position">0</property>
+					</packing>
+				</child>
+			</object>
+		</child>
+
+		<child>
+			<object class="GtkPaned" id="main_paned">
+				<property name="visible">True</property>
+				<property name="can_focus">False</property>
 			</object>
 		</child>
 	</template>

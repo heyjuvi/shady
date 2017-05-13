@@ -10,119 +10,108 @@ namespace Shady
 		[GtkChild]
 		private HeaderBar header_bar;
 
-		private Image resetIcon;
-		private Image playIcon;
-		private Image pauseIcon;
-		private Image compileIcon;
-		private Button buttonReset;
-		private Button buttonRun;
-		private Button buttonCompile;
+		[GtkChild]
+		private Button reset_button;
 
-		private Paned paned;
+		[GtkChild]
+		private Button play_button;
 
-		private ShaderArea shaderArea;
+		[GtkChild]
+		private Image play_button_image;
 
-		private ScrolledWindow scrolledSource;
-		private SourceView sourceView;
-		private SourceBuffer sourceBuffer;
-		private SourceLanguage sourceLanguage;
-		private SourceLanguageManager sourceLanguageManager;
+		[GtkChild]
+		private Button compile_button;
+
+		[GtkChild]
+		private Paned main_paned;
+
+		private ShaderArea shader_area;
+
+		private ScrolledWindow scrolled_source;
+		private SourceView source_view;
+		private SourceBuffer source_buffer;
+		private SourceLanguage source_language;
+		private SourceLanguageManager source_language_manager;
 
 		public AppWindow(Gtk.Application app)
 		{
 			Object(application: app);
 
-			paned = new Paned(Orientation.HORIZONTAL);
+			string defaultShader = "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n\tvec2 uv = fragCoord.xy / iResolution.xy;\n\tfragColor = vec4(uv,0.5+0.5*sin(iGlobalTime),1.0);\n}";
 
-			string defaultShader="void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n\tvec2 uv = fragCoord.xy / iResolution.xy;\n\tfragColor = vec4(uv,0.5+0.5*sin(iGlobalTime),1.0);\n}";
+			shader_area = new ShaderArea(defaultShader);
+			shader_area.set_size_request(400, 520);
 
-			shaderArea = new ShaderArea(defaultShader);
-			shaderArea.set_size_request(400, 480);
+			main_paned.pack2(shader_area, true, true);
 
-			paned.pack1(shaderArea, true, true);
+			source_language_manager = SourceLanguageManager.get_default();;
+			source_language = source_language_manager.get_language("glsl");
 
-			sourceLanguageManager = SourceLanguageManager.get_default();;
+			source_buffer = new source_buffer.with_language(source_language);
+			source_buffer.text = defaultShader;
 
-			sourceLanguage = sourceLanguageManager.get_language("glsl");
+			source_view = new SourceView.with_buffer(source_buffer);
 
-			sourceBuffer = new SourceBuffer.with_language(sourceLanguage);
+			source_view.show_line_numbers = true;
+			source_view.show_line_marks = true;
+			source_view.tab_width = 2;
+			source_view.indent_on_tab = true;
+			source_view.auto_indent = true;
+			source_view.highlight_current_line = true;
 
-			sourceBuffer.text=defaultShader;
+			source_view.override_font(FontDescription.from_string("Monospace"));
 
-			sourceView = new SourceView.with_buffer(sourceBuffer);
+			scrolled_source = new ScrolledWindow(null, null);
+			scrolled_source.set_size_request(600, 520);
 
-			sourceView.show_line_numbers = true;
-			sourceView.show_line_marks = true;
-			sourceView.indent_on_tab = true;
-			sourceView.auto_indent = true;
-			sourceView.highlight_current_line = true;
+			scrolled_source.add(source_view);
 
-			sourceView.override_font(FontDescription.from_string("Monospace"));
-
-			scrolledSource = new ScrolledWindow(null, null);
-			scrolledSource.set_size_request(400, 480);
-
-			scrolledSource.add(sourceView);
-
-			paned.pack2(scrolledSource, true, true);
-
-			resetIcon = new Image.from_icon_name("media-skip-backward", IconSize.BUTTON);
-			playIcon = new Image.from_icon_name("media-playback-start", IconSize.BUTTON);
-			pauseIcon = new Image.from_icon_name("media-playback-pause", IconSize.BUTTON);
-			compileIcon = new Image.from_icon_name("media-playback-start", IconSize.BUTTON);
-
-			buttonReset = new Button();
-			buttonReset.set_image(resetIcon);
-			buttonReset.set_valign(Align.CENTER);
-			buttonReset.set_halign(Align.START);
-
-			buttonRun = new Button();
-			buttonRun.set_image(pauseIcon);
-			buttonRun.set_valign(Align.CENTER);
-			buttonRun.set_halign(Align.START);
-
-			buttonCompile = new Button();
-			buttonCompile.set_image(compileIcon);
-			buttonCompile.set_valign(Align.CENTER);
-			buttonCompile.set_halign(Align.END);
-
-			buttonReset.clicked.connect(() => {
-				shaderArea.reset_time();
-			});
-
-			buttonRun.clicked.connect(() => {
-				if (shaderArea.paused)
-				{
-					shaderArea.pause(false);
-					shaderArea.queue_draw();
-
-					buttonRun.set_image(pauseIcon);
-				}
-				else
-				{
-					shaderArea.pause(true);
-					buttonRun.set_image(playIcon);
-				}
-			});
-
-			buttonCompile.clicked.connect(() => {
-				shaderArea.compile(sourceBuffer.text);
-
-				//shaderArea.render_gl();
-				shaderArea.queue_draw();
-			});
-
-			header_bar.set_title("Shady");
-
-			header_bar.add(buttonReset);
-			header_bar.add(buttonRun);
-			header_bar.add(buttonCompile);
-
-			set_titlebar(header_bar);
-
-			add(paned);
+			main_paned.pack1(scrolled_source, true, true);
 
 			show_all();
+		}
+
+		private void play()
+		{
+			shader_area.compile(source_buffer.text);
+			shader_area.pause(false);
+			shader_area.queue_draw();
+
+			play_button_image.set_from_icon_name("media-playback-pause", Gtk.IconSize.BUTTON);
+		}
+
+		private	void pause()
+		{
+			shader_area.pause(true);
+
+			play_button_image.set_from_icon_name("media-playback-start", Gtk.IconSize.BUTTON);
+		}
+
+		[GtkCallback]
+		private void reset_button_clicked()
+		{
+			shader_area.reset_time();
+		}
+
+		[GtkCallback]
+		private void play_button_clicked()
+		{
+			if (shader_area.paused)
+			{
+				play();
+			}
+			else
+			{
+				pause();
+			}
+		}
+
+		[GtkCallback]
+		private void compile_button_clicked()
+		{
+			shader_area.compile(source_buffer.text);
+
+			shader_area.queue_draw();
 		}
 	}
 }
