@@ -13,6 +13,7 @@ public class ShaderArea : GLArea
 	private GLuint[] vao={1337};
 	private GLint time_loc;
 	private GLint res_loc;
+	private GLint mouse_loc;
 	private int64 start_time;
 	private int64 curr_time;
 	private int64 pause_time;
@@ -71,6 +72,7 @@ public class ShaderArea : GLArea
 
 			time_loc = glGetUniformLocation(program, "iGlobalTime");
 			res_loc = glGetUniformLocation(program, "iResolution");
+			mouse_loc = glGetUniformLocation(program, "iMouse");
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
@@ -122,6 +124,7 @@ public class ShaderArea : GLArea
 
 			glUniform1f(time_loc, time);
 			glUniform3f(res_loc, width, height, 0);
+			glUniform4f(mouse_loc, 0, 0, 0, 0);
 
 			glBindVertexArray(vao[0]);
 
@@ -136,7 +139,7 @@ public class ShaderArea : GLArea
 
 	public void compile(string shaderSource) throws ShaderError
 	{
-		string shaderPrefix="#version 330\nprecision highp float;precision highp int;out vec4 fragColor;uniform vec3 iResolution;uniform float iGlobalTime;";
+		string shaderPrefix="#version 330\nprecision highp float;precision highp int;out vec4 fragColor;uniform vec3 iResolution;uniform float iGlobalTime;uniform vec4 iMouse;";
 
 		string shaderSuffix="void main(void){vec4 col;mainImage(col,gl_FragCoord.xy);fragColor=col;}";
 		string fullShaderSource = shaderPrefix+shaderSource+shaderSuffix;
