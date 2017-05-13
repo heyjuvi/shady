@@ -40,6 +40,8 @@ namespace Shady
 		private SourceLanguage source_language;
 		private SourceLanguageManager source_language_manager;
 
+		private bool _is_fullscreen = false;
+
 		public AppWindow(Gtk.Application app)
 		{
 			Object(application: app);
@@ -81,6 +83,33 @@ namespace Shady
 			main_paned.pack1(scrolled_source, true, true);
 
 			show_all();
+
+			key_press_event.connect((widget, event) =>
+			{
+				bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
+
+				if (event.keyval == Gdk.Key.F11)
+				{
+					if (is_fullscreen)
+					{
+						unfullscreen();
+						scrolled_source.show();
+					}
+					else
+					{
+						scrolled_source.hide();
+						fullscreen();
+					}
+				}
+
+				if (is_fullscreen && event.keyval == Gdk.Key.Escape)
+				{
+					unfullscreen();
+					scrolled_source.show();
+				}
+
+				return true;
+			});
 		}
 
 		public void reset_time()
@@ -121,6 +150,13 @@ namespace Shady
 			{
 				pause();
 			}
+		}
+
+		[GtkCallback]
+		private void fullscreen_button_clicked()
+		{
+			scrolled_source.hide();
+			fullscreen();
 		}
 
 		[GtkCallback]
