@@ -18,6 +18,9 @@ namespace Shady
 		private HeaderBar header_bar;
 
 		[GtkChild]
+		private Gtk.MenuButton menu_button;
+
+		[GtkChild]
 		private Button reset_button;
 
 		[GtkChild]
@@ -82,7 +85,7 @@ namespace Shady
 
 			main_paned.pack1(scrolled_source, true, true);
 
-			show_all();
+			menu_button.menu_model = app.app_menu;
 
 			key_press_event.connect((widget, event) =>
 			{
@@ -110,6 +113,8 @@ namespace Shady
 
 				return false;
 			});
+
+			show_all();
 		}
 
 		public void reset_time()

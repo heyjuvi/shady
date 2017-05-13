@@ -56,6 +56,7 @@ namespace Shady
 					{
 						case Gtk.ResponseType.ACCEPT:
 							var file = open_dialog.get_file();
+							open_dialog.destroy();
 
 							DataInputStream dis = new DataInputStream(file.read());
 
@@ -77,8 +78,6 @@ namespace Shady
 							new_window.source_buffer.text = file_string;
 							new_window.reset_time();
 							new_window.play();
-
-							open_dialog.destroy();
 							new_window.present();
 
 							window = new_window;
