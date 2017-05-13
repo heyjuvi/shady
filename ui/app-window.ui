@@ -54,6 +54,28 @@
 					</packing>
 				</child>
 
+				<child>
+					<object class="GtkButton" id="fullscreen_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="receives_default">False</property>
+
+						<signal name="clicked" handler="fullscreen_button_clicked" />
+
+						<child>
+							<object class="GtkImage">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="icon_name">view-fullscreen-symbolic</property>
+							</object>
+						</child>
+					</object>
+					<packing>
+						<property name="pack-type">end</property>
+						<property name="position">2</property>
+					</packing>
+				</child>
+
 				<child type="title">
 					<object class="GtkImage">
 						<property name="visible">True</property>

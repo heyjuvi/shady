@@ -7,6 +7,13 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/app-window.ui")]
 	public class AppWindow : ApplicationWindow
 	{
+		private bool _edited;
+		public bool edited
+		{
+			get { return _edited; }
+			default = false;
+		}
+
 		[GtkChild]
 		private HeaderBar header_bar;
 
@@ -29,9 +36,11 @@ namespace Shady
 
 		private ScrolledWindow scrolled_source;
 		private SourceView source_view;
-		private SourceBuffer source_buffer;
+		public SourceBuffer source_buffer;
 		private SourceLanguage source_language;
 		private SourceLanguageManager source_language_manager;
+
+		private bool _is_fullscreen = false;
 
 		public AppWindow(Gtk.Application app)
 		{
@@ -49,6 +58,11 @@ namespace Shady
 
 			source_buffer = new source_buffer.with_language(source_language);
 			source_buffer.text = defaultShader;
+
+			source_buffer.changed.connect(() =>
+			{
+				_edited = true;
+			});
 
 			source_view = new SourceView.with_buffer(source_buffer);
 
@@ -69,9 +83,41 @@ namespace Shady
 			main_paned.pack1(scrolled_source, true, true);
 
 			show_all();
+
+			key_press_event.connect((widget, event) =>
+			{
+				bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
+
+				if (event.keyval == Gdk.Key.F11)
+				{
+					if (is_fullscreen)
+					{
+						unfullscreen();
+						scrolled_source.show();
+					}
+					else
+					{
+						scrolled_source.hide();
+						fullscreen();
+					}
+				}
+
+				if (is_fullscreen && event.keyval == Gdk.Key.Escape)
+				{
+					unfullscreen();
+					scrolled_source.show();
+				}
+
+				return true;
+			});
 		}
 
-		private void play()
+		public void reset_time()
+		{
+			shader_area.reset_time();
+		}
+
+		public void play()
 		{
 			shader_area.compile(source_buffer.text);
 			shader_area.pause(false);
@@ -80,7 +126,7 @@ namespace Shady
 			play_button_image.set_from_icon_name("media-playback-pause", Gtk.IconSize.BUTTON);
 		}
 
-		private	void pause()
+		public void pause()
 		{
 			shader_area.pause(true);
 
@@ -90,7 +136,7 @@ namespace Shady
 		[GtkCallback]
 		private void reset_button_clicked()
 		{
-			shader_area.reset_time();
+			reset_time();
 		}
 
 		[GtkCallback]
@@ -104,6 +150,13 @@ namespace Shady
 			{
 				pause();
 			}
+		}
+
+		[GtkCallback]
+		private void fullscreen_button_clicked()
+		{
+			scrolled_source.hide();
+			fullscreen();
 		}
 
 		[GtkCallback]
