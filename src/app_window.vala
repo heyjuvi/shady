@@ -96,11 +96,10 @@ namespace Shady
 					if (is_fullscreen)
 					{
 						unfullscreen();
-						scrolled_source.show();
 					}
 					else
 					{
-						scrolled_source.hide();
+
 						fullscreen();
 					}
 				}
@@ -108,6 +107,21 @@ namespace Shady
 				if (is_fullscreen && event.keyval == Gdk.Key.Escape)
 				{
 					unfullscreen();
+				}
+
+				return false;
+			});
+
+			window_state_event.connect((event) =>
+			{
+				bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
+
+				if (is_fullscreen)
+				{
+					scrolled_source.hide();
+				}
+				else
+				{
 					scrolled_source.show();
 				}
 
