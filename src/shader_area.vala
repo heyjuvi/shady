@@ -9,8 +9,8 @@ public errordomain ShaderError
 public class ShaderArea : GLArea
 {
 	private GLuint program;
-	private GLuint fragmentShader;
-	private GLuint[] vao={1337};
+	private GLuint fragment_shader;
+	private GLuint[] vao = { 1337 };
 	private GLint time_loc;
 	private GLint res_loc;
 	private GLint mouse_loc;
@@ -28,7 +28,7 @@ public class ShaderArea : GLArea
 
 	public bool paused { get; set; default = false; }
 
-	public ShaderArea(string fragmentSource)
+	public ShaderArea(string fragment_source)
 	{
 		this.initialized = false;
 
@@ -41,22 +41,22 @@ public class ShaderArea : GLArea
 				return;
 			}
 
-			const string vertexSource = "attribute vec2 v;void main(void) {gl_Position = vec4(v,1,1);}";
+			const string vertex_source = "attribute vec2 v;void main(void) {gl_Position = vec4(v,1,1);}";
 
-			const string[] vertexSourceArray = { vertexSource, null };
+			const string[] vertex_source_array = { vertex_source, null };
 
-			GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-			glShaderSource(vertexShader, 1, vertexSourceArray,null);
-			glCompileShader(vertexShader);
+			GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+			glShaderSource(vertex_shader, 1, vertex_source_array, null);
+			glCompileShader(vertex_shader);
 
-			fragmentShader=glCreateShader(GL_FRAGMENT_SHADER);
+			fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
 			program = glCreateProgram();
 
-			glAttachShader(program, vertexShader);
-			glAttachShader(program, fragmentShader);
+			glAttachShader(program, vertex_shader);
+			glAttachShader(program, fragment_shader);
 
-			compile(fragmentSource);
+			compile(fragment_source);
 
 			glGenVertexArrays(1, vao);
 			glBindVertexArray(vao[0]);
@@ -156,11 +156,11 @@ public class ShaderArea : GLArea
 		}
 	}
 
-	public void compile(string shaderSource) throws ShaderError
+	public void compile(string shader_source) throws ShaderError
 	{
 		string shader_prefix = "#version 330\nprecision highp float;precision highp int;out vec4 fragColor;uniform vec3 iResolution;uniform float iGlobalTime;\nuniform vec4 iMouse;\n";
 		string shader_suffix = "void main(void){vec4 col;mainImage(col,gl_FragCoord.xy);fragColor=col;}";
-		string full_shader_source = shaderPrefix + shader_source + shader_suffix;
+		string full_shader_source = shader_prefix + shader_source + shader_suffix;
 
 		string[] source_array = { full_shader_source, null };
 
@@ -174,7 +174,7 @@ public class ShaderArea : GLArea
 		{
 			GLint log_size[] = {0};
 			glGetShaderiv(fragment_shader, GL_INFO_LOG_LENGTH, log_size);
-			GLubyte[] log = new GLubyte[logSize[0]];
+			GLubyte[] log = new GLubyte[log_size[0]];
 			glGetShaderInfoLog(fragment_shader, log_size[0], log_size, log);
 
 			throw new ShaderError.COMPILATION((string) log);
