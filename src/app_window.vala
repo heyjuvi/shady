@@ -49,7 +49,7 @@ namespace Shady
 		{
 			Object(application: app);
 
-			string defaultShader = "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n\tvec2 uv = fragCoord.xy / iResolution.xy;\n\tfragColor = vec4(uv,0.5+0.5*sin(iGlobalTime),1.0);\n}";
+			string defaultShader = (string)(resources_lookup_data("/org/hasi/shady/data/shader/default.glsl",0).get_data());
 
 			shader_area = new ShaderArea(defaultShader);
 			shader_area.set_size_request(400, 520);
