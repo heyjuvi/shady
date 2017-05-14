@@ -89,17 +89,21 @@ namespace Shady
 
 			button_press_event.connect((widget, event) =>
 			{
-				if(event.button == Gdk.BUTTON_PRIMARY){
+				if (event.button == Gdk.BUTTON_PRIMARY)
+				{
 					shader_area.button_press(event.x, event.y);
 				}
+
 				return false;
 			});
 
 			button_release_event.connect((widget, event) =>
 			{
-				if(event.button == Gdk.BUTTON_PRIMARY){
+				if(event.button == Gdk.BUTTON_PRIMARY)
+				{
 					shader_area.button_release(event.x, event.y);
 				}
+
 				return false;
 			});
 
@@ -115,7 +119,6 @@ namespace Shady
 					}
 					else
 					{
-
 						fullscreen();
 					}
 				}

@@ -32,7 +32,8 @@ public class ShaderArea : GLArea
 	{
 		this.initialized = false;
 
-		this.realize.connect(() => {
+		this.realize.connect(() =>
+		{
 			this.make_current();
 
 			if (this.get_error() != null)
@@ -57,10 +58,10 @@ public class ShaderArea : GLArea
 
 			compile(fragmentSource);
 
-			glGenVertexArrays (1, vao);
-			glBindVertexArray (vao[0]);
+			glGenVertexArrays(1, vao);
+			glBindVertexArray(vao[0]);
 
-			GLuint[] vbo = {1337};
+			GLuint[] vbo = { 1337 };
 			glGenBuffers(1, vbo);
 
 			GLfloat[] vertices = {  1,  1,
@@ -74,7 +75,7 @@ public class ShaderArea : GLArea
 			GLuint attrib = glGetAttribLocation(program, "v");
 
 			glEnableVertexAttribArray(attrib);
-			glVertexAttribPointer(attrib, 2, GL_FLOAT, (GLboolean)GL_FALSE, 0, null);
+			glVertexAttribPointer(attrib, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
@@ -127,19 +128,21 @@ public class ShaderArea : GLArea
 			glUniform1f(time_loc, time);
 			glUniform3f(res_loc, width, height, 0);
 
-			Gdk.Device mouse_device=get_display().get_default_seat().get_pointer();
+			Gdk.Device mouse_device = get_display().get_default_seat().get_pointer();
 
 			double mouse_x, mouse_y;
 
-			get_window().get_device_position_double(mouse_device,out mouse_x,out mouse_y,null);
+			get_window().get_device_position_double(mouse_device, out mouse_x, out mouse_y, null);
 
-			mouse_y=height-mouse_y-1;
+			mouse_y = height - mouse_y - 1;
 
-			if(button_pressed){
-				glUniform4f(mouse_loc, (float)mouse_x, (float)mouse_y, (float)button_pressed_x, (float)button_pressed_y);
+			if (button_pressed)
+			{
+				glUniform4f(mouse_loc, (float) mouse_x, (float) mouse_y, (float) button_pressed_x, (float) button_pressed_y);
 			}
-			else{
-				glUniform4f(mouse_loc, (float)button_released_x, (float)button_released_y, -(float)button_pressed_x, -(float)button_pressed_y);
+			else
+			{
+				glUniform4f(mouse_loc, (float) button_released_x, (float) button_released_y, -(float) button_pressed_x, -(float) button_pressed_y);
 			}
 
 			glBindVertexArray(vao[0]);
@@ -155,27 +158,26 @@ public class ShaderArea : GLArea
 
 	public void compile(string shaderSource) throws ShaderError
 	{
-		string shaderPrefix="#version 330\nprecision highp float;precision highp int;out vec4 fragColor;uniform vec3 iResolution;uniform float iGlobalTime;\nuniform vec4 iMouse;\n";
+		string shader_prefix = "#version 330\nprecision highp float;precision highp int;out vec4 fragColor;uniform vec3 iResolution;uniform float iGlobalTime;\nuniform vec4 iMouse;\n";
+		string shader_suffix = "void main(void){vec4 col;mainImage(col,gl_FragCoord.xy);fragColor=col;}";
+		string full_shader_source = shaderPrefix + shader_source + shader_suffix;
 
-		string shaderSuffix="void main(void){vec4 col;mainImage(col,gl_FragCoord.xy);fragColor=col;}";
-		string fullShaderSource = shaderPrefix+shaderSource+shaderSuffix;
+		string[] source_array = { full_shader_source, null };
 
-		string[] sourceArray = { fullShaderSource, null };
-
-		glShaderSource(fragmentShader, 1, sourceArray,null);
-		glCompileShader(fragmentShader);
+		glShaderSource(fragment_shader, 1, source_array, null);
+		glCompileShader(fragment_shader);
 
 		GLint success[] = {0};
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, success);
+		glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, success);
 
 		if (success[0] == GL_FALSE)
 		{
-			GLint logSize[] = {0};
-			glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, logSize);
+			GLint log_size[] = {0};
+			glGetShaderiv(fragment_shader, GL_INFO_LOG_LENGTH, log_size);
 			GLubyte[] log = new GLubyte[logSize[0]];
-			glGetShaderInfoLog(fragmentShader, logSize[0], logSize, log);
+			glGetShaderInfoLog(fragment_shader, log_size[0], log_size, log);
 
-			throw new ShaderError.COMPILATION((string)log);
+			throw new ShaderError.COMPILATION((string) log);
 		}
 
 		glLinkProgram(program);
@@ -187,7 +189,7 @@ public class ShaderArea : GLArea
 
 	public void pause(bool pause_status)
 	{
-		paused=pause_status;
+		paused = pause_status;
 
 		if (pause_status == true)
 		{
@@ -201,23 +203,22 @@ public class ShaderArea : GLArea
 
 	public void reset_time()
 	{
-		start_time=curr_time;
+		start_time = curr_time;
 
-		//this.render_gl();
 		this.queue_draw();
 	}
 
 	public void button_press(double x, double y)
 	{
-		button_pressed=true;
-		button_pressed_x=x;
-		button_pressed_y=get_allocated_height()-y-1;
+		button_pressed = true;
+		button_pressed_x = x;
+		button_pressed_y = get_allocated_height() - y - 1;
 	}
 
 	public void button_release(double x, double y)
 	{
 		button_pressed=false;
-		button_released_x=x;
-		button_released_y=get_allocated_height()-y-1;
+		button_released_x = x;
+		button_released_y = get_allocated_height() - y - 1;
 	}
 }
