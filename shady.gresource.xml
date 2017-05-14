@@ -9,6 +9,6 @@
 		<file>data/css/shady.css</file>
 
 		<!-- misc -->
-		<file>data/images/shady_logo_title.png</file>
+		<file>data/images/shady_logo_title.svg</file>
 	</gresource>
 </gresources>
