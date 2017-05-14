@@ -58,15 +58,6 @@ namespace Shady
 							var file = open_dialog.get_file();
 							open_dialog.destroy();
 
-							DataInputStream dis = new DataInputStream(file.read());
-
-							string file_string = "";
-							string line;
-							while ((line = dis.read_line()) != null)
-							{
-								file_string += @"$(line)\n";
-							}
-
 							if (!window.edited)
 							{
 								window.destroy();
@@ -75,7 +66,7 @@ namespace Shady
 							// for some reason the window is display below the
 							// previous one
 							var new_window = new AppWindow(this);
-							new_window.source_buffer.text = file_string;
+							new_window.source_buffer.text = read_file_as_string(file);
 							new_window.reset_time();
 							new_window.play();
 							new_window.present();

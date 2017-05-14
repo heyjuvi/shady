@@ -3,6 +3,7 @@ bin_PROGRAMS = shady
 shady_SOURCES = \
 	shady.gresource.c \
 	main.vala \
+	io_sugar.vala \
 	app.vala \
 	app_window.vala \
 	shader_area.vala

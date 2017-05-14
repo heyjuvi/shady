@@ -181,7 +181,14 @@ namespace Shady
 		[GtkCallback]
 		private void compile_button_clicked()
 		{
-			shader_area.compile(source_buffer.text);
+			try
+			{
+				shader_area.compile(source_buffer.text);
+			}
+			catch (ShaderError e)
+			{
+				print(@"Compilation error: $(e.message)");
+			}
 
 			shader_area.queue_draw();
 		}
