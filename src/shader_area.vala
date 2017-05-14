@@ -158,8 +158,10 @@ public class ShaderArea : GLArea
 
 	public void compile(string shader_source) throws ShaderError
 	{
-		string shader_prefix = "#version 330\nprecision highp float;precision highp int;out vec4 fragColor;uniform vec3 iResolution;uniform float iGlobalTime;\nuniform vec4 iMouse;\n";
-		string shader_suffix = "void main(void){vec4 col;mainImage(col,gl_FragCoord.xy);fragColor=col;}";
+
+		string shader_prefix = (string)(resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl",0).get_data());
+		string shader_suffix = (string)(resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl",0).get_data());
+
 		string full_shader_source = shader_prefix + shader_source + shader_suffix;
 
 		string[] source_array = { full_shader_source, null };
