@@ -87,6 +87,22 @@ namespace Shady
 
 			menu_button.menu_model = app.app_menu;
 
+			button_press_event.connect((widget, event) =>
+			{
+				if(event.button == Gdk.BUTTON_PRIMARY){
+					shader_area.button_press(event.x, event.y);
+				}
+				return false;
+			});
+
+			button_release_event.connect((widget, event) =>
+			{
+				if(event.button == Gdk.BUTTON_PRIMARY){
+					shader_area.button_release(event.x, event.y);
+				}
+				return false;
+			});
+
 			key_press_event.connect((widget, event) =>
 			{
 				bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
