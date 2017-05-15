@@ -11,6 +11,6 @@ namespace Shady
 			file_string += @"$(line)\n";
 		}
 
-		return file_string;
+		return file_string[0:file_string.length - 1];
 	}
 }

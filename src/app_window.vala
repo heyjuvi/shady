@@ -21,22 +21,19 @@ namespace Shady
 		private Gtk.MenuButton menu_button;
 
 		[GtkChild]
-		private Button reset_button;
-
-		[GtkChild]
-		private Button play_button;
-
-		[GtkChild]
 		private Image play_button_image;
+
+		[GtkChild]
+		private Gtk.Revealer rubber_band_revealer;
+
+		[GtkChild]
+		private Gtk.Scale rubber_band_scale;
 
 		[GtkChild]
 		private Label fps_label;
 
 		[GtkChild]
 		private Label time_label;
-
-		[GtkChild]
-		private Button compile_button;
 
 		[GtkChild]
 		private Paned main_paned;
@@ -55,7 +52,7 @@ namespace Shady
 		{
 			Object(application: app);
 
-			string defaultShader = (string)(resources_lookup_data("/org/hasi/shady/data/shader/default.glsl",0).get_data());
+			string defaultShader = read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl"));
 
 			shader_area = new ShaderArea(defaultShader);
 			shader_area.set_size_request(400, 520);
@@ -155,9 +152,6 @@ namespace Shady
 
 			show_all();
 
-			fps_label.override_font(FontDescription.from_string("Monospace"));
-			time_label.override_font(FontDescription.from_string("Monospace"));
-
 			fps_label.draw.connect(update_fps);
 			time_label.draw.connect(update_time);
 
@@ -172,29 +166,33 @@ namespace Shady
 		{
 			shader_area.pause(false);
 
-			play_button_image.set_from_icon_name("media-playback-pause", Gtk.IconSize.BUTTON);
+			play_button_image.set_from_icon_name("media-playback-pause-symbolic", Gtk.IconSize.BUTTON);
+			rubber_band_revealer.set_reveal_child(false);
 		}
 
 		public void pause()
 		{
 			shader_area.pause(true);
 
-			play_button_image.set_from_icon_name("media-playback-start", Gtk.IconSize.BUTTON);
+			play_button_image.set_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.BUTTON);
+			rubber_band_revealer.set_reveal_child(true);
 		}
 
 		public bool update_fps()
 		{
-			StringBuilder fps=new StringBuilder();
-			fps.printf("%07.2f",shader_area.fps);
+			StringBuilder fps = new StringBuilder();
+			fps.printf("%07.2f", shader_area.fps);
 			fps_label.set_label(fps.str);
+
 			return false;
 		}
 
 		public bool update_time()
 		{
-			StringBuilder time=new StringBuilder();
-			time.printf("%05.2f",shader_area.time);
+			StringBuilder time = new StringBuilder();
+			time.printf("%05.2f", shader_area.time);
 			time_label.set_label(time.str);
+
 			return false;
 		}
 
@@ -215,6 +213,20 @@ namespace Shady
 			{
 				pause();
 			}
+		}
+
+		[GtkCallback]
+		private void rubber_band_scale_value_changed()
+		{
+			print(@"$(rubber_band_scale.get_value())\n");
+		}
+
+		[GtkCallback]
+		private bool rubber_band_scale_button_released(Gdk.EventButton event)
+		{
+			rubber_band_scale.set_value(0);
+
+			return false;
 		}
 
 		[GtkCallback]
