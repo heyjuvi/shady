@@ -10,8 +10,10 @@
 
 		<!-- misc -->
 		<file>data/images/shady_logo_title.svg</file>
+
 		<file>data/shader/prefix.glsl</file>
 		<file>data/shader/default.glsl</file>
 		<file>data/shader/suffix.glsl</file>
+		<file>data/shader/vertex.glsl</file>
 	</gresource>
 </gresources>

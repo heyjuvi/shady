@@ -41,9 +41,8 @@ public class ShaderArea : GLArea
 				return;
 			}
 
-			const string vertex_source = "attribute vec2 v;void main(void) {gl_Position = vec4(v,1,1);}";
-
-			const string[] vertex_source_array = { vertex_source, null };
+			string vertex_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/vertex.glsl", 0).get_data());
+			string[] vertex_source_array = { vertex_source, null };
 
 			GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 			glShaderSource(vertex_shader, 1, vertex_source_array, null);
@@ -159,8 +158,8 @@ public class ShaderArea : GLArea
 	public void compile(string shader_source) throws ShaderError
 	{
 
-		string shader_prefix = (string)(resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl",0).get_data());
-		string shader_suffix = (string)(resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl",0).get_data());
+		string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
+		string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
 
 		string full_shader_source = shader_prefix + shader_source + shader_suffix;
 
