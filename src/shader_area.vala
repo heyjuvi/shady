@@ -27,6 +27,8 @@ public class ShaderArea : GLArea
 	private double button_released_y;
 
 	public bool paused { get; set; default = false; }
+	public double fps;
+	public double time;
 
 	public ShaderArea(string fragment_source)
 	{
@@ -112,8 +114,6 @@ public class ShaderArea : GLArea
 
 			glUseProgram(program);
 
-			float time;
-
 			if (!paused)
 			{
 				curr_time = get_monotonic_time();
@@ -124,7 +124,7 @@ public class ShaderArea : GLArea
 				time = (pause_time - start_time) / 1000000.0f;
 			}
 
-			glUniform1f(time_loc, time);
+			glUniform1f(time_loc, (float)time);
 			glUniform3f(res_loc, width, height, 0);
 
 			Gdk.Device mouse_device = get_display().get_default_seat().get_pointer();
@@ -146,12 +146,24 @@ public class ShaderArea : GLArea
 
 			glBindVertexArray(vao[0]);
 
+			glFinish();
+
+			int64 time_before = get_monotonic_time();
+
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-			glBindVertexArray(0);
-			glUseProgram(0);
-
 			glFlush();
+			glFinish();
+
+			int64 time_after = get_monotonic_time();
+
+			//compute moving average
+			if(fps!=0){
+				fps=(0.95*fps + 0.05*(1000000.0f / (time_after - time_before)));
+			}
+			else{
+				fps=1000000.0f / (time_after - time_before);
+			}
 		}
 	}
 
@@ -186,6 +198,9 @@ public class ShaderArea : GLArea
 		time_loc = glGetUniformLocation(program, "iGlobalTime");
 		res_loc = glGetUniformLocation(program, "iResolution");
 		mouse_loc = glGetUniformLocation(program, "iMouse");
+
+		//prevent averaging in of old shader
+		fps=0;
 	}
 
 	public void pause(bool pause_status)
@@ -205,8 +220,6 @@ public class ShaderArea : GLArea
 	public void reset_time()
 	{
 		start_time = curr_time;
-
-		this.queue_draw();
 	}
 
 	public void button_press(double x, double y)

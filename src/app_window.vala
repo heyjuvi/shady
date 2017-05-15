@@ -30,6 +30,12 @@ namespace Shady
 		private Image play_button_image;
 
 		[GtkChild]
+		private Label fps_label;
+
+		[GtkChild]
+		private Label time_label;
+
+		[GtkChild]
 		private Button compile_button;
 
 		[GtkChild]
@@ -148,6 +154,13 @@ namespace Shady
 			});
 
 			show_all();
+
+			fps_label.override_font(FontDescription.from_string("Monospace"));
+			time_label.override_font(FontDescription.from_string("Monospace"));
+
+			fps_label.draw.connect(update_fps);
+			time_label.draw.connect(update_time);
+
 		}
 
 		public void reset_time()
@@ -157,9 +170,7 @@ namespace Shady
 
 		public void play()
 		{
-			shader_area.compile(source_buffer.text);
 			shader_area.pause(false);
-			shader_area.queue_draw();
 
 			play_button_image.set_from_icon_name("media-playback-pause", Gtk.IconSize.BUTTON);
 		}
@@ -169,6 +180,22 @@ namespace Shady
 			shader_area.pause(true);
 
 			play_button_image.set_from_icon_name("media-playback-start", Gtk.IconSize.BUTTON);
+		}
+
+		public bool update_fps()
+		{
+			StringBuilder fps=new StringBuilder();
+			fps.printf("%07.2f",shader_area.fps);
+			fps_label.set_label(fps.str);
+			return false;
+		}
+
+		public bool update_time()
+		{
+			StringBuilder time=new StringBuilder();
+			time.printf("%05.2f",shader_area.time);
+			time_label.set_label(time.str);
+			return false;
 		}
 
 		[GtkCallback]
@@ -208,8 +235,6 @@ namespace Shady
 			{
 				print(@"Compilation error: $(e.message)");
 			}
-
-			shader_area.queue_draw();
 		}
 	}
 }
