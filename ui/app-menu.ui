@@ -13,6 +13,12 @@
 		</section>
 		<section>
 			<item>
+				<attribute name="label">Load from Shadertoy</attribute>
+				<attribute name="action">app.load_from_shadertoy</attribute>
+			</item>
+		</section>
+		<section>
+			<item>
 				<attribute name="label">Quit</attribute>
 				<attribute name="action">app.quit</attribute>
 			</item>

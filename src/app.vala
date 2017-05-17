@@ -14,7 +14,6 @@ namespace Shady
 			add_actions();
 		}
 
-
 		private void add_actions()
 		{
 			SimpleAction new_action = new SimpleAction("new", null);
@@ -56,7 +55,6 @@ namespace Shady
 					{
 						case Gtk.ResponseType.ACCEPT:
 							var file = open_dialog.get_file();
-							open_dialog.destroy();
 
 							if (!window.edited)
 							{
@@ -68,6 +66,7 @@ namespace Shady
 							var new_window = new AppWindow(this);
 							new_window.source_buffer.text = read_file_as_string(file);
 							new_window.reset_time();
+							new_window.compile();
 							new_window.play();
 							new_window.present();
 
@@ -78,12 +77,53 @@ namespace Shady
 						case Gtk.ResponseType.CANCEL:
 							break;
 					}
+
+					open_dialog.destroy();
 				});
 
 				open_dialog.show();
 			});
 
 			this.add_action(open_action);
+
+			SimpleAction load_from_shadertoy_action = new SimpleAction("load_from_shadertoy", null);
+			load_from_shadertoy_action.activate.connect(() =>
+			{
+				var shadertoy_search_dialog = new Shady.ShadertoySearchDialog(window);
+
+				shadertoy_search_dialog.response.connect((dialog, response_id) =>
+				{
+					switch (response_id)
+					{
+						case Gtk.ResponseType.ACCEPT:
+							if (!window.edited)
+							{
+								window.destroy();
+							}
+
+							// for some reason the window is display below the
+							// previous one
+							var new_window = new AppWindow(this);
+							new_window.source_buffer.text = shadertoy_search_dialog.selected_shader;
+							new_window.reset_time();
+							new_window.compile();
+							new_window.play();
+							new_window.present();
+
+							window = new_window;
+							break;
+
+						case Gtk.ResponseType.CANCEL:
+							break;
+					}
+
+					shadertoy_search_dialog.destroy();
+				});
+
+				shadertoy_search_dialog.show();
+			});
+
+			this.add_action(load_from_shadertoy_action);
 
 			SimpleAction quit_action = new SimpleAction("quit", null);
 			quit_action.activate.connect(() =>
@@ -106,6 +146,9 @@ namespace Shady
 
 		protected override void activate()
 		{
+			// don't ask
+			new ShaderArea();
+
 			window = new Shady.AppWindow(this);
 
 			load_css();

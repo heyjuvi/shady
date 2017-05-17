@@ -4,13 +4,19 @@
 		<!-- ui -->
 		<file preprocess="xml-stripblanks" alias="gtk/menus.ui">ui/app-menu.ui</file>
 		<file preprocess="xml-stripblanks">ui/app-window.ui</file>
+		<file preprocess="xml-stripblanks">ui/shader-area.ui</file>
+		<file preprocess="xml-stripblanks">ui/shadertoy-search-dialog.ui</file>
+		<file preprocess="xml-stripblanks">ui/shadertoy-shader-item.ui</file>
 
 		<!-- style -->
 		<file>data/css/shady.css</file>
 
-		<!-- misc -->
+		<!-- images -->
 		<file>data/images/shady_logo_title.svg</file>
+		<file>data/images/likes.png</file>
+		<file>data/images/views.png</file>
 
+		<!-- misc -->
 		<file>data/shader/prefix.glsl</file>
 		<file>data/shader/default.glsl</file>
 		<file>data/shader/suffix.glsl</file>

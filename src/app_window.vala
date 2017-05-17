@@ -55,7 +55,7 @@ namespace Shady
 			string defaultShader = read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl"));
 
 			shader_area = new ShaderArea(defaultShader);
-			shader_area.set_size_request(400, 520);
+			shader_area.set_size_request(560, 640);
 
 			main_paned.pack2(shader_area, true, true);
 
@@ -82,7 +82,7 @@ namespace Shady
 			source_view.override_font(FontDescription.from_string("Monospace"));
 
 			scrolled_source = new ScrolledWindow(null, null);
-			scrolled_source.set_size_request(600, 520);
+			scrolled_source.set_size_request(720, 640);
 
 			scrolled_source.add(source_view);
 
@@ -155,6 +155,11 @@ namespace Shady
 			fps_label.draw.connect(update_fps);
 			time_label.draw.connect(update_time);
 
+		}
+
+		public void compile() throws ShaderError
+		{
+			shader_area.compile(source_buffer.text);
 		}
 
 		public void reset_time()
@@ -241,7 +246,7 @@ namespace Shady
 		{
 			try
 			{
-				shader_area.compile(source_buffer.text);
+				compile();
 			}
 			catch (ShaderError e)
 			{

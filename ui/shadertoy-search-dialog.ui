@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+	<template class="ShadyShadertoySearchDialog" parent="GtkDialog">
+		<property name="title">Choose a shader …</property>
+		<property name="modal">True</property>
+		<property name="destroy_with_parent">True</property>
+		<property name="type_hint">dialog</property>
+		<property name="resizable">True</property>
+		<property name="use_header_bar">1</property>
+
+		<property name="default_width">920</property>
+		<property name="default_height">540</property>
+
+		<child type="action">
+			<object class="GtkButton" id="load_shader_button">
+				<property name="label">Load</property>
+				<property name="visible">True</property>
+				<property name="can_focus">True</property>
+				<property name="can_default">True</property>
+				<property name="sensitive">False</property>
+			</object>
+		</child>
+
+		<child type="action">
+			<object class="GtkButton" id="cancel_button">
+				<property name="label">Cancel</property>
+				<property name="visible">True</property>
+				<property name="can_focus">True</property>
+			</object>
+		</child>
+
+		<child type="titlebar">
+			<object class="GtkHeaderBar" id="header_bar">
+				<property name="visible">True</property>
+				<property name="can_focus">False</property>
+
+				<child type="title">
+					<object class="GtkBox" id="shader_container">
+						<property name="visible">True</property>
+						<property name="can_focus">False</property>
+						<property name="orientation">horizontal</property>
+						<property name="spacing">6</property>
+
+						<child>
+							<object class="GtkSearchEntry" id="shadertoy_search_entry">
+								<property name="visible">True</property>
+								<property name="can_focus">True</property>
+								<property name="receives_default">True</property>
+								<property name="primary_icon_name">edit-find-symbolic</property>
+								<property name="primary_icon_activatable">False</property>
+								<property name="primary_icon_sensitive">False</property>
+								<property name="width_request">560</property>
+
+								<signal name="key_press_event" handler="search_key_entry_pressed" />
+							</object>
+							<packing>
+								<property name="expand">False</property>
+								<property name="fill">True</property>
+								<property name="position">0</property>
+							</packing>
+						</child>
+					</object>
+				</child>
+			</object>
+		</child>
+
+		<child internal-child="vbox">
+			<object class="GtkBox">
+				<property name="can_focus">False</property>
+				<property name="orientation">vertical</property>
+				<property name="spacing">0</property>
+
+				<child>
+					<object class="GtkScrolledWindow">
+						<property name="visible">True</property>
+						<property name="can_focus">False</property>
+
+						<child>
+							<object class="GtkViewport">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+
+								<child>
+									<object class="GtkFlowBox" id="shader_box">
+										<property name="visible">True</property>
+										<property name="can_focus">False</property>
+										<property name="homogeneous">True</property>
+										<property name="valign">start</property>
+										<property name="column_spacing">6</property>
+										<property name="row_spacing">6</property>
+										<property name="min_children_per_line">4</property>
+
+										<signal name="selected_children_changed" handler="selected_children_changed" />
+									</object>
+								</child>
+							</object>
+						</child>
+					</object>
+					<packing>
+						<property name="expand">True</property>
+						<property name="fill">True</property>
+					</packing>
+				</child>
+			</object>
+		</child>
+
+		<action-widgets>
+			<action-widget response="accept" default="true">load_shader_button</action-widget>
+			<action-widget response="cancel">cancel_button</action-widget>
+		</action-widgets>
+	</template>
+</interface>

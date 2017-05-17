@@ -1,19 +1,33 @@
 bin_PROGRAMS = shady
 
+WARN_CFLAGS += \
+	-Wno-error=discarded-qualifiers \
+	-Wno-error=unused-variable \
+	-Wno-error=unused-but-set-variable \
+	-Wno-error=deprecated-declarations \
+	-Wno-error=incompatible-pointer-types \
+	-Wno-error=pointer-sign \
+	-Wno-error=unused-function \
+	$(NULL)
+
 shady_SOURCES = \
 	shady.gresource.c \
 	main.vala \
 	io_sugar.vala \
 	app.vala \
 	app_window.vala \
-	shader_area.vala
+	shader_area.vala \
+	shadertoy_search_dialog.vala \
+	shadertoy_shader_item.vala
 
-shady_CPPFLAGS = $(SHADY_CFLAGS)
+shady_CPPFLAGS = -g -O0 $(WARN_CFLAGS) $(SHADY_CFLAGS)
 shady_VALAFLAGS = \
 	--pkg epoxy \
 	--pkg gl \
 	--pkg gtksourceview-3.0 \
 	--pkg gtk+-3.0 \
+	--pkg libsoup-2.4 \
+	--pkg json-glib-1.0 \
 	--target-glib=2.38 \
 	--vapidir=vapi \
 	--gresources $(top_srcdir)/shady.gresource.xml
