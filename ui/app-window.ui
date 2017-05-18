@@ -113,6 +113,11 @@
 						<property name="visible">True</property>
 						<property name="can_focus">True</property>
 						<property name="receives_default">False</property>
+						<property name="valign">center</property>
+
+						<style>
+							<class name="highlighted" />
+						</style>
 
 						<attributes>
 							<attribute name="font-desc" value="Monospace 9" />
@@ -129,6 +134,11 @@
 						<property name="visible">True</property>
 						<property name="can_focus">True</property>
 						<property name="receives_default">False</property>
+						<property name="valign">center</property>
+
+						<style>
+							<class name="highlighted" />
+						</style>
 
 						<attributes>
 							<attribute name="font-desc" value="Monospace 9" />

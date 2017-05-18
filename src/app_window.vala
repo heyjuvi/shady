@@ -266,7 +266,7 @@ namespace Shady
 		{
 			StringBuilder fps = new StringBuilder();
 
-			fps.printf("%07.2f", _shader_area.fps);
+			fps.printf("%5.2ffps", _shader_area.fps);
 			fps_label.set_label(fps.str);
 
 			return false;
@@ -276,7 +276,7 @@ namespace Shady
 		{
 			StringBuilder time = new StringBuilder();
 
-			time.printf("%05.2f", _shader_area.time);
+			time.printf("%3.2fs", _shader_area.time);
 			time_label.set_label(time.str);
 
 			return false;

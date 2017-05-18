@@ -1,5 +1,12 @@
 /* general */
 .header_bar
 {
-	border: 0px;
+	border: 0;
+}
+
+.header_bar .highlighted
+{
+	background: alpha(#FFFFFF, 0.5);
+	border-radius: 3pt;
+	padding: 3pt;
 }
