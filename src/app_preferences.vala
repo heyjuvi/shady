@@ -29,6 +29,7 @@ namespace Shady
 		private bool switched_layout_switch_state_set(bool state)
 		{
 			_settings.set_boolean("switched-layout", state);
+			print(@"$state");
 
 			return false;
 		}

@@ -126,9 +126,9 @@ namespace Shady
 			_scrolled_source.add(_source_view);
 
 			// set current switched layout state
-			bool inital_switched_layout = _settings.get_boolean("switched-layout");
+			_switched_layout = _settings.get_boolean("switched-layout");
 
-			if (inital_switched_layout)
+			if (_switched_layout)
 			{
 				main_paned.pack1(_shader_area, true, true);
 				main_paned.pack2(_scrolled_source, true, true);
@@ -233,6 +233,7 @@ namespace Shady
 
 		private void switched_layout_handler()
 		{
+			print(@"$switched_layout");
 			switched_layout = _settings.get_boolean("switched-layout");
 		}
 
