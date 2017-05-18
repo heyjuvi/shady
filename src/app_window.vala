@@ -20,7 +20,6 @@ namespace Shady
 			set { _source_buffer.text = value; }
 		}
 
-
 		private bool _switched_layout = false;
 		public bool switched_layout
 		{
@@ -29,24 +28,76 @@ namespace Shady
 			{
 				if (value != _switched_layout)
 				{
-					main_paned.remove(_scrolled_source);
-					main_paned.remove(_shader_area);
-
-					if (value)
+					if (live_mode)
 					{
-						main_paned.pack1(_shader_area, true, true);
-						main_paned.pack2(_scrolled_source, true, true);
+						main_paned.remove(_shader_overlay);
+
+						if (value)
+						{
+							main_paned.pack1(_shader_overlay, true, true);
+						}
+						else
+						{
+							main_paned.pack2(_shader_overlay, true, true);
+						}
 					}
 					else
 					{
-						main_paned.pack1(_scrolled_source, true, true);
-						main_paned.pack2(_shader_area, true, true);
-					}
+						main_paned.remove(_scrolled_source);
+						main_paned.remove(_shader_overlay);
 
-					compile();
+						if (value)
+						{
+							main_paned.pack1(_shader_overlay, true, true);
+							main_paned.pack2(_scrolled_source, true, true);
+						}
+						else
+						{
+							main_paned.pack1(_scrolled_source, true, true);
+							main_paned.pack2(_shader_overlay, true, true);
+						}
+
+						compile();
+					}
 				}
 
 				_switched_layout = value;
+			}
+		}
+
+		private bool _live_mode = false;
+		public bool live_mode
+		{
+			get { return _live_mode; }
+			set
+			{
+				if (value != _live_mode)
+				{
+					if (value)
+					{
+						main_paned.remove(_scrolled_source);
+						_foreground_box.pack_start(_scrolled_source, true, true);
+
+						_source_view.highlight_current_line = false;
+					}
+					else
+					{
+						_foreground_box.remove(_scrolled_source);
+
+						if (switched_layout)
+						{
+							main_paned.pack2(_scrolled_source,true, true);
+						}
+						else
+						{
+							main_paned.pack1(_scrolled_source, true, true);
+						}
+
+						_source_view.highlight_current_line = true;
+					}
+				}
+
+				_live_mode = value;
 			}
 		}
 
@@ -55,6 +106,9 @@ namespace Shady
 
 		[GtkChild]
 		private Gtk.MenuButton menu_button;
+
+		[GtkChild]
+		private Gtk.ToggleButton live_mode_button;
 
 		[GtkChild]
 		private Image play_button_image;
@@ -74,7 +128,9 @@ namespace Shady
 		[GtkChild]
 		private Paned main_paned;
 
+		private Overlay _shader_overlay;
 		private ShaderArea _shader_area;
+		private Box _foreground_box;
 
 		private ScrolledWindow _scrolled_source;
 		private SourceView _source_view;
@@ -97,6 +153,13 @@ namespace Shady
 
 			_shader_area = new ShaderArea(default_shader);
 			_shader_area.set_size_request(500, 600);
+
+			_foreground_box = new Box(Orientation.VERTICAL, 0);
+			_foreground_box.get_style_context().add_class("source_view_wrapper");
+
+			_shader_overlay = new Overlay();
+			_shader_overlay.add(_shader_area);
+			_shader_overlay.add_overlay(_foreground_box);
 
 			_source_language_manager = SourceLanguageManager.get_default();;
 			_source_language = _source_language_manager.get_language("glsl");
@@ -130,13 +193,13 @@ namespace Shady
 
 			if (_switched_layout)
 			{
-				main_paned.pack1(_shader_area, true, true);
+				main_paned.pack1(_shader_overlay, true, true);
 				main_paned.pack2(_scrolled_source, true, true);
 			}
 			else
 			{
 				main_paned.pack1(_scrolled_source, true, true);
-				main_paned.pack2(_shader_area, true, true);
+				main_paned.pack2(_shader_overlay, true, true);
 			}
 
 			menu_button.menu_model = app.app_menu;
@@ -182,6 +245,11 @@ namespace Shady
 					unfullscreen();
 				}
 
+				if (is_fullscreen && live_mode && event.keyval == Gdk.Key.Control_R)
+				{
+					_scrolled_source.set_visible(!_scrolled_source.get_visible());
+				}
+
 				return false;
 			});
 
@@ -189,7 +257,7 @@ namespace Shady
 			{
 				bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
 
-				if (is_fullscreen)
+				if (is_fullscreen && !live_mode)
 				{
 					_scrolled_source.hide();
 				}
@@ -319,8 +387,18 @@ namespace Shady
 		[GtkCallback]
 		private void fullscreen_button_clicked()
 		{
-			_scrolled_source.hide();
+			if (!live_mode)
+			{
+				_scrolled_source.hide();
+			}
+
 			fullscreen();
+		}
+
+		[GtkCallback]
+		private void live_mode_button_toggled()
+		{
+			live_mode = live_mode_button.get_active();
 		}
 
 		[GtkCallback]
@@ -329,6 +407,7 @@ namespace Shady
 			try
 			{
 				compile();
+				live_mode = !live_mode;
 			}
 			catch (ShaderError e)
 			{

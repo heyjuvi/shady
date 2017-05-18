@@ -146,7 +146,7 @@
 					</object>
 					<packing>
 						<property name="pack-type">end</property>
-						<property name="position">3</property>
+						<property name="position">4</property>
 					</packing>
 				</child>
 
@@ -169,6 +169,21 @@
 								<property name="icon_name">system-run-symbolic</property>
 							</object>
 						</child>
+					</object>
+					<packing>
+						<property name="pack-type">end</property>
+						<property name="position">3</property>
+					</packing>
+				</child>
+
+				<child>
+					<object class="GtkToggleButton" id="live_mode_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="receives_default">False</property>
+						<property name="label">Live</property>
+
+						<signal name="toggled" handler="live_mode_button_toggled" />
 					</object>
 					<packing>
 						<property name="pack-type">end</property>

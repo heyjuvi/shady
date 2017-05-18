@@ -10,3 +10,30 @@
 	border-radius: 3pt;
 	padding: 3pt;
 }
+
+.source_view_wrapper
+{
+	margin-left: 200pt;
+	margin-right: 200pt;
+}
+
+textview.view text, textview text, textview
+{
+	background: alpha(#FFFFFF, 0.3);
+}
+
+textview.view window, textview window
+{
+	background: alpha(#FFFFFF, 0.3);
+}
+
+textview.view text selection, textview text selection
+{
+	color: #000000;
+	background: alpha(#FFFFFF, 0.3);
+}
+
+textview.view border, textview border
+{
+	background: alpha(#FFFFFF, 0.3);
+}
