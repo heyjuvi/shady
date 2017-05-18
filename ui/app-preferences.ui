@@ -3,7 +3,7 @@
 	<template class="ShadyAppPreferences" parent="GtkWindow">
 		<property name="default-width">400</property>
 		<property name="default-height">240</property>
-		<property name="title">Settings</property>
+		<property name="title">Preferences</property>
 		<property name="border-width">0</property>
 
 		<signal name="delete_event" handler="hide_on_delete" swapped="no" />
@@ -118,6 +118,8 @@
 								<property name="visible">True</property>
 								<property name="can-focus">True</property>
 								<property name="halign">start</property>
+
+								<property name="sensitive">False</property>
 							</object>
 							<packing>
 								<property name="left_attach">1</property>
