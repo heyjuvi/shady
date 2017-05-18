@@ -1,12 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <interface>
+	<object class="GtkListStore" id="glsl_versions_store">
+		<columns>
+			<column type="gint" />
+			<column type="gchararray" />
+		</columns>
+		<data>
+			<row>
+				<col id="0">0</col>
+				<col id="1">GLSL 1.0</col>
+			</row>
+			<row>
+				<col id="0">1</col>
+				<col id="1">GLSL 2.0</col>
+			</row>
+			<row>
+				<col id="0">2</col>
+				<col id="1">GLSL 3.0</col>
+			</row>
+			<row>
+				<col id="0">3</col>
+				<col id="1">GLSL 4.0</col>
+			</row>
+		</data>
+	</object>
+
 	<template class="ShadyAppPreferences" parent="GtkWindow">
-		<property name="default-width">400</property>
-		<property name="default-height">240</property>
+		<property name="default_width">320</property>
+		<property name="default_height">240</property>
 		<property name="title">Preferences</property>
 		<property name="border-width">0</property>
 
-		<signal name="delete_event" handler="hide_on_delete" swapped="no" />
+		<signal name="delete_event" handler="hide_on_delete" />
 
 		<child type="titlebar">
 			<object class="GtkHeaderBar" id="header_bar">
@@ -79,7 +104,6 @@
 								<property name="left_attach">1</property>
 								<property name="top_attach">1</property>
 								<property name="width">1</property>
-								<property name="height">1</property>
 							</packing>
 						</child>
 
@@ -119,13 +143,12 @@
 								<property name="can-focus">True</property>
 								<property name="halign">start</property>
 
-								<property name="sensitive">False</property>
+								<signal name="state_set" handler="auto_compile_switch_state_set" />
 							</object>
 							<packing>
 								<property name="left_attach">1</property>
 								<property name="top_attach">3</property>
 								<property name="width">1</property>
-								<property name="height">1</property>
 							</packing>
 						</child>
 					</object>
@@ -142,7 +165,7 @@
 						<property name="margin">12</property>
 						<property name="row-spacing">12</property>
 						<property name="column-spacing">12</property>
-						<property name="column-homogeneous">True</property>
+						<property name="column-homogeneous">False</property>
 
 						<child>
 							<object class="GtkLabel">
@@ -158,6 +181,40 @@
 								<property name="left-attach">0</property>
 								<property name="top-attach">0</property>
 								<property name="width">2</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">GLSL version</property>
+								<property name="halign">end</property>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">1</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkComboBoxText">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="width_request">200</property>
+								<property name="active">3</property>
+
+								<items>
+									<item>GLSL 1.0</item>
+									<item>GLSL 2.0</item>
+									<item>GLSL 3.0</item>
+									<item>GLSL 4.0</item>
+								</items>
+							</object>
+							<packing>
+								<property name="left-attach">1</property>
+								<property name="top-attach">1</property>
+								<property name="width">1</property>
 							</packing>
 						</child>
 					</object>

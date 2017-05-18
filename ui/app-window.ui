@@ -13,6 +13,8 @@
 		<property name="show_menubar">False</property>
 		<property name="title">Shady</property>
 
+		<signal name="destroy" handler="on_destroy" />
+
 		<child type="titlebar">
 			<object class="GtkHeaderBar" id="header_bar">
 				<property name="visible">True</property>

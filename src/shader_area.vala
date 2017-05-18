@@ -159,12 +159,14 @@ namespace Shady
 
 				int64 time_after = get_monotonic_time();
 
-				//compute moving average
-				if(fps!=0){
-					fps=(0.95*fps + 0.05*(1000000.0f / (time_after - time_before)));
+				// compute moving average
+				if (fps != 0)
+				{
+					fps = (0.95 * fps + 0.05 * (1000000.0f / (time_after - time_before)));
 				}
-				else{
-					fps=1000000.0f / (time_after - time_before);
+				else
+				{
+					fps = 1000000.0f / (time_after - time_before);
 				}
 			}
 		}
@@ -244,7 +246,7 @@ namespace Shady
 
 		public void button_release(double x, double y)
 		{
-			button_pressed=false;
+			button_pressed = false;
 			button_released_x = x;
 			button_released_y = get_allocated_height() - y - 1;
 		}

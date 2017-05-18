@@ -14,6 +14,13 @@ namespace Shady
 			default = false;
 		}
 
+		public string shader
+		{
+			owned get { return _source_buffer.text; }
+			set { _source_buffer.text = value; }
+		}
+
+
 		private bool _switched_layout = false;
 		public bool switched_layout
 		{
@@ -22,19 +29,21 @@ namespace Shady
 			{
 				if (value != _switched_layout)
 				{
-					main_paned.remove(scrolled_source);
-					main_paned.remove(shader_area);
+					main_paned.remove(_scrolled_source);
+					main_paned.remove(_shader_area);
 
 					if (value)
 					{
-						main_paned.pack1(shader_area, true, true);
-						main_paned.pack2(scrolled_source, true, true);
+						main_paned.pack1(_shader_area, true, true);
+						main_paned.pack2(_scrolled_source, true, true);
 					}
 					else
 					{
-						main_paned.pack1(scrolled_source, true, true);
-						main_paned.pack2(shader_area, true, true);
+						main_paned.pack1(_scrolled_source, true, true);
+						main_paned.pack2(_shader_area, true, true);
 					}
+
+					compile();
 				}
 
 				_switched_layout = value;
@@ -65,55 +74,70 @@ namespace Shady
 		[GtkChild]
 		private Paned main_paned;
 
-		private ShaderArea shader_area;
+		private ShaderArea _shader_area;
 
-		private ScrolledWindow scrolled_source;
-		private SourceView source_view;
-		public SourceBuffer source_buffer;
-		private SourceLanguage source_language;
-		private SourceLanguageManager source_language_manager;
+		private ScrolledWindow _scrolled_source;
+		private SourceView _source_view;
+		private SourceBuffer _source_buffer;
+		private SourceLanguage _source_language;
+		private SourceLanguageManager _source_language_manager;
 
+		private GLib.Settings _settings;
+
+		private uint _auto_compile_handler_id;
 		private bool _is_fullscreen = false;
 
 		public AppWindow(Gtk.Application app, AppPreferences preferences)
 		{
 			Object(application: app);
 
-			string defaultShader = read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl"));
+			_settings = new GLib.Settings("org.hasi.shady");
 
-			shader_area = new ShaderArea(defaultShader);
-			shader_area.set_size_request(500, 600);
+			string default_shader = read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl"));
 
-			main_paned.pack2(shader_area, true, true);
+			_shader_area = new ShaderArea(default_shader);
+			_shader_area.set_size_request(500, 600);
 
-			source_language_manager = SourceLanguageManager.get_default();;
-			source_language = source_language_manager.get_language("glsl");
+			_source_language_manager = SourceLanguageManager.get_default();;
+			_source_language = _source_language_manager.get_language("glsl");
 
-			source_buffer = new source_buffer.with_language(source_language);
-			source_buffer.text = defaultShader;
+			_source_buffer = new SourceBuffer.with_language(_source_language);
+			_source_buffer.text = default_shader;
 
-			source_buffer.changed.connect(() =>
+			_source_buffer.changed.connect(() =>
 			{
 				_edited = true;
 			});
 
-			source_view = new SourceView.with_buffer(source_buffer);
+			_source_view = new SourceView.with_buffer(_source_buffer);
 
-			source_view.show_line_numbers = true;
-			source_view.show_line_marks = true;
-			source_view.tab_width = 2;
-			source_view.indent_on_tab = true;
-			source_view.auto_indent = true;
-			source_view.highlight_current_line = true;
+			_source_view.show_line_numbers = true;
+			_source_view.show_line_marks = true;
+			_source_view.tab_width = 2;
+			_source_view.indent_on_tab = true;
+			_source_view.auto_indent = true;
+			_source_view.highlight_current_line = true;
 
-			source_view.override_font(FontDescription.from_string("Monospace"));
+			_source_view.override_font(FontDescription.from_string("Monospace"));
 
-			scrolled_source = new ScrolledWindow(null, null);
-			scrolled_source.set_size_request(680, 600);
+			_scrolled_source = new ScrolledWindow(null, null);
+			_scrolled_source.set_size_request(680, 600);
 
-			scrolled_source.add(source_view);
+			_scrolled_source.add(_source_view);
 
-			main_paned.pack1(scrolled_source, true, true);
+			// set current switched layout state
+			bool inital_switched_layout = _settings.get_boolean("switched-layout");
+
+			if (inital_switched_layout)
+			{
+				main_paned.pack1(_shader_area, true, true);
+				main_paned.pack2(_scrolled_source, true, true);
+			}
+			else
+			{
+				main_paned.pack1(_scrolled_source, true, true);
+				main_paned.pack2(_shader_area, true, true);
+			}
 
 			menu_button.menu_model = app.app_menu;
 
@@ -121,7 +145,7 @@ namespace Shady
 			{
 				if (event.button == Gdk.BUTTON_PRIMARY)
 				{
-					shader_area.button_press(event.x, event.y);
+					_shader_area.button_press(event.x, event.y);
 				}
 
 				return false;
@@ -129,9 +153,9 @@ namespace Shady
 
 			button_release_event.connect((widget, event) =>
 			{
-				if(event.button == Gdk.BUTTON_PRIMARY)
+				if (event.button == Gdk.BUTTON_PRIMARY)
 				{
-					shader_area.button_release(event.x, event.y);
+					_shader_area.button_release(event.x, event.y);
 				}
 
 				return false;
@@ -167,45 +191,64 @@ namespace Shady
 
 				if (is_fullscreen)
 				{
-					scrolled_source.hide();
+					_scrolled_source.hide();
 				}
 				else
 				{
-					scrolled_source.show();
+					_scrolled_source.show();
 				}
 
 				return false;
 			});
 
-			// set current switched layout state
-			switched_layout = preferences.switched_layout;
-
 			// react to changed editor layout
-			preferences.notify["switched-layout"].connect(() =>
-			{
-				switched_layout = preferences.switched_layout;
-			});
+			_settings.changed["switched-layout"].connect(switched_layout_handler);
 
-			show_all();
+			// compile every 5 seconds, if auto compile is enabled
+			_auto_compile_handler_id = Timeout.add(5000, auto_compile_handler, Priority.DEFAULT_IDLE);
 
 			fps_label.draw.connect(update_fps);
 			time_label.draw.connect(update_time);
 
+			show_all();
+		}
+
+		[GtkCallback]
+		private void on_destroy()
+		{
+			// remove all handler
+			_settings.changed["switched-layout"].disconnect(switched_layout_handler);
+			Source.remove(_auto_compile_handler_id);
+		}
+
+		private bool auto_compile_handler()
+		{
+			if (_settings.get_boolean("auto-compile"))
+			{
+				compile();
+			}
+
+			return true;
+		}
+
+		private void switched_layout_handler()
+		{
+			switched_layout = _settings.get_boolean("switched-layout");
 		}
 
 		public void compile() throws ShaderError
 		{
-			shader_area.compile(source_buffer.text);
+			_shader_area.compile(shader);
 		}
 
 		public void reset_time()
 		{
-			shader_area.reset_time();
+			_shader_area.reset_time();
 		}
 
 		public void play()
 		{
-			shader_area.pause(false);
+			_shader_area.pause(false);
 
 			play_button_image.set_from_icon_name("media-playback-pause-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(false);
@@ -213,7 +256,7 @@ namespace Shady
 
 		public void pause()
 		{
-			shader_area.pause(true);
+			_shader_area.pause(true);
 
 			play_button_image.set_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(true);
@@ -222,7 +265,8 @@ namespace Shady
 		public bool update_fps()
 		{
 			StringBuilder fps = new StringBuilder();
-			fps.printf("%07.2f", shader_area.fps);
+
+			fps.printf("%07.2f", _shader_area.fps);
 			fps_label.set_label(fps.str);
 
 			return false;
@@ -231,7 +275,8 @@ namespace Shady
 		public bool update_time()
 		{
 			StringBuilder time = new StringBuilder();
-			time.printf("%05.2f", shader_area.time);
+
+			time.printf("%05.2f", _shader_area.time);
 			time_label.set_label(time.str);
 
 			return false;
@@ -246,7 +291,7 @@ namespace Shady
 		[GtkCallback]
 		private void play_button_clicked()
 		{
-			if (shader_area.paused)
+			if (_shader_area.paused)
 			{
 				play();
 			}
@@ -273,7 +318,7 @@ namespace Shady
 		[GtkCallback]
 		private void fullscreen_button_clicked()
 		{
-			scrolled_source.hide();
+			_scrolled_source.hide();
 			fullscreen();
 		}
 
@@ -282,7 +327,6 @@ namespace Shady
 		{
 			try
 			{
-				switched_layout = true;
 				compile();
 			}
 			catch (ShaderError e)

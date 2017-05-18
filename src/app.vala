@@ -65,7 +65,7 @@ namespace Shady
 							// for some reason the window is display below the
 							// previous one
 							var new_window = new AppWindow(this, app_preferences);
-							new_window.source_buffer.text = read_file_as_string(file);
+							new_window.shader = read_file_as_string(file);
 							new_window.reset_time();
 							new_window.compile();
 							new_window.play();
@@ -105,7 +105,7 @@ namespace Shady
 							// for some reason the window is display below the
 							// previous one
 							var new_window = new AppWindow(this, app_preferences);
-							new_window.source_buffer.text = shadertoy_search_dialog.selected_shader;
+							new_window.shader = shadertoy_search_dialog.selected_shader;
 							new_window.reset_time();
 							new_window.compile();
 							new_window.play();
