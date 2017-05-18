@@ -4,6 +4,7 @@
 		<!-- ui -->
 		<file preprocess="xml-stripblanks" alias="gtk/menus.ui">ui/app-menu.ui</file>
 		<file preprocess="xml-stripblanks">ui/app-window.ui</file>
+		<file preprocess="xml-stripblanks">ui/app-preferences.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-area.ui</file>
 		<file preprocess="xml-stripblanks">ui/shadertoy-search-dialog.ui</file>
 		<file preprocess="xml-stripblanks">ui/shadertoy-shader-item.ui</file>

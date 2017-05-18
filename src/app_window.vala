@@ -14,6 +14,33 @@ namespace Shady
 			default = false;
 		}
 
+		private bool _switched_layout = false;
+		public bool switched_layout
+		{
+			get { return _switched_layout; }
+			set
+			{
+				if (value != _switched_layout)
+				{
+					main_paned.remove(scrolled_source);
+					main_paned.remove(shader_area);
+
+					if (value)
+					{
+						main_paned.pack1(shader_area, true, true);
+						main_paned.pack2(scrolled_source, true, true);
+					}
+					else
+					{
+						main_paned.pack1(scrolled_source, true, true);
+						main_paned.pack2(shader_area, true, true);
+					}
+				}
+
+				_switched_layout = value;
+			}
+		}
+
 		[GtkChild]
 		private HeaderBar header_bar;
 
@@ -48,14 +75,14 @@ namespace Shady
 
 		private bool _is_fullscreen = false;
 
-		public AppWindow(Gtk.Application app)
+		public AppWindow(Gtk.Application app, AppPreferences preferences)
 		{
 			Object(application: app);
 
 			string defaultShader = read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl"));
 
 			shader_area = new ShaderArea(defaultShader);
-			shader_area.set_size_request(560, 640);
+			shader_area.set_size_request(500, 600);
 
 			main_paned.pack2(shader_area, true, true);
 
@@ -82,7 +109,7 @@ namespace Shady
 			source_view.override_font(FontDescription.from_string("Monospace"));
 
 			scrolled_source = new ScrolledWindow(null, null);
-			scrolled_source.set_size_request(720, 640);
+			scrolled_source.set_size_request(680, 600);
 
 			scrolled_source.add(source_view);
 
@@ -148,6 +175,15 @@ namespace Shady
 				}
 
 				return false;
+			});
+
+			// set current switched layout state
+			switched_layout = preferences.switched_layout;
+
+			// react to changed editor layout
+			preferences.notify["switched-layout"].connect(() =>
+			{
+				switched_layout = preferences.switched_layout;
 			});
 
 			show_all();
@@ -246,6 +282,7 @@ namespace Shady
 		{
 			try
 			{
+				switched_layout = true;
 				compile();
 			}
 			catch (ShaderError e)

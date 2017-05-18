@@ -16,6 +16,7 @@ shady_SOURCES = \
 	io_sugar.vala \
 	app.vala \
 	app_window.vala \
+	app_preferences.vala \
 	shader_area.vala \
 	shadertoy_search_dialog.vala \
 	shadertoy_shader_item.vala

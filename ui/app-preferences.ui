@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<interface>
+	<template class="ShadyAppPreferences" parent="GtkWindow">
+		<property name="default-width">400</property>
+		<property name="default-height">240</property>
+		<property name="title">Settings</property>
+		<property name="border-width">0</property>
+
+		<signal name="delete_event" handler="hide_on_delete" swapped="no" />
+
+		<child type="titlebar">
+			<object class="GtkHeaderBar" id="header_bar">
+				<property name="visible">True</property>
+				<property name="title">Settings</property>
+				<property name="show-close-button">True</property>
+
+				<child type="title">
+					<object class="GtkStackSwitcher">
+						<property name="visible">True</property>
+						<property name="stack">main_stack</property>
+					</object>
+				</child>
+			</object>
+		</child>
+
+		<child>
+			<object class="GtkStack" id="main_stack">
+				<property name="visible">True</property>
+				<property name="can_focus">False</property>
+
+				<child>
+					<object class="GtkGrid">
+						<property name="visible">True</property>
+						<property name="can_focus">False</property>
+						<property name="margin">12</property>
+						<property name="row-spacing">12</property>
+						<property name="column-spacing">12</property>
+						<property name="column-homogeneous">True</property>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">Layout</property>
+								<property name="halign">start</property>
+
+								<attributes>
+									<attribute name="weight" value="bold"/>
+								</attributes>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">0</property>
+								<property name="width">2</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">Switched layout</property>
+								<property name="halign">end</property>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">1</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkSwitch" id="switched_layout_switch">
+								<property name="visible">True</property>
+								<property name="can-focus">True</property>
+								<property name="halign">start</property>
+
+								<signal name="state_set" handler="switched_layout_switch_state_set" />
+							</object>
+							<packing>
+								<property name="left_attach">1</property>
+								<property name="top_attach">1</property>
+								<property name="width">1</property>
+								<property name="height">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">Compiler</property>
+								<property name="halign">start</property>
+
+								<attributes>
+									<attribute name="weight" value="bold"/>
+								</attributes>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">2</property>
+								<property name="width">2</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">Automatically compile</property>
+								<property name="halign">end</property>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">3</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkSwitch" id="auto_compile_switch">
+								<property name="visible">True</property>
+								<property name="can-focus">True</property>
+								<property name="halign">start</property>
+							</object>
+							<packing>
+								<property name="left_attach">1</property>
+								<property name="top_attach">3</property>
+								<property name="width">1</property>
+								<property name="height">1</property>
+							</packing>
+						</child>
+					</object>
+					<packing>
+						<property name="title">Editor</property>
+						<property name="name">editor</property>
+					</packing>
+				</child>
+
+				<child>
+					<object class="GtkGrid">
+						<property name="visible">True</property>
+						<property name="can_focus">False</property>
+						<property name="margin">12</property>
+						<property name="row-spacing">12</property>
+						<property name="column-spacing">12</property>
+						<property name="column-homogeneous">True</property>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">GLSL version</property>
+								<property name="halign">start</property>
+
+								<attributes>
+									<attribute name="weight" value="bold" />
+								</attributes>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">0</property>
+								<property name="width">2</property>
+							</packing>
+						</child>
+					</object>
+					<packing>
+						<property name="title">GLSL</property>
+						<property name="name">glsl</property>
+					</packing>
+				</child>
+			</object>
+		</child>
+	</template>
+</interface>

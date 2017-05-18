@@ -10,11 +10,15 @@
 				<attribute name="label">Open</attribute>
 				<attribute name="action">app.open</attribute>
 			</item>
-		</section>
-		<section>
 			<item>
 				<attribute name="label">Load from Shadertoy</attribute>
 				<attribute name="action">app.load_from_shadertoy</attribute>
+			</item>
+		</section>
+		<section>
+			<item>
+				<attribute name="label">Preferences</attribute>
+				<attribute name="action">app.preferences</attribute>
 			</item>
 		</section>
 		<section>
