@@ -1,3 +1,5 @@
+- saving shaders
+- hotkeys
 - texture support
 - audio shader support
 - glsl version switching
@@ -10,3 +12,4 @@
 - watch file changes, load altered shader
 - syntax highlighting must get better
 - video and screenshot export
+- export to small shaderstub for 4k demos
