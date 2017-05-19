@@ -75,6 +75,8 @@ namespace Shady
 				{
 					if (value)
 					{
+						_scrolled_source.set_policy(PolicyType.EXTERNAL, PolicyType.EXTERNAL);
+
 						main_paned.remove(_scrolled_source);
 						_foreground_box.pack_start(_scrolled_source, true, true);
 
@@ -82,6 +84,8 @@ namespace Shady
 					}
 					else
 					{
+						_scrolled_source.set_policy(PolicyType.AUTOMATIC, PolicyType.AUTOMATIC);
+
 						_foreground_box.remove(_scrolled_source);
 
 						if (switched_layout)
