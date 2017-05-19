@@ -411,7 +411,6 @@ namespace Shady
 			try
 			{
 				compile();
-				live_mode = !live_mode;
 			}
 			catch (ShaderError e)
 			{
