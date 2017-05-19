@@ -155,11 +155,15 @@ namespace Shady
 			_shader_area.set_size_request(500, 600);
 
 			_foreground_box = new Box(Orientation.VERTICAL, 0);
-			_foreground_box.get_style_context().add_class("source_view_wrapper");
+
+			Box dummy = new Box(Orientation.HORIZONTAL, 0);
+			dummy.pack_start(new Box(Orientation.VERTICAL, 0), true, true);
+			dummy.pack_start(_foreground_box, true, false);
+			dummy.pack_end(new Box(Orientation.VERTICAL, 0), true, true);
 
 			_shader_overlay = new Overlay();
 			_shader_overlay.add(_shader_area);
-			_shader_overlay.add_overlay(_foreground_box);
+			_shader_overlay.add_overlay(dummy);
 
 			_source_language_manager = SourceLanguageManager.get_default();;
 			_source_language = _source_language_manager.get_language("glsl");
@@ -184,7 +188,7 @@ namespace Shady
 			_source_view.override_font(FontDescription.from_string("Monospace"));
 
 			_scrolled_source = new ScrolledWindow(null, null);
-			_scrolled_source.set_size_request(680, 600);
+			_scrolled_source.set_size_request(720, 600);
 
 			_scrolled_source.add(_source_view);
 

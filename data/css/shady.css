@@ -11,12 +11,6 @@
 	padding: 3pt;
 }
 
-.source_view_wrapper
-{
-	margin-left: 200pt;
-	margin-right: 200pt;
-}
-
 textview.view text, textview text, textview
 {
 	background: alpha(#FFFFFF, 0.3);
