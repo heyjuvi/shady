@@ -1,5 +1,6 @@
 - saving shaders
 - hotkeys
+- compilation errors
 - texture support
 - audio shader support
 - glsl version switching
