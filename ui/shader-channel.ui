@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<interface>
+	<object class="ShadyShaderChannelTypePopover" id="channel_type_popover">
+		<signal name="channel_type_changed" handler="channel_type_popover_channel_type_changed" />
+	</object>
+
+	<template class="ShadyShaderChannel" parent="GtkBox">
+		<property name="visible">True</property>
+		<property name="can_focus">False</property>
+		<property name="height_request">132</property>
+
+		<child>
+			<object class="GtkBox">
+				<property name="visible">True</property>
+				<property name="can_focus">False</property>
+				<property name="orientation">vertical</property>
+				<property name="width_request">180</property>
+
+				<child>
+					<object class="GtkBox">
+						<property name="visible">True</property>
+						<property name="can_focus">False</property>
+						<property name="orientation">horizontal</property>
+						<property name="spacing">0</property>
+
+						<style>
+							<class name="channel_header" />
+						</style>
+
+						<child>
+							<object class="GtkLabel" id="name_label">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="halign">start</property>
+								<property name="justify">left</property>
+								<property name="xalign">0</property>
+								<property name="wrap">True</property>
+								<property name="label">iChannel0</property>
+
+								<attributes>
+									<attribute name="weight" value="bold" />
+								</attributes>
+							</object>
+							<packing>
+								<property name="expand">True</property>
+								<property name="fill">True</property>
+								<property name="position">0</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkMenuButton" id="value_button">
+								<property name="visible">False</property>
+								<property name="can_focus">False</property>
+								<property name="use-popover">True</property>
+								<property name="direction">up</property>
+
+								<style>
+									<class name="flat" />
+									<class name="image-button" />
+									<class name="no_padding" />
+								</style>
+
+								<child>
+									<object class="GtkImage">
+										<property name="visible">True</property>
+										<property name="can_focus">False</property>
+										<property name="icon_name">image-x-generic-symbolic</property>
+									</object>
+								</child>
+							</object>
+							<packing>
+								<property name="expand">False</property>
+								<property name="fill">True</property>
+								<property name="position">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkMenuButton" id="channel_type_button">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="use-popover">True</property>
+								<property name="direction">up</property>
+								<property name="popover">channel_type_popover</property>
+
+								<style>
+									<class name="flat" />
+									<class name="image-button" />
+									<class name="no_padding" />
+								</style>
+
+								<child>
+									<object class="GtkImage">
+										<property name="visible">True</property>
+										<property name="can_focus">False</property>
+										<property name="icon_name">start-here-symbolic</property>
+									</object>
+								</child>
+							</object>
+							<packing>
+								<property name="expand">False</property>
+								<property name="fill">True</property>
+								<property name="position">2</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkToggleButton" id="settings_button">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="width_request">12</property>
+								<property name="height_request">12</property>
+
+								<signal name="toggled" handler="settings_button_toggled" />
+
+								<style>
+									<class name="flat" />
+									<class name="image-button" />
+									<class name="no_padding" />
+									<class name="settings_button" />
+								</style>
+
+								<child>
+									<object class="GtkImage">
+										<property name="visible">True</property>
+										<property name="can_focus">False</property>
+										<property name="icon_name">emblem-system-symbolic</property>
+										<property name="pixel_size">10</property>
+									</object>
+								</child>
+							</object>
+							<packing>
+								<property name="expand">False</property>
+								<property name="fill">True</property>
+								<property name="position">3</property>
+							</packing>
+						</child>
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">0</property>
+					</packing>
+				</child>
+
+				<child>
+					<object class="GtkStack" id="content_stack">
+						<property name="visible">True</property>
+						<property name="can_focus">False</property>
+						<property name="transition_type">crossfade</property>
+
+						<child>
+							<object class="GtkBox" id="shader_container">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="orientation">vertical</property>
+							</object>
+							<packing>
+								<property name="name">shader_container</property>
+								<property name="title">Shader</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkStack" id="settings_stack">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+
+								<style>
+									<class name="channel_settings" />
+								</style>
+
+								<child>
+									<object class="GtkBox">
+										<property name="visible">True</property>
+										<property name="can_focus">False</property>
+										<property name="orientation">vertical</property>
+										<property name="spacing">6</property>
+
+										<child>
+											<object class="GtkBox">
+												<property name="visible">True</property>
+												<property name="can_focus">False</property>
+												<property name="orientation">horizontal</property>
+												<property name="spacing">12</property>
+
+												<child>
+													<object class="GtkLabel">
+														<property name="visible">True</property>
+														<property name="can_focus">False</property>
+														<property name="width_request">48</property>
+														<property name="xalign">1</property>
+														<property name="label">Filter:</property>
+													</object>
+													<packing>
+														<property name="expand">False</property>
+														<property name="fill">True</property>
+														<property name="position">0</property>
+													</packing>
+												</child>
+
+												<child>
+													<object class="GtkComboBoxText">
+														<property name="visible">True</property>
+														<property name="can_focus">False</property>
+														<property name="active">2</property>
+
+														<items>
+															<item>nearest</item>
+															<item>linear</item>
+															<item>mipmap</item>
+														</items>
+													</object>
+													<packing>
+														<property name="expand">True</property>
+														<property name="fill">True</property>
+														<property name="position">1</property>
+													</packing>
+												</child>
+											</object>
+											<packing>
+												<property name="expand">False</property>
+												<property name="fill">True</property>
+												<property name="position">0</property>
+											</packing>
+										</child>
+
+										<child>
+											<object class="GtkBox">
+												<property name="visible">True</property>
+												<property name="can_focus">False</property>
+												<property name="orientation">horizontal</property>
+												<property name="spacing">12</property>
+
+												<child>
+													<object class="GtkLabel">
+														<property name="visible">True</property>
+														<property name="can_focus">False</property>
+														<property name="width_request">48</property>
+														<property name="xalign">1</property>
+														<property name="label">Wrap:</property>
+													</object>
+													<packing>
+														<property name="expand">False</property>
+														<property name="fill">True</property>
+														<property name="position">0</property>
+													</packing>
+												</child>
+
+												<child>
+													<object class="GtkComboBoxText">
+														<property name="visible">True</property>
+														<property name="can_focus">False</property>
+														<property name="active">1</property>
+
+														<items>
+															<item>clamp</item>
+															<item>repeat</item>
+														</items>
+													</object>
+													<packing>
+														<property name="expand">True</property>
+														<property name="fill">True</property>
+														<property name="position">1</property>
+													</packing>
+												</child>
+											</object>
+											<packing>
+												<property name="expand">False</property>
+												<property name="fill">True</property>
+												<property name="position">1</property>
+											</packing>
+										</child>
+
+										<child>
+											<object class="GtkBox">
+												<property name="visible">True</property>
+												<property name="can_focus">False</property>
+												<property name="orientation">horizontal</property>
+												<property name="spacing">12</property>
+
+												<child>
+													<object class="GtkLabel">
+														<property name="visible">True</property>
+														<property name="can_focus">False</property>
+														<property name="width_request">48</property>
+														<property name="xalign">1</property>
+														<property name="label">V-Flip:</property>
+													</object>
+													<packing>
+														<property name="expand">False</property>
+														<property name="fill">True</property>
+														<property name="position">0</property>
+													</packing>
+												</child>
+
+												<child>
+													<object class="GtkSwitch">
+														<property name="visible">True</property>
+														<property name="can_focus">False</property>
+														<property name="halign">start</property>
+													</object>
+													<packing>
+														<property name="expand">False</property>
+														<property name="fill">True</property>
+														<property name="position">1</property>
+													</packing>
+												</child>
+											</object>
+											<packing>
+												<property name="expand">False</property>
+												<property name="fill">True</property>
+												<property name="position">2</property>
+											</packing>
+										</child>
+									</object>
+									<packing>
+										<property name="name">default_filter_settings</property>
+										<property name="title">Default filter settings</property>
+									</packing>
+								</child>
+							</object>
+							<packing>
+								<property name="name">settings_stack</property>
+								<property name="title">Settings</property>
+							</packing>
+						</child>
+					</object>
+					<packing>
+						<property name="expand">True</property>
+						<property name="fill">True</property>
+						<property name="position">1</property>
+					</packing>
+				</child>
+			</object>
+		</child>
+	</template>
+</interface>

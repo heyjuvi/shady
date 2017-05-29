@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <interface>
 	<object class="GtkAdjustment" id="rubber_band_adjustment">
 		<property name="lower">-3</property>
@@ -9,9 +9,11 @@
 	</object>
 
 	<template class="ShadyAppWindow" parent="GtkApplicationWindow">
+		<property name="visible">True</property>
 		<property name="can_focus">False</property>
 		<property name="show_menubar">False</property>
 		<property name="title">Shady</property>
+		<property name="width_request">1320</property>
 
 		<signal name="destroy" handler="on_destroy" />
 

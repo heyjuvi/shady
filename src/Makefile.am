@@ -17,7 +17,14 @@ shady_SOURCES = \
 	app.vala \
 	app_window.vala \
 	app_preferences.vala \
+	shader.vala \
 	shader_area.vala \
+	shader_source_buffer.vala \
+	shader_source_view.vala \
+	shader_channel.vala \
+	shader_channel_type_popover.vala \
+	notebook_tab_label.vala \
+	notebook_action_widget.vala \
 	shadertoy_search_dialog.vala \
 	shadertoy_shader_item.vala
 

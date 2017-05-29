@@ -1,4 +1,19 @@
 /* general */
+.no_padding
+{
+	padding: 0;
+}
+
+.popover_padding
+{
+	padding: 6pt;
+}
+
+.channels_box_margin
+{
+	margin: 6pt;
+}
+
 .header_bar
 {
 	border: 0;
@@ -11,23 +26,120 @@
 	padding: 3pt;
 }
 
-textview.view text, textview text, textview
+/* editor */
+notebook, notebook stack, notebook header, notebook header.top
 {
-	background: alpha(#FFFFFF, 0.3);
+	background: transparent;
 }
 
-textview.view window, textview window
+notebook textview
 {
-	background: alpha(#FFFFFF, 0.3);
+	font-family: Monospace;
 }
 
-textview.view text selection, textview text selection
+notebook.live_mode textview.view text, notebook.live_mode textview text, notebook.live_mode textview
+{
+	background: alpha(#FFFFFF, 0.4);
+}
+
+notebook.live_mode textview.view window, notebook.live_mode textview window
+{
+	background: alpha(#FFFFFF, 0.4);
+}
+
+notebook.live_mode textview.view text selection, notebook.live_mode textview text selection
 {
 	color: #000000;
-	background: alpha(#FFFFFF, 0.3);
+	background: alpha(#FFFFFF, 0.4);
 }
 
-textview.view border, textview border
+notebook.live_mode textview.view border, notebook.live_mode textview border
 {
-	background: alpha(#FFFFFF, 0.3);
+	background: alpha(#FFFFFF, 0.4);
+}
+
+/* channels */
+.channel_header
+{
+	padding-left: 6pt;
+	background: #FFFFFF;
+	border-top-right-radius: 6pt;
+}
+
+.channel_header button,.channel_header button:hover
+{
+	background: #FFFFFF;
+	color: #000000;
+	border: 0;
+	border-radius: 0;
+	transition-duration: 0s;
+}
+
+.channel_header button:active, .channel_header button:checked
+{
+	background: #000000;
+	color: #FFFFFF;
+	transition-duration: 0s;
+}
+
+.channel_header .settings_button, .channel_header .settings_button:hover
+{
+	border-top-right-radius: 6pt;
+}
+
+.channel_settings
+{
+	padding: 6pt;
+	background: #FFFFFF;
+	color: #000000;
+}
+
+.channel_settings button
+{
+	box-shadow: none;
+	text-shadow: none;
+	outline: none;
+	padding-left: 3pt;
+	padding-right: 3pt;
+	padding-top: 0;
+	padding-bottom: 0;
+	border: 1px #000000 solid;
+	border-radius: 0;
+	background: #FFFFFF;
+	color: #000000;
+}
+
+.channel_settings button:hover, .channel_settings button:active
+{
+	background: #000000;
+	color: #FFFFFF;
+}
+
+.channel_settings switch
+{
+	box-shadow: none;
+	text-shadow: none;
+	outline: none;
+	border: 1px #000000 solid;
+	border-radius: 0;
+	background: #FFFFFF;
+	color: #000000;
+}
+
+.channel_settings switch:checked
+{
+	border: 1px #000000 solid;
+	border-radius: 0;
+	background: #FFFFFF;
+}
+
+.channel_settings switch slider
+{
+	box-shadow: none;
+	text-shadow: none;
+	outline: none;
+	padding: 0;
+	border: 1px #000000 solid;
+	border-radius: 0;
+	background: #000000;
 }

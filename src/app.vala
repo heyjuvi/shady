@@ -24,7 +24,6 @@ namespace Shady
 				{
 					newest_app_window.destroy();
 				}
-
 				// for some reason the window is display below the
 				// previous one
 				var new_window = new AppWindow(this, app_preferences);
@@ -65,7 +64,7 @@ namespace Shady
 							// for some reason the window is display below the
 							// previous one
 							var new_window = new AppWindow(this, app_preferences);
-							new_window.shader = read_file_as_string(file);
+							new_window.set_buffer("Image", read_file_as_string(file));
 							new_window.reset_time();
 							new_window.compile();
 							new_window.play();
@@ -105,7 +104,7 @@ namespace Shady
 							// for some reason the window is display below the
 							// previous one
 							var new_window = new AppWindow(this, app_preferences);
-							new_window.shader = shadertoy_search_dialog.selected_shader;
+							new_window.set_shader(shadertoy_search_dialog.selected_shader);
 							new_window.reset_time();
 							new_window.compile();
 							new_window.play();
@@ -157,13 +156,16 @@ namespace Shady
 		{
 			// don't ask
 			new ShaderArea();
+			new ShaderSourceView();
+			new ShaderChannelTypePopover();
 
 			app_preferences = new AppPreferences();
 			newest_app_window = new AppWindow(this, app_preferences);
+			newest_app_window.compile();
 
 			load_css();
 
-			newest_app_window.show();
+			newest_app_window.present();
 		}
 
 		private void load_css()

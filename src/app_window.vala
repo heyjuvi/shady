@@ -5,19 +5,13 @@ using Pango;
 namespace Shady
 {
 	[GtkTemplate (ui = "/org/hasi/shady/ui/app-window.ui")]
-	public class AppWindow : ApplicationWindow
+	public class AppWindow : Gtk.ApplicationWindow
 	{
 		private bool _edited;
 		public bool edited
 		{
 			get { return _edited; }
 			default = false;
-		}
-
-		public string shader
-		{
-			owned get { return _source_buffer.text; }
-			set { _source_buffer.text = value; }
 		}
 
 		private bool _switched_layout = false;
@@ -43,17 +37,17 @@ namespace Shady
 					}
 					else
 					{
-						main_paned.remove(_scrolled_source);
+						main_paned.remove(_editor_box);
 						main_paned.remove(_shader_overlay);
 
 						if (value)
 						{
 							main_paned.pack1(_shader_overlay, true, true);
-							main_paned.pack2(_scrolled_source, true, true);
+							main_paned.pack2(_editor_box, true, true);
 						}
 						else
 						{
-							main_paned.pack1(_scrolled_source, true, true);
+							main_paned.pack1(_editor_box, true, true);
 							main_paned.pack2(_shader_overlay, true, true);
 						}
 
@@ -73,33 +67,36 @@ namespace Shady
 			{
 				if (value != _live_mode)
 				{
+					foreach (string key in _shader_buffers.get_keys())
+					{
+						_shader_buffers[key].live_mode = value;
+					}
+
 					if (value)
 					{
-						_scrolled_source.set_policy(PolicyType.EXTERNAL, PolicyType.EXTERNAL);
+						main_paned.remove(_editor_box);
+						_foreground_box.pack_start(_editor_box, true, true);
 
-						main_paned.remove(_scrolled_source);
-						_foreground_box.pack_start(_scrolled_source, true, true);
-
-						_source_view.highlight_current_line = false;
+						_editor_notebook.get_style_context().add_class("live_mode");
 					}
 					else
 					{
-						_scrolled_source.set_policy(PolicyType.AUTOMATIC, PolicyType.AUTOMATIC);
-
-						_foreground_box.remove(_scrolled_source);
+						_foreground_box.remove(_editor_box);
 
 						if (switched_layout)
 						{
-							main_paned.pack2(_scrolled_source,true, true);
+							main_paned.pack2(_editor_box, true, true);
 						}
 						else
 						{
-							main_paned.pack1(_scrolled_source, true, true);
+							main_paned.pack1(_editor_box, true, true);
 						}
 
-						_source_view.highlight_current_line = true;
+						_editor_notebook.get_style_context().remove_class("live_mode");
 					}
 				}
+
+				_editor_notebook.show_tabs = !value;
 
 				_live_mode = value;
 			}
@@ -115,7 +112,7 @@ namespace Shady
 		private Gtk.ToggleButton live_mode_button;
 
 		[GtkChild]
-		private Image play_button_image;
+		private Gtk.Image play_button_image;
 
 		[GtkChild]
 		private Gtk.Revealer rubber_band_revealer;
@@ -124,25 +121,30 @@ namespace Shady
 		private Gtk.Scale rubber_band_scale;
 
 		[GtkChild]
-		private Label fps_label;
+		private Gtk.Label fps_label;
 
 		[GtkChild]
-		private Label time_label;
+		private Gtk.Label time_label;
 
 		[GtkChild]
-		private Paned main_paned;
+		private Gtk.Paned main_paned;
 
 		private Overlay _shader_overlay;
 		private ShaderArea _shader_area;
 		private Box _foreground_box;
 
-		private ScrolledWindow _scrolled_source;
-		private SourceView _source_view;
-		private SourceBuffer _source_buffer;
-		private SourceLanguage _source_language;
-		private SourceLanguageManager _source_language_manager;
+		private Gtk.Box _editor_box;
 
-		private GLib.Settings _settings;
+		private Notebook _editor_notebook;
+		private NotebookActionWidget _notebook_action_widget;
+		private HashTable<string, ShaderSourceBuffer> _shader_buffers = new HashTable<string, ShaderSourceBuffer>(str_hash, str_equal);
+
+		private Gtk.Revealer _channels_revealer;
+		private Gtk.Box _channels_box;
+
+		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
+
+		private string _default_shader = read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl"));
 
 		private uint _auto_compile_handler_id;
 		private bool _is_fullscreen = false;
@@ -151,16 +153,13 @@ namespace Shady
 		{
 			Object(application: app);
 
-			_settings = new GLib.Settings("org.hasi.shady");
-
-			string default_shader = read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl"));
-
-			_shader_area = new ShaderArea(default_shader);
+			_shader_area = new ShaderArea(_default_shader);
 			_shader_area.set_size_request(500, 600);
 
 			_foreground_box = new Box(Orientation.VERTICAL, 0);
 
 			Box dummy = new Box(Orientation.HORIZONTAL, 0);
+
 			dummy.pack_start(new Box(Orientation.VERTICAL, 0), true, true);
 			dummy.pack_start(_foreground_box, true, false);
 			dummy.pack_end(new Box(Orientation.VERTICAL, 0), true, true);
@@ -169,32 +168,29 @@ namespace Shady
 			_shader_overlay.add(_shader_area);
 			_shader_overlay.add_overlay(dummy);
 
-			_source_language_manager = SourceLanguageManager.get_default();;
-			_source_language = _source_language_manager.get_language("glsl");
+			_editor_box = new Gtk.Box(Orientation.VERTICAL, 0);
 
-			_source_buffer = new SourceBuffer.with_language(_source_language);
-			_source_buffer.text = default_shader;
+			_editor_notebook = new Notebook();
+			_editor_notebook.tab_pos = PositionType.BOTTOM;
+			_editor_notebook.show_border = false;
 
-			_source_buffer.changed.connect(() =>
-			{
-				_edited = true;
-			});
+			_notebook_action_widget = new NotebookActionWidget();
+			_editor_notebook.set_action_widget(_notebook_action_widget, PackType.END);
 
-			_source_view = new SourceView.with_buffer(_source_buffer);
+			_editor_box.pack_start(_editor_notebook, true, true);
 
-			_source_view.show_line_numbers = true;
-			_source_view.show_line_marks = true;
-			_source_view.tab_width = 2;
-			_source_view.indent_on_tab = true;
-			_source_view.auto_indent = true;
-			_source_view.highlight_current_line = true;
+			_channels_revealer = new Gtk.Revealer();
 
-			_source_view.override_font(FontDescription.from_string("Monospace"));
+			_channels_box = new Gtk.Box(Orientation.HORIZONTAL, 12);
+			_channels_box.get_style_context().add_class("channels_box_margin");
+			//_channels_flow_box.set_size_request(0, 140);
+			//_channels_box.selection_mode = Gtk.SelectionMode.NONE;
+			//_channels_box.min_children_per_line = 6;
 
-			_scrolled_source = new ScrolledWindow(null, null);
-			_scrolled_source.set_size_request(720, 600);
+			_channels_revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_UP;
+			_channels_revealer.add(_channels_box);
 
-			_scrolled_source.add(_source_view);
+			_editor_box.pack_end(_channels_revealer, false, true);
 
 			// set current switched layout state
 			_switched_layout = _settings.get_boolean("switched-layout");
@@ -202,15 +198,22 @@ namespace Shady
 			if (_switched_layout)
 			{
 				main_paned.pack1(_shader_overlay, true, true);
-				main_paned.pack2(_scrolled_source, true, true);
+				main_paned.pack2(_editor_box, true, true);
 			}
 			else
 			{
-				main_paned.pack1(_scrolled_source, true, true);
+				main_paned.pack1(_editor_box, true, true);
 				main_paned.pack2(_shader_overlay, true, true);
 			}
 
 			menu_button.menu_model = app.app_menu;
+
+			_notebook_action_widget.new_buffer_button.clicked.connect(add_buffer_alphabetically);
+
+			_notebook_action_widget.show_channels_button.clicked.connect(() =>
+			{
+				_channels_revealer.reveal_child = !_channels_revealer.reveal_child;
+			});
 
 			button_press_event.connect((widget, event) =>
 			{
@@ -255,7 +258,7 @@ namespace Shady
 
 				if (is_fullscreen && live_mode && event.keyval == Gdk.Key.Control_R)
 				{
-					_scrolled_source.set_visible(!_scrolled_source.get_visible());
+					_editor_notebook.set_visible(!_editor_notebook.get_visible());
 				}
 
 				return false;
@@ -265,14 +268,8 @@ namespace Shady
 			{
 				bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
 
-				if (is_fullscreen && !live_mode)
-				{
-					_scrolled_source.hide();
-				}
-				else
-				{
-					_scrolled_source.show();
-				}
+				_editor_notebook.visible = !is_fullscreen || live_mode;
+				_editor_notebook.show_tabs = !live_mode;
 
 				return false;
 			});
@@ -281,12 +278,86 @@ namespace Shady
 			_settings.changed["switched-layout"].connect(switched_layout_handler);
 
 			// compile every 5 seconds, if auto compile is enabled
-			_auto_compile_handler_id = Timeout.add(5000, auto_compile_handler, Priority.DEFAULT_IDLE);
+			_auto_compile_handler_id = Timeout.add(3000, auto_compile_handler, Priority.HIGH_IDLE);
 
 			fps_label.draw.connect(update_fps);
 			time_label.draw.connect(update_time);
 
+			add_buffer("Image", false);
+			set_buffer("Image", _default_shader);
+
+			_edited = false;
+
 			show_all();
+
+			// test
+			_channels_box.pack_start(new ShaderChannel(), false, true);
+			_channels_box.pack_start(new ShaderChannel(), false, true);
+			_channels_box.pack_start(new ShaderChannel(), false, true);
+			// end test
+		}
+
+		public void set_shader(Shader? shader)
+		{
+			_shader_buffers.remove_all();
+
+			for (int i = 0; i < _editor_notebook.get_n_pages(); i++)
+			{
+				_editor_notebook.remove_page(i);
+			}
+
+			if (shader != null)
+			{
+				List<string> sorted_keys = new List<string>();
+
+				foreach (string key in shader.buffers.get_keys())
+				{
+					if (key != "Audio" && key != "Image")
+					{
+						sorted_keys.insert_sorted(key, strcmp);
+					}
+				}
+
+				if ("Audio" in shader.buffers)
+				{
+					sorted_keys.prepend("Audio");
+				}
+
+				if ("Image" in shader.buffers)
+				{
+					sorted_keys.prepend("Image");
+				}
+
+				foreach (string buffer_name in sorted_keys)
+				{
+					if (buffer_name == "Image")
+					{
+						add_buffer("Image", false);
+						set_buffer("Image", shader.buffers["Image"].code);
+					}
+					else
+					{
+						add_buffer(buffer_name);
+						set_buffer(buffer_name, shader.buffers[buffer_name].code);
+					}
+				}
+
+				foreach (string buffer_name in shader.buffers.get_keys())
+				{
+					print(buffer_name);print(":\n");
+					print(get_buffer(buffer_name));print("\n");
+				}
+			}
+		}
+
+		public void set_buffer(string buffer_name, string content)
+		{
+			_shader_buffers[buffer_name].buffer.text = content;
+		}
+
+		public string get_buffer(string buffer_name)
+		{
+			return _shader_buffers[buffer_name].buffer.text;
 		}
 
 		[GtkCallback]
@@ -309,13 +380,58 @@ namespace Shady
 
 		private void switched_layout_handler()
 		{
-			print(@"$switched_layout");
 			switched_layout = _settings.get_boolean("switched-layout");
+		}
+
+		private void add_buffer_alphabetically()
+		{
+			int i = 0;
+
+			string buffer_name = @"Buf $((char) (0x41 + i))";
+			while (buffer_name in _shader_buffers)
+			{
+				i++;
+				buffer_name = @"Buf $((char) (0x41 + i))";
+			}
+
+			add_buffer(buffer_name);
+		}
+
+		private void add_buffer(string buffer_name, bool show_close_button=true)
+		{
+			ShaderSourceBuffer shader_buffer = new ShaderSourceBuffer(buffer_name);
+			shader_buffer.buffer.changed.connect(() =>
+			{
+				_edited = true;
+			});
+
+			shader_buffer.button_press_event.connect((widget, event) =>
+			{
+				_channels_revealer.reveal_child = false;
+
+				return false;
+			});
+
+			NotebookTabLabel shader_buffer_label = new NotebookTabLabel.with_title(buffer_name);
+			shader_buffer_label.show_close_button = show_close_button;
+			shader_buffer_label.close_clicked.connect(() =>
+			{
+				remove_buffer(buffer_name);
+			});
+
+			_shader_buffers.insert(buffer_name, shader_buffer);
+			_editor_notebook.append_page(shader_buffer, shader_buffer_label);
+		}
+
+		private void remove_buffer(string buffer_name)
+		{
+			_editor_notebook.remove_page(_editor_notebook.page_num(_shader_buffers[buffer_name]));
+			_shader_buffers.remove(buffer_name);
 		}
 
 		public void compile() throws ShaderError
 		{
-			_shader_area.compile(shader);
+			_shader_area.compile(get_buffer("Image"));
 		}
 
 		public void reset_time()
@@ -397,7 +513,7 @@ namespace Shady
 		{
 			if (!live_mode)
 			{
-				_scrolled_source.hide();
+				_editor_notebook.hide();
 			}
 
 			fullscreen();

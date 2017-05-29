@@ -47,7 +47,7 @@ namespace Shady
 			}
 		}
 
-		public string shader { get; set; default = read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl")); }
+		public Shader shader { get; set; default = null; }
 
 		[GtkChild]
 		private Gtk.Box shader_container;
@@ -70,7 +70,7 @@ namespace Shady
 		{
 			// for some reason the shader area must not be constructed in a ui
 			// file
-			_shader_area = new ShaderArea(shader);
+			_shader_area = new ShaderArea(read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl")));
 			_shader_area.set_size_request(152, 140);
 
 			shader_container.pack_start(_shader_area, false, false);
@@ -80,7 +80,10 @@ namespace Shady
 
 		public void compile() throws ShaderError
 		{
-			_shader_area.compile(shader);
+			if ("Image" in shader.buffers)
+			{
+				_shader_area.compile(shader.buffers["Image"].code);
+			}
 		}
 	}
 }

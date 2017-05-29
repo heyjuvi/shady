@@ -5,7 +5,7 @@ namespace Shady
 	{
 		private static string API_KEY = "BtnKW8";
 
-		public string selected_shader { get; private set; default = ""; }
+		public Shader selected_shader { get; private set; default = null; }
 
 		[GtkChild]
 		private Gtk.SearchEntry shadertoy_search_entry;
@@ -62,12 +62,12 @@ namespace Shady
 
 		private void search_shaders(string search_string)
 		{
-			var session = new Soup.Session();
+			var search_session = new Soup.Session();
 
 			string search_uri = @"https://www.shadertoy.com/api/v1/shaders/query/$search_string?key=$API_KEY";
 			var search_message = new Soup.Message("GET", search_uri);
 
-			session.send_message(search_message);
+			search_session.send_message(search_message);
 
 			try
 			{
@@ -79,72 +79,96 @@ namespace Shady
 
 				foreach (var result_node in results.get_elements())
 				{
+					var shader_session = new Soup.Session();
+
 					string shader_uri = @"https://www.shadertoy.com/api/v1/shaders/$(result_node.get_string())?key=$API_KEY";
 
 					new Thread<int>.try("shader_thread", () =>
 					{
 						var shader_message = new Soup.Message("GET", shader_uri);
 
-						session.send_message(shader_message);
+						shader_session.send_message(shader_message);
 
 						try
 						{
+							Shader shader = new Shader();
+
 							var shader_parser = new Json.Parser();
 							shader_parser.load_from_data((string) shader_message.response_body.flatten().data, -1);
 
 							var shader_root = shader_parser.get_root().get_object().get_object_member("Shader");
 							var info_node = shader_root.get_object_member("info");
 
-							string name = info_node.get_string_member("name");
-							string author = info_node.get_string_member("username");
-							int64 likes = info_node.get_int_member("likes");
-							int64 views = info_node.get_int_member("viewed");
+							shader.name = info_node.get_string_member("name");
+							shader.author = info_node.get_string_member("username");
+							shader.likes = (int) info_node.get_int_member("likes");
+							shader.views = (int) info_node.get_int_member("viewed");
 
 							var renderpasses_node = shader_root.get_array_member("renderpass");
 
+							int buffer_counter = 0;
 							foreach (var renderpass in renderpasses_node.get_elements())
 							{
 								var renderpass_object = renderpass.get_object();
-								string type = renderpass_object.get_string_member("type");
 
-								if (type == "image")
+								string buffer_type = renderpass_object.get_string_member("type");
+								string buffer_name = renderpass_object.get_string_member("name");
+
+								if (buffer_type == "image" || buffer_type == "buffer")
 								{
-									string code = renderpass_object.get_string_member("code");
-									code = code.replace("\\n", "\n");
-									code = code.replace("\\t", "\t");
-
-									Idle.add(() =>
+									if (buffer_name == "")
 									{
-										ShadertoyShaderItem element = new ShadertoyShaderItem();
-										shader_box.add(element);
-
-										element.name = name;
-										element.author = author;
-										element.likes = (int) likes;
-										element.views = (int) views;
-										element.shader = code;
-
-										Idle.add(() =>
+										if (buffer_type == "image")
 										{
-											try
-											{
-												element.compile();
+											buffer_name = "Image";
+										}
+										else if (buffer_type == "buffer")
+										{
+											buffer_name = @"Buf $((char) (0x41 + buffer_counter))'";
+											buffer_counter++;
+										}
+									}
 
-											}
-											catch (ShaderError e)
-											{
-												print(@"Compilation error: $(e.message)");
-											}
+									shader.buffers.insert(buffer_name, new Shader.Buffer());
 
-											return false;
-										}, Priority.HIGH);
+									shader.buffers[buffer_name].type = buffer_type;
+									shader.buffers[buffer_name].name = buffer_name;
 
-										return false;
-									}, Priority.DEFAULT_IDLE);
-
-									Thread.usleep(500000);
+									shader.buffers[buffer_name].code = renderpass_object.get_string_member("code");
+									shader.buffers[buffer_name].code = shader.buffers[buffer_name].code.replace("\\n", "\n");
+									shader.buffers[buffer_name].code = shader.buffers[buffer_name].code.replace("\\t", "\t");
 								}
 							}
+
+							Idle.add(() =>
+							{
+								ShadertoyShaderItem element = new ShadertoyShaderItem();
+								shader_box.add(element);
+
+								element.name = shader.name;
+								element.author = shader.author;
+								element.likes = (int) shader.likes;
+								element.views = (int) shader.views;
+								element.shader = shader;
+
+								Idle.add(() =>
+								{
+									try
+									{
+										element.compile();
+									}
+									catch (ShaderError e)
+									{
+										print(@"Compilation error: $(e.message)");
+									}
+
+									return false;
+								}, Priority.HIGH);
+
+								return false;
+							}, Priority.DEFAULT_IDLE);
+
+							Thread.usleep(500000);
 						}
 						catch (Error e)
 						{

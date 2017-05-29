@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<interface>
+	<template class="ShadyNotebookTabLabel" parent="GtkBox">
+		<property name="can_focus">false</property>
+		<property name="orientation">horizontal</property>
+		<property name="spacing">6</property>
+
+		<child>
+			<object class="GtkLabel" id="title_label">
+				<property name="visible">True</property>
+				<property name="can_focus">False</property>
+				<property name="label">Buffer</property>
+			</object>
+			<packing>
+				<property name="expand">True</property>
+				<property name="fill">True</property>
+			</packing>
+		</child>
+
+		<child>
+			<object class="GtkButton" id="close_button">
+				<property name="visible">True</property>
+				<property name="can_focus">False</property>
+				<property name="width_request">16</property>
+
+				<signal name="clicked" handler="close_button_clicked" />
+
+				<style>
+					<class name="flat" />
+					<class name="image-button" />
+				</style>
+
+				<child>
+					<object class="GtkImage">
+						<property name="visible">True</property>
+						<property name="can_focus">False</property>
+						<property name="icon_name">window-close-symbolic</property>
+					</object>
+				</child>
+			</object>
+			<packing>
+				<property name="expand">False</property>
+				<property name="fill">True</property>
+			</packing>
+		</child>
+	</template>
+</interface>
