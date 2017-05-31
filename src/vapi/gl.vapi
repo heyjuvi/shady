@@ -11161,9 +11161,9 @@ namespace GL {
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glGetSharpenTexFuncSGIS")]
 	public static void glGetSharpenTexFuncSGIS (GL.GLenum target, [CCode (array_length = false)] GL.GLfloat[] points);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glGetString")]
-	public static GL.GLubyte glGetString (GL.GLenum name);
+	public static GL.GLubyte * glGetString (GL.GLenum name);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glGetStringi")]
-	public static GL.GLubyte glGetStringi (GL.GLenum name, GL.GLuint index);
+	public static GL.GLubyte * glGetStringi (GL.GLenum name, GL.GLuint index);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glGetSubroutineIndex")]
 	public static GL.GLuint glGetSubroutineIndex (GL.GLuint program, GL.GLenum shadertype, string name);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glGetSubroutineUniformLocation")]
