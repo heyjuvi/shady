@@ -1,4 +1,10 @@
+#version 330
+
+#if __VERSION__ > 120
+in vec2 v;
+#else
 attribute vec2 v;
+#endif
 
 void main( void )
 {
