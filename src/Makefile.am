@@ -17,6 +17,7 @@ shady_SOURCES = \
 	app.vala \
 	app_window.vala \
 	app_preferences.vala \
+	gl_context.vala \
 	shader_area.vala \
 	shadertoy_search_dialog.vala \
 	shadertoy_shader_item.vala
@@ -25,6 +26,7 @@ shady_CPPFLAGS = -g -O0 $(WARN_CFLAGS) $(SHADY_CFLAGS)
 shady_VALAFLAGS = \
 	--pkg epoxy \
 	--pkg gl \
+	--pkg egl \
 	--pkg gtksourceview-3.0 \
 	--pkg gtk+-3.0 \
 	--pkg libsoup-2.4 \
@@ -33,7 +35,7 @@ shady_VALAFLAGS = \
 	--vapidir=vapi \
 	--gresources $(top_srcdir)/shady.gresource.xml
 
-shady_LDADD = $(SHADY_LIBS) -lepoxy
+shady_LDADD = $(SHADY_LIBS) -lepoxy -lX11
 
 gresource_file = $(top_srcdir)/shady.gresource.xml
 shady.gresource.c: $(gresource_file)

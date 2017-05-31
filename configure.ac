@@ -93,7 +93,7 @@ AX_CHECK_COMPILE_FLAG([-std=gnu11],
 dnl ***********************************************************************
 dnl Check for required packages
 dnl ***********************************************************************
-PKG_CHECK_MODULES(SHADY, [gio-2.0 >= 2.42 glib-2.0 >= 2.38 libsoup-2.4 >= 2.4 json-glib-1.0 >= 1.0 gtk+-3.0 >= 3.20 gtksourceview-3.0 >= 3.0.0])
+PKG_CHECK_MODULES(SHADY, [gio-2.0 >= 2.42 glib-2.0 >= 2.38 libsoup-2.4 >= 2.4 json-glib-1.0 >= 1.0 gtk+-3.0 >= 3.20 gtksourceview-3.0 >= 3.0.0 egl >= 1.5])
 
 
 dnl ***********************************************************************
