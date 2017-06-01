@@ -155,7 +155,7 @@ namespace Shady
 		protected override void activate()
 		{
 			// don't ask
-			new ShaderArea();
+			//new ShaderArea();
 			new ShaderSourceView();
 			new ShaderChannelTypePopover();
 

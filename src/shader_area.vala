@@ -54,14 +54,18 @@ namespace Shady
 		private bool program_switch = false;
 
 		//private static GlContext gl_context = new GlContext();
-		private GlContext gl_context = new GlContext();
+		//private GlContext gl_context = new GlContext();
+		private GlContext gl_context;
 
 		public ShaderArea(string? fragment_source = null)
 		{
 			initialized = false;
+			print("new shader area\n");
 
 			realize.connect(() =>
 			{
+
+				gl_context = new GlContext();
 				
 				fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -124,6 +128,8 @@ namespace Shady
 					}
 				});
 
+				print("realized\n");
+
 			});
 
 			draw.connect((cairo_context) =>
@@ -170,6 +176,7 @@ namespace Shady
 
 			size_allocate.connect((allocation) =>
 			{
+				print("size allocated\n");
 				size_mutex.lock();
 				buffer_mutex.lock();
 				width=allocation.width;
@@ -182,6 +189,11 @@ namespace Shady
 				size_mutex.unlock();
 				buffer_drawn = true;
 				draw_cond.signal();
+			});
+
+			show.connect(() =>
+			{
+				print("shader area shown\n");
 			});
 
 		}
