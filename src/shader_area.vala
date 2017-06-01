@@ -29,6 +29,9 @@ namespace Shady
 		private double button_released_x;
 		private double button_released_y;
 
+		private double mouse_x = 0;
+		private double mouse_y = 0;
+
 		private uchar[] buffer;
 		private uchar[] old_buffer;
 		private Mutex buffer_mutex = Mutex();
@@ -44,6 +47,10 @@ namespace Shady
 
 		private int width = 0;
 		private int height = 0;
+		private int stride = 0;
+
+		private Thread<int> render_thread;
+		private bool render_thread_running = true;
 
 		private Mutex compile_mutex = Mutex();
 
@@ -60,7 +67,6 @@ namespace Shady
 		public ShaderArea(string? fragment_source = null)
 		{
 			initialized = false;
-			print("new shader area\n");
 
 			realize.connect(() =>
 			{
@@ -115,35 +121,38 @@ namespace Shady
 
 				gl_context.unbind_context();
 
-				new Thread<int>.try("render_thread", () =>
+				render_thread = new Thread<int>.try("render_thread", () =>
 				{
 					gl_context.main_context();
 
-					while(true){
+					while(render_thread_running){
 						render_gl(program_switch);
 						Idle.add(() => {
 							queue_draw();
 							return false;
 						}, Priority.HIGH);
 					}
+					return 0;
 				});
-
-				print("realized\n");
-
 			});
 
 			draw.connect((cairo_context) =>
 			{
-				Cairo.ImageSurface image;
-
 				if(buffer_mutex.trylock())
 				{
-
 					while(!buffer_rendered){
 						render_cond.wait(buffer_mutex);
 					}
 
-					image = new Cairo.ImageSurface.for_data(buffer, Cairo.Format.RGB24, width, height, Cairo.Format.RGB24.stride_for_width(width));
+					Cairo.ImageSurface image = new Cairo.ImageSurface.for_data(buffer, Cairo.Format.RGB24, width, height, stride);
+
+					cairo_context.translate(width*0, height);
+					cairo_context.scale(1,-1);
+
+					cairo_context.set_source_surface(image, 0, 0);
+
+					cairo_context.paint();
+
 					buffer_drawn = true;
 					draw_cond.signal();
 					buffer_mutex.unlock();
@@ -156,19 +165,19 @@ namespace Shady
 						render_cond.wait(old_buffer_mutex);
 					}
 
-					image = new Cairo.ImageSurface.for_data(old_buffer, Cairo.Format.RGB24, width, height, Cairo.Format.RGB24.stride_for_width(width));
-					old_buffer_mutex.unlock();
+					Cairo.ImageSurface image = new Cairo.ImageSurface.for_data(old_buffer, Cairo.Format.RGB24, width, height, stride);
+					cairo_context.translate(width*0, height);
+					cairo_context.scale(1,-1);
 
+					cairo_context.set_source_surface(image, 0, 0);
+
+					cairo_context.paint();
+
+					old_buffer_mutex.unlock();
 				}
 
-				cairo_context.translate(width*0, height);
-				cairo_context.scale(1,-1);
-
-				cairo_context.set_source_surface(image, 0, 0);
-				cairo_context.paint();
 
 				queue_draw();
-
 
 				return true;
 
@@ -176,26 +185,30 @@ namespace Shady
 
 			size_allocate.connect((allocation) =>
 			{
-				print("size allocated\n");
 				size_mutex.lock();
 				buffer_mutex.lock();
-				width=allocation.width;
-				height=allocation.height;
+				old_buffer_mutex.lock();
+				width = allocation.width;
+				height = allocation.height;
+				stride = Cairo.Format.RGB24.stride_for_width(width);
 
-				buffer=new uchar[width*height*4];
+				buffer = new uchar[stride*height];
 				buffer_rendered = false;
 				old_buffer_rendered = false;
+				old_buffer_mutex.unlock();
 				buffer_mutex.unlock();
 				size_mutex.unlock();
 				buffer_drawn = true;
 				draw_cond.signal();
 			});
 
-			show.connect(() =>
+			unrealize.connect(()=>
 			{
-				print("shader area shown\n");
+				render_thread_running = false;
+				render_thread.join();
+				compile_mutex.lock();
+				compile_mutex.unlock();
 			});
-
 		}
 
 		public void render_gl(bool prog_switch)
@@ -233,13 +246,10 @@ namespace Shady
 				glUniform1f(time_loc, (float)time);
 				glUniform3f(res_loc, width, height, 0);
 
-				Gdk.Device mouse_device = get_display().get_default_seat().get_pointer();
 
-				double mouse_x, mouse_y;
+				//Gdk.Device mouse_device = get_display().get_default_seat().get_pointer();
+				//get_window().get_device_position_double(mouse_device, out mouse_x, out mouse_y, null);
 
-				get_window().get_device_position_double(mouse_device, out mouse_x, out mouse_y, null);
-
-				mouse_y = height - mouse_y - 1;
 
 				if (button_pressed)
 				{
@@ -274,8 +284,8 @@ namespace Shady
 				}
 
 				old_buffer_mutex.lock();
-				old_buffer_rendered=buffer_rendered;
-				old_buffer=buffer;
+				old_buffer_rendered = buffer_rendered;
+				old_buffer = buffer;
 				old_buffer_mutex.unlock();
 				buffer_mutex.lock();
 				glReadPixels(0,0,width,height,GL_BGRA,GL_UNSIGNED_BYTE, (GLvoid[])buffer);
@@ -353,15 +363,6 @@ namespace Shady
 				glLinkProgram(program2);
 			}
 
-			int[] tmp=new int[1];
-
-			if(program_switch){
-				glGetProgramiv(program,GL_LINK_STATUS,tmp);
-			}
-			else{
-				glGetProgramiv(program2,GL_LINK_STATUS,tmp);
-			}
-
 			if(program_switch){
 				time_loc = glGetUniformLocation(program, "iGlobalTime");
 			}
@@ -382,9 +383,9 @@ namespace Shady
 			}
 
 			//prevent averaging in of old shader
-			fps=0;
+			fps = 0;
 
-			program_switch=!program_switch;
+			program_switch = !program_switch;
 		}
 
 		public void pause(bool pause_status)
@@ -410,14 +411,20 @@ namespace Shady
 		{
 			button_pressed = true;
 			button_pressed_x = x;
-			button_pressed_y = get_allocated_height() - y - 1;
+			button_pressed_y = height - y - 1;
 		}
 
 		public void button_release(double x, double y)
 		{
 			button_pressed = false;
 			button_released_x = x;
-			button_released_y = get_allocated_height() - y - 1;
+			button_released_y = height - y - 1;
+		}
+
+		public void mouse_move(double x, double y)
+		{
+			mouse_x = x;
+			mouse_y = height - y - 1;
 		}
 	}
 }

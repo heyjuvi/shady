@@ -237,6 +237,13 @@ namespace Shady
 				return false;
 			});
 
+			motion_notify_event.connect((widget, event) =>
+			{
+				_shader_area.mouse_move(event.x, event.y);
+
+				return false;
+			});
+
 			key_press_event.connect((widget, event) =>
 			{
 				bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
