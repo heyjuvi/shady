@@ -34,7 +34,7 @@ namespace Shady
 		{
 			// for some reason the shader area must not be constructed in a ui
 			// file
-			_shader_area = new ShaderArea(read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl")));
+			_shader_area = new ShaderArea((string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data()));
 
 			shader_container.pack_start(_shader_area, true, true);
 

@@ -120,7 +120,7 @@ namespace Shady
 						Idle.add(() => {
 							queue_draw();
 							return false;
-						}, Priority.DEFAULT_IDLE);
+						}, Priority.HIGH);
 					}
 				});
 

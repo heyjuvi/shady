@@ -144,7 +144,7 @@ namespace Shady
 
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
 
-		private string _default_shader = read_file_as_string(File.new_for_uri("resource:///org/hasi/shady/data/shader/default.glsl"));
+		private string _default_shader;
 
 		private uint _auto_compile_handler_id;
 		private bool _is_fullscreen = false;
@@ -152,6 +152,8 @@ namespace Shady
 		public AppWindow(Gtk.Application app, AppPreferences preferences)
 		{
 			Object(application: app);
+
+			_default_shader = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
 
 			_shader_area = new ShaderArea(_default_shader);
 			_shader_area.set_size_request(500, 600);
