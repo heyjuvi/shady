@@ -70,7 +70,7 @@ namespace Shady
 		{
 			// for some reason the shader area must not be constructed in a ui
 			// file
-			_shader_area = new ShaderArea((string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data()));
+			_shader_area = new ShaderArea((string) (resources_lookup_data("/org/hasi/shady/data/shader/load.glsl", 0).get_data()));
 			_shader_area.set_size_request(152, 140);
 
 			shader_container.pack_start(_shader_area, false, false);
