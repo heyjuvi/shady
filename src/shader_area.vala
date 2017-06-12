@@ -1,5 +1,6 @@
 using GL;
 using Gtk;
+using Gdk;
 
 namespace Shady
 {
@@ -237,6 +238,40 @@ namespace Shady
 					}
 					return 0;
 				});
+
+				add_events( EventMask.BUTTON_PRESS_MASK | EventMask.BUTTON_RELEASE_MASK | EventMask.POINTER_MOTION_MASK );
+			});
+
+			button_press_event.connect((widget, event) =>
+			{
+				if (event.button == BUTTON_PRIMARY)
+				{
+					button_pressed = true;
+					button_pressed_x = event.x;
+					button_pressed_y = height - event.y - 1;
+				}
+
+				return false;
+			});
+
+			button_release_event.connect((widget, event) =>
+			{
+				if (event.button == BUTTON_PRIMARY)
+				{
+					button_pressed = false;
+					button_released_x = event.x;
+					button_released_y = height - event.y - 1;
+				}
+
+				return false;
+			});
+
+			motion_notify_event.connect((widget, event) =>
+			{
+				mouse_x = event.x;
+				mouse_y = height - event.y - 1;
+
+				return false;
 			});
 
 			draw.connect((cairo_context) =>
@@ -319,6 +354,7 @@ namespace Shady
 				compile_mutex.lock();
 				compile_mutex.unlock();
 			});
+
 		}
 
 		public void render_gl(bool prog_switch)
@@ -363,7 +399,7 @@ namespace Shady
 				glUniform3f(res_loc, width, height, 0);
 
 
-				//Gdk.Device mouse_device = get_display().get_default_seat().get_pointer();
+				//Device mouse_device = get_display().get_default_seat().get_pointer();
 				//get_window().get_device_position_double(mouse_device, out mouse_x, out mouse_y, null);
 
 
@@ -587,24 +623,5 @@ namespace Shady
 			pause_time = curr_time;
 		}
 
-		public void button_press(double x, double y)
-		{
-			button_pressed = true;
-			button_pressed_x = x;
-			button_pressed_y = height - y - 1;
-		}
-
-		public void button_release(double x, double y)
-		{
-			button_pressed = false;
-			button_released_x = x;
-			button_released_y = height - y - 1;
-		}
-
-		public void mouse_move(double x, double y)
-		{
-			mouse_x = x;
-			mouse_y = height - y - 1;
-		}
 	}
 }
