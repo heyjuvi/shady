@@ -19,6 +19,15 @@ namespace Shady
 
 		public ChannelType channel_type { get; set; default = ChannelType.NONE; }
 
+		public string channel_name
+		{
+			get { return name_label.get_text(); }
+			set { name_label.set_text(value); }
+		}
+
+		[GtkChild]
+		private Gtk.Label name_label;
+
 		[GtkChild]
 		private Gtk.MenuButton value_button;
 
