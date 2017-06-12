@@ -516,7 +516,7 @@ namespace Shady
 		[GtkCallback]
 		private void rubber_band_scale_value_changed()
 		{
-			print(@"$(rubber_band_scale.get_value())\n");
+			_shader_area.time_slider=rubber_band_scale.get_value();
 		}
 
 		[GtkCallback]

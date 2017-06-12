@@ -5,7 +5,6 @@
 - texture support
 - audio shader support
 - glsl version switching
-- fast forward and rewind in pause mode
 - browse shaders on shadertoy.com
 - multipass
 - paste mouse coordinates in source code
