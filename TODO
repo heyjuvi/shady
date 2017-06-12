@@ -1,5 +1,6 @@
 - saving shaders
 - hotkeys
+- make closing of search window more responsive
 - compilation errors
 - texture support
 - audio shader support
@@ -9,7 +10,6 @@
 - multipass
 - paste mouse coordinates in source code
 - adjustable resolution
-- put shader compilation in different thread
 - watch file changes, load altered shader
 - syntax highlighting must get better
 - video and screenshot export
