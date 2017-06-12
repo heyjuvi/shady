@@ -267,7 +267,7 @@ namespace Shady
 
 				if (is_fullscreen && live_mode && event.keyval == Gdk.Key.Control_R)
 				{
-					_editor_notebook.set_visible(!_editor_notebook.get_visible());
+					_editor_box.set_visible(!_editor_box.get_visible());
 				}
 
 				return false;
@@ -277,7 +277,7 @@ namespace Shady
 			{
 				bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
 
-				_editor_notebook.visible = !is_fullscreen || live_mode;
+				_editor_box.visible = !is_fullscreen || live_mode;
 				_editor_notebook.show_tabs = !live_mode;
 
 				return false;
@@ -300,9 +300,19 @@ namespace Shady
 			show_all();
 
 			// test
-			_channels_box.pack_start(new ShaderChannel(), false, true);
-			_channels_box.pack_start(new ShaderChannel(), false, true);
-			_channels_box.pack_start(new ShaderChannel(), false, true);
+			ShaderChannel channel0 = new ShaderChannel();
+			channel0.channel_name = "iChannel0";
+			ShaderChannel channel1 = new ShaderChannel();
+			channel1.channel_name = "iChannel1";
+			ShaderChannel channel2 = new ShaderChannel();
+			channel2.channel_name = "iChannel2";
+			ShaderChannel channel3 = new ShaderChannel();
+			channel3.channel_name = "iChannel3";
+
+			_channels_box.pack_start(channel0, false, true);
+			_channels_box.pack_start(channel1, false, true);
+			_channels_box.pack_start(channel2, false, true);
+			_channels_box.pack_start(channel3, false, true);
 			// end test
 		}
 
@@ -522,7 +532,7 @@ namespace Shady
 		{
 			if (!live_mode)
 			{
-				_editor_notebook.hide();
+				_editor_box.hide();
 			}
 
 			fullscreen();
