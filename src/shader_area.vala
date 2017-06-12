@@ -62,11 +62,14 @@ namespace Shady
 
 		private Mutex compile_mutex = Mutex();
 
+		private Mutex prog_mutex1 = Mutex();
+		private Mutex prog_mutex2 = Mutex();
+
 		public bool paused { get; set; default = false; }
 		public double fps { get; private set; }
 		public double time { get; private set; }
 
-		private bool program_switch = false;
+		private bool program_switch = true;
 
 		//private static GlContext gl_context = new GlContext();
 		//private GlContext gl_context = new GlContext();
@@ -158,15 +161,14 @@ namespace Shady
 
 					while(render_thread1_running)
 					{
-						//render_gl(program_switch);
-						//render_gl(false);
-						render_gl(true);
+
 						Idle.add(() =>
 						{
 							queue_draw();
 							return false;
 
 						}, Priority.HIGH);
+
 						render_switch_mutex1.lock();
 
 						while(!render_switch && render_thread1_running)
@@ -177,11 +179,17 @@ namespace Shady
 								continue;
 							}
 
+							prog_mutex2.lock();
 							dummy_render_gl(true);
+							prog_mutex2.unlock();
 							render_switch = !render_switch;
 						}
 						
 						render_switch_mutex1.unlock();
+
+						prog_mutex2.lock();
+						render_gl(true);
+						prog_mutex2.unlock();
 					}
 					return 0;
 				});
@@ -192,9 +200,6 @@ namespace Shady
 
 					while(render_thread2_running)
 					{
-						//render_gl(program_switch);
-						//render_gl(true);
-						render_gl(false);
 						Idle.add(() =>
 						{
 							queue_draw();
@@ -212,11 +217,17 @@ namespace Shady
 								continue;
 							}
 
+							prog_mutex1.lock();
 							dummy_render_gl(false);
+							prog_mutex1.unlock();
 							render_switch = !render_switch;
 						}
 						
 						render_switch_mutex2.unlock();
+
+						prog_mutex1.lock();
+						render_gl(false);
+						prog_mutex1.unlock();
 					}
 					return 0;
 				});
@@ -357,7 +368,9 @@ namespace Shady
 
 				int64 time_before = get_monotonic_time();
 
+				//stdout.printf("before draw in thread:%d\n",(int)prog_switch);
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+				//stdout.printf("after draw in thread:%d\n",(int)prog_switch);
 
 				glFlush();
 				glFinish();
@@ -481,6 +494,13 @@ namespace Shady
 			}
 
 			if(program_switch){
+				prog_mutex1.lock();
+			}
+			else{
+				prog_mutex2.lock();
+			}
+
+			if(program_switch){
 				glLinkProgram(program);
 			}
 			else{
@@ -510,6 +530,13 @@ namespace Shady
 			fps = 0;
 
 			program_switch = !program_switch;
+
+			if(!program_switch){
+				prog_mutex1.unlock();
+			}
+			else{
+				prog_mutex2.unlock();
+			}
 		}
 
 		public void pause(bool pause_status)
