@@ -1,5 +1,6 @@
 using GL;
 using Gtk;
+using Gdk;
 
 namespace Shady
 {
@@ -20,6 +21,7 @@ namespace Shady
 		private int64 start_time;
 		private int64 curr_time;
 		private int64 pause_time;
+		private int64 delta_time;
 
 		private bool initialized;
 
@@ -68,6 +70,9 @@ namespace Shady
 		public bool paused { get; set; default = false; }
 		public double fps { get; private set; }
 		public double time { get; private set; }
+
+		public double time_slider = 0.0;
+		private const double time_slider_factor = 2.0;
 
 		private bool program_switch = true;
 
@@ -174,7 +179,8 @@ namespace Shady
 						{
 							render_switch_cond.wait(render_switch_mutex1);
 
-							if(!render_thread1_running){
+							if(!render_thread1_running)
+							{
 								continue;
 							}
 
@@ -212,7 +218,8 @@ namespace Shady
 						{
 							render_switch_cond.wait(render_switch_mutex2);
 
-							if(!render_thread2_running){
+							if(!render_thread2_running)
+							{
 								continue;
 							}
 
@@ -230,13 +237,48 @@ namespace Shady
 					}
 					return 0;
 				});
+
+				add_events( EventMask.BUTTON_PRESS_MASK | EventMask.BUTTON_RELEASE_MASK | EventMask.POINTER_MOTION_MASK );
+			});
+
+			button_press_event.connect((widget, event) =>
+			{
+				if (event.button == BUTTON_PRIMARY)
+				{
+					button_pressed = true;
+					button_pressed_x = event.x;
+					button_pressed_y = height - event.y - 1;
+				}
+
+				return false;
+			});
+
+			button_release_event.connect((widget, event) =>
+			{
+				if (event.button == BUTTON_PRIMARY)
+				{
+					button_pressed = false;
+					button_released_x = event.x;
+					button_released_y = height - event.y - 1;
+				}
+
+				return false;
+			});
+
+			motion_notify_event.connect((widget, event) =>
+			{
+				mouse_x = event.x;
+				mouse_y = height - event.y - 1;
+
+				return false;
 			});
 
 			draw.connect((cairo_context) =>
 			{
 				if(buffer_mutex.trylock())
 				{
-					while(!buffer_rendered){
+					while(!buffer_rendered)
+					{
 						render_cond.wait(buffer_mutex);
 					}
 
@@ -257,7 +299,8 @@ namespace Shady
 				{
 					old_buffer_mutex.lock();
 
-					while(!old_buffer_rendered){
+					while(!old_buffer_rendered)
+					{
 						render_cond.wait(old_buffer_mutex);
 					}
 
@@ -310,6 +353,7 @@ namespace Shady
 				compile_mutex.lock();
 				compile_mutex.unlock();
 			});
+
 		}
 
 		public void render_gl(bool prog_switch)
@@ -325,21 +369,27 @@ namespace Shady
 
 				glViewport(0, 0, width, height);
 
-				if(!prog_switch){
+				if(!prog_switch)
+				{
 					glUseProgram(program);
 				}
-				else{
+				else
+				{
 					glUseProgram(program2);
 				}
 
+				delta_time = -curr_time;
+				curr_time = get_monotonic_time();
+				delta_time += curr_time;
+
 				if (!paused)
 				{
-					curr_time = get_monotonic_time();
 					time = (curr_time - start_time) / 1000000.0f;
 				}
 				else
 				{
 					time = (pause_time - start_time) / 1000000.0f;
+					pause_time += (int)(time_slider * time_slider_factor * delta_time);
 				}
 
 				//stdout.printf("%f\n",time);
@@ -348,7 +398,7 @@ namespace Shady
 				glUniform3f(res_loc, width, height, 0);
 
 
-				//Gdk.Device mouse_device = get_display().get_default_seat().get_pointer();
+				//Device mouse_device = get_display().get_default_seat().get_pointer();
 				//get_window().get_device_position_double(mouse_device, out mouse_x, out mouse_y, null);
 
 
@@ -408,10 +458,12 @@ namespace Shady
 			{
 				glViewport(0, 0, width, height);
 
-				if(!prog_switch){
+				if(!prog_switch)
+				{
 					glUseProgram(program);
 				}
-				else{
+				else
+				{
 					glUseProgram(program2);
 				}
 
@@ -492,36 +544,46 @@ namespace Shady
 				return;
 			}
 
-			if(program_switch){
+			if(program_switch)
+			{
 				prog_mutex1.lock();
 			}
-			else{
+			else
+			{
 				prog_mutex2.lock();
 			}
 
-			if(program_switch){
+			if(program_switch)
+			{
 				glLinkProgram(program);
 			}
-			else{
+			else
+			{
 				glLinkProgram(program2);
 			}
 
-			if(program_switch){
+			if(program_switch)
+			{
 				time_loc = glGetUniformLocation(program, "iGlobalTime");
 			}
-			else{
+			else
+			{
 				time_loc = glGetUniformLocation(program2, "iGlobalTime");
 			}
-			if(program_switch){
+			if(program_switch)
+			{
 				res_loc = glGetUniformLocation(program, "iResolution");
 			}
-			else{
+			else
+			{
 				res_loc = glGetUniformLocation(program2, "iResolution");
 			}
-			if(program_switch){
+			if(program_switch)
+			{
 				mouse_loc = glGetUniformLocation(program, "iMouse");
 			}
-			else{
+			else
+			{
 				mouse_loc = glGetUniformLocation(program2, "iMouse");
 			}
 
@@ -530,10 +592,12 @@ namespace Shady
 
 			program_switch = !program_switch;
 
-			if(!program_switch){
+			if(!program_switch)
+			{
 				prog_mutex1.unlock();
 			}
-			else{
+			else
+			{
 				prog_mutex2.unlock();
 			}
 		}
@@ -555,26 +619,8 @@ namespace Shady
 		public void reset_time()
 		{
 			start_time = curr_time;
+			pause_time = curr_time;
 		}
 
-		public void button_press(double x, double y)
-		{
-			button_pressed = true;
-			button_pressed_x = x;
-			button_pressed_y = height - y - 1;
-		}
-
-		public void button_release(double x, double y)
-		{
-			button_pressed = false;
-			button_released_x = x;
-			button_released_y = height - y - 1;
-		}
-
-		public void mouse_move(double x, double y)
-		{
-			mouse_x = x;
-			mouse_y = height - y - 1;
-		}
 	}
 }

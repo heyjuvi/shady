@@ -1,15 +1,14 @@
 - saving shaders
 - hotkeys
+- make closing of search window more responsive
 - compilation errors
 - texture support
 - audio shader support
 - glsl version switching
-- fast forward and rewind in pause mode
 - browse shaders on shadertoy.com
 - multipass
 - paste mouse coordinates in source code
 - adjustable resolution
-- put shader compilation in different thread
 - watch file changes, load altered shader
 - syntax highlighting must get better
 - video and screenshot export

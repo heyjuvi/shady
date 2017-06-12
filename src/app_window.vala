@@ -170,6 +170,8 @@ namespace Shady
 			_shader_overlay.add(_shader_area);
 			_shader_overlay.add_overlay(dummy);
 
+			_shader_overlay.set_overlay_pass_through(dummy,true);
+
 			_editor_box = new Gtk.Box(Orientation.VERTICAL, 0);
 
 			_editor_notebook = new Notebook();
@@ -215,33 +217,6 @@ namespace Shady
 			_notebook_action_widget.show_channels_button.clicked.connect(() =>
 			{
 				_channels_revealer.reveal_child = !_channels_revealer.reveal_child;
-			});
-
-			button_press_event.connect((widget, event) =>
-			{
-				if (event.button == Gdk.BUTTON_PRIMARY)
-				{
-					_shader_area.button_press(event.x, event.y);
-				}
-
-				return false;
-			});
-
-			button_release_event.connect((widget, event) =>
-			{
-				if (event.button == Gdk.BUTTON_PRIMARY)
-				{
-					_shader_area.button_release(event.x, event.y);
-				}
-
-				return false;
-			});
-
-			motion_notify_event.connect((widget, event) =>
-			{
-				_shader_area.mouse_move(event.x, event.y);
-
-				return false;
 			});
 
 			key_press_event.connect((widget, event) =>
@@ -516,7 +491,7 @@ namespace Shady
 		[GtkCallback]
 		private void rubber_band_scale_value_changed()
 		{
-			print(@"$(rubber_band_scale.get_value())\n");
+			_shader_area.time_slider=rubber_band_scale.get_value();
 		}
 
 		[GtkCallback]
