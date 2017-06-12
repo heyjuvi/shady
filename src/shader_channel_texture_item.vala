@@ -42,7 +42,7 @@ namespace Shady
 			get { return _channels; }
 			set
 			{
-				channels_label.set_text(@"$value" + (value == 1 ? "channel" : "channels"));
+				channels_label.set_text(@"$value " + (value == 1 ? "channel" : "channels"));
 				_channels = value;
 			}
 		}
@@ -59,8 +59,37 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Label channels_label;
 
+		[GtkChild]
+		private Gtk.Image texture_image;
+
 		public ShaderChannelTextureItem()
 		{
+		}
+
+		public ShaderChannelTextureItem.from_texture(Shader.Texture texture)
+		{
+			int texture_width = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].width;
+			int texture_height = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].height;
+
+			int texture_channels = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].n_channels;
+
+			name = texture.name;
+			author = "shadertoy";
+			resolution = @"$(texture_width)x$(texture_height)";
+			channels = texture_channels;
+
+			int new_width = 180;
+
+			Gdk.Pixbuf tmp_pixbuf = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].copy();
+
+			int new_height = (int) (new_width * ((float) tmp_pixbuf.height / (float) tmp_pixbuf.width));
+			int dest_height = (new_height < 120 ? new_height : 120);
+
+			tmp_pixbuf = tmp_pixbuf.scale_simple(new_width, new_height, Gdk.InterpType.BILINEAR);
+			Gdk.Pixbuf dest_pixbuf = tmp_pixbuf.scale_simple(new_width, dest_height, Gdk.InterpType.BILINEAR);
+			tmp_pixbuf.copy_area(0, 0, new_width, dest_height, dest_pixbuf, 0, 0);
+
+			texture_image.pixbuf = dest_pixbuf;
 		}
 	}
 }

@@ -9,6 +9,13 @@ namespace Shady
 			public string code;
 		}
 
+		public class Texture
+		{
+			public string hash;
+			public string resource;
+			public string name;
+		}
+
 		public string name;
 		public string description;
 		public string author;

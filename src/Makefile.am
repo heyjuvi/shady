@@ -18,6 +18,7 @@ shady_SOURCES = \
 	app_window.vala \
 	app_preferences.vala \
 	shader.vala \
+	shadertoy_resource_manager.vala \
 	gl_context.vala \
 	shader_area.vala \
 	shader_source_buffer.vala \

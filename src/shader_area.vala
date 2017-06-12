@@ -81,7 +81,6 @@ namespace Shady
 
 			realize.connect(() =>
 			{
-
 				gl_context = new GlContext();
 				
 				fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);

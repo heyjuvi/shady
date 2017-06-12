@@ -37,6 +37,8 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Box shader_container;
 
+		private ShaderChannelTexturePopover _texture_popover = new ShaderChannelTexturePopover();
+
 		private ShaderArea _shader_area;
 
 		public ShaderChannel()
@@ -61,6 +63,12 @@ namespace Shady
 			    channel_type == ChannelType.MUSIC)
 			{
 				value_button.visible = true;
+
+				if (channel_type == ChannelType.TEXTURE)
+				{
+					_texture_popover.hide();
+					value_button.popover = _texture_popover;
+				}
 			}
 			else
 			{

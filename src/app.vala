@@ -158,6 +158,7 @@ namespace Shady
 			//new ShaderArea();
 			new ShaderSourceView();
 			new ShaderChannelTypePopover();
+			new ShadertoyResourceManager();
 
 			app_preferences = new AppPreferences();
 			newest_app_window = new AppWindow(this, app_preferences);
