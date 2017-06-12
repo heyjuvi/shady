@@ -38,6 +38,10 @@ namespace Shady
 		private Mutex old_buffer_mutex = Mutex();
 		private Mutex size_mutex = Mutex();
 
+		private Mutex render_switch_mutex1 = Mutex();
+		private Mutex render_switch_mutex2 = Mutex();
+		private Cond render_switch_cond = Cond();
+
 		private Cond draw_cond = Cond();
 		private Cond render_cond = Cond();
 
@@ -49,8 +53,12 @@ namespace Shady
 		private int height = 0;
 		private int stride = 0;
 
-		private Thread<int> render_thread;
-		private bool render_thread_running = true;
+		private Thread<int> render_thread1;
+		private Thread<int> render_thread2;
+		private bool render_thread1_running = true;
+		private bool render_thread2_running = true;
+
+		private bool render_switch = true;
 
 		private Mutex compile_mutex = Mutex();
 
@@ -87,6 +95,8 @@ namespace Shady
 				compile_blocking(fragment_source);
 				compile_blocking(fragment_source);
 
+				gl_context.render_context1();
+
 				glGenVertexArrays(1, vao);
 				glBindVertexArray(vao[0]);
 
@@ -115,22 +125,98 @@ namespace Shady
 
 				glDeleteBuffers(1, vbo);
 
+				gl_context.render_context2();
+
+				glGenVertexArrays(1, vao);
+				glBindVertexArray(vao[0]);
+
+				glGenBuffers(1, vbo);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+				glBufferData(GL_ARRAY_BUFFER, vertices.length * sizeof (GLfloat), (GLvoid[]) vertices, GL_STATIC_DRAW);
+
+				glEnableVertexAttribArray(attrib);
+				glVertexAttribPointer(attrib, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
+
+				glEnableVertexAttribArray(attrib2);
+				glVertexAttribPointer(attrib2, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
+
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+				glBindVertexArray(0);
+
+				glDeleteBuffers(1, vbo);
+
 				start_time = get_monotonic_time();
 
 				initialized = true;
 
 				gl_context.unbind_context();
 
-				render_thread = new Thread<int>.try("render_thread", () =>
+				render_thread1 = new Thread<int>.try("render_thread1", () =>
 				{
-					gl_context.main_context();
+					gl_context.render_context1();
 
-					while(render_thread_running){
-						render_gl(program_switch);
-						Idle.add(() => {
+					while(render_thread1_running)
+					{
+						//render_gl(program_switch);
+						//render_gl(false);
+						render_gl(true);
+						Idle.add(() =>
+						{
 							queue_draw();
 							return false;
+
 						}, Priority.HIGH);
+						render_switch_mutex1.lock();
+
+						while(!render_switch && render_thread1_running)
+						{
+							render_switch_cond.wait(render_switch_mutex1);
+
+							if(!render_thread1_running){
+								continue;
+							}
+
+							dummy_render_gl(true);
+							render_switch = !render_switch;
+						}
+						
+						render_switch_mutex1.unlock();
+					}
+					return 0;
+				});
+
+				render_thread2 = new Thread<int>.try("render_thread2", () =>
+				{
+					gl_context.render_context2();
+
+					while(render_thread2_running)
+					{
+						//render_gl(program_switch);
+						//render_gl(true);
+						render_gl(false);
+						Idle.add(() =>
+						{
+							queue_draw();
+							return false;
+
+						}, Priority.HIGH);
+						
+						render_switch_mutex2.lock();
+
+						while(render_switch && render_thread2_running)
+						{
+							render_switch_cond.wait(render_switch_mutex2);
+
+							if(!render_thread2_running){
+								continue;
+							}
+
+							dummy_render_gl(false);
+							render_switch = !render_switch;
+						}
+						
+						render_switch_mutex2.unlock();
 					}
 					return 0;
 				});
@@ -204,8 +290,13 @@ namespace Shady
 
 			unrealize.connect(()=>
 			{
-				render_thread_running = false;
-				render_thread.join();
+				render_thread1_running = false;
+				render_thread2_running = false;
+
+				render_switch_cond.signal();
+
+				render_thread1.join();
+				render_thread2.join();
 				compile_mutex.lock();
 				compile_mutex.unlock();
 			});
@@ -299,6 +390,36 @@ namespace Shady
 			}
 		}
 
+		public void dummy_render_gl(bool prog_switch)
+		{
+			if (initialized)
+			{
+				glViewport(0, 0, width, height);
+
+				if(!prog_switch){
+					glUseProgram(program);
+				}
+				else{
+					glUseProgram(program2);
+				}
+
+				glUniform1f(time_loc, 0.0f);
+				glUniform3f(res_loc, width, height, 0);
+
+				glUniform4f(mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
+
+				glBindVertexArray(vao[0]);
+
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+				glFlush();
+				glFinish();
+
+				uchar[] dummy_buffer = new uchar[width*height*4];
+				glReadPixels(0,0,width,height,GL_BGRA,GL_UNSIGNED_BYTE, (GLvoid[])dummy_buffer);
+			}
+		}
+
 		public void compile(string shader_source) throws ShaderError
 		{
 			new Thread<int>.try("compile_thread", () =>
@@ -310,6 +431,9 @@ namespace Shady
 
 					gl_context.free_context();
 					compile_mutex.unlock();
+
+					//render_switch = !render_switch;
+					render_switch_cond.signal();
 				}
 
 				return 0;

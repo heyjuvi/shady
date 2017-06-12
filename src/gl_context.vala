@@ -7,8 +7,10 @@ namespace Shady
 	{
 		private EGLDisplay egl_display;
 		private EGLConfig[] egl_pbuffer_conf = new EGLConfig[1];
-		private EGLSurface egl_pbuffer_surface;
-		private EGLContext egl_context;
+		private EGLSurface egl_pbuffer_surface1;
+		private EGLSurface egl_pbuffer_surface2;
+		private EGLContext egl_render_context1;
+		private EGLContext egl_render_context2;
 
 		private EGLint num_configs;
 
@@ -54,11 +56,18 @@ namespace Shady
 			eglInitialize(egl_display, null, null);
 
 			eglChooseConfig(egl_display, pbuffer_attribs, egl_pbuffer_conf, 1, out num_configs);
-			egl_context = eglCreateContext(egl_display, egl_pbuffer_conf[0], (EGLContext)EGL_NO_CONTEXT, contextAttr);
+			egl_render_context1 = eglCreateContext(egl_display, egl_pbuffer_conf[0], (EGLContext)EGL_NO_CONTEXT, contextAttr);
+			egl_render_context2 = eglCreateContext(egl_display, egl_pbuffer_conf[0], egl_render_context1, contextAttr);
 
-			egl_pbuffer_surface = eglCreatePbufferSurface(egl_display, egl_pbuffer_conf[0],pbuffer_surface_attribs);
+			egl_pbuffer_surface1 = eglCreatePbufferSurface(egl_display, egl_pbuffer_conf[0],pbuffer_surface_attribs);
+			egl_pbuffer_surface2 = eglCreatePbufferSurface(egl_display, egl_pbuffer_conf[0],pbuffer_surface_attribs);
 
-			eglMakeCurrent(egl_display, egl_pbuffer_surface, egl_pbuffer_surface, egl_context);
+			eglMakeCurrent(egl_display, egl_pbuffer_surface2, egl_pbuffer_surface2, egl_render_context2);
+			glReadBuffer(GL_FRONT);
+			glDrawBuffer(GL_FRONT);
+
+
+			eglMakeCurrent(egl_display, egl_pbuffer_surface1, egl_pbuffer_surface1, egl_render_context1);
 
 			glReadBuffer(GL_FRONT);
 			glDrawBuffer(GL_FRONT);
@@ -71,9 +80,14 @@ namespace Shady
 			glCompileShader(vertex_shader);
 		}
 
-		public void main_context()
+		public void render_context1()
 		{
-				eglMakeCurrent(egl_display, egl_pbuffer_surface, egl_pbuffer_surface, egl_context);
+				eglMakeCurrent(egl_display, egl_pbuffer_surface1, egl_pbuffer_surface1, egl_render_context1);
+		}
+
+		public void render_context2()
+		{
+				eglMakeCurrent(egl_display, egl_pbuffer_surface2, egl_pbuffer_surface2, egl_render_context2);
 		}
 
 		public void unbind_context()
@@ -86,7 +100,7 @@ namespace Shady
 				eglBindAPI(EGL_OPENGL_API);
 				//eglBindAPI(EGL_OPENGL_ES_API);
 
-				EGLContext curr_context = eglCreateContext(egl_display, egl_pbuffer_conf[0], egl_context, contextAttr);
+				EGLContext curr_context = eglCreateContext(egl_display, egl_pbuffer_conf[0], egl_render_context1, contextAttr);
 				eglMakeCurrent(egl_display, (EGLSurface) EGL_NO_SURFACE, (EGLSurface) EGL_NO_SURFACE, curr_context);
 		}
 
