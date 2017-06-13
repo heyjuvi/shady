@@ -304,42 +304,55 @@ namespace Shady
 			{
 				List<string> sorted_keys = new List<string>();
 
-				foreach (string key in shader.buffers.get_keys())
+				Shader.Renderpass audio_renderpass = null;
+				Shader.Renderpass image_renderpass = null;
+
+				for (int i = 0; i < shader.renderpasses.length; i++)
 				{
-					if (key != "Audio" && key != "Image")
+					if (shader.renderpasses.index(i) is Shader.Renderpass)
 					{
-						sorted_keys.insert_sorted(key, strcmp);
+						Shader.Renderpass renderpass = shader.renderpasses.index(i) as Shader.Renderpass;
+
+						if (renderpass.type != Shader.RenderpassType.AUDIO)
+						{
+							audio_renderpass = renderpass;
+						}
+						else if (renderpass.type != Shader.RenderpassType.IMAGE)
+						{
+							image_renderpass = renderpass;
+						}
+						else
+						{
+							sorted_keys.insert_sorted(renderpass.name, strcmp);
+						}
 					}
 				}
 
-				if ("Audio" in shader.buffers)
+				if (audio_renderpass != null)
 				{
-					sorted_keys.prepend("Audio");
 				}
 
-				if ("Image" in shader.buffers)
+				if (image_renderpass != null)
 				{
-					sorted_keys.prepend("Image");
+					add_buffer("Image", false);
+					set_buffer("Image", image_renderpass.code);
 				}
 
-				foreach (string buffer_name in sorted_keys)
+				foreach (string renderpass_name in sorted_keys)
 				{
-					if (buffer_name == "Image")
+					for (int i = 0; i < shader.renderpasses.length; i++)
 					{
-						add_buffer("Image", false);
-						set_buffer("Image", shader.buffers["Image"].code);
-					}
-					else
-					{
-						add_buffer(buffer_name);
-						set_buffer(buffer_name, shader.buffers[buffer_name].code);
-					}
-				}
+						if (shader.renderpasses.index(i) is Shader.Renderpass)
+						{
+							Shader.Renderpass renderpass = shader.renderpasses.index(i) as Shader.Renderpass;
 
-				foreach (string buffer_name in shader.buffers.get_keys())
-				{
-					print(buffer_name);print(":\n");
-					print(get_buffer(buffer_name));print("\n");
+							if (renderpass.name == renderpass_name)
+							{
+								add_buffer(renderpass_name);
+								set_buffer(renderpass_name, renderpass.code);
+							}
+						}
+					}
 				}
 			}
 		}

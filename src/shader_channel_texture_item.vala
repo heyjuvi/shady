@@ -47,6 +47,8 @@ namespace Shady
 			}
 		}
 
+		public string resource { get; set; default = null; }
+
 		[GtkChild]
 		private Gtk.Label name_label;
 
@@ -66,7 +68,7 @@ namespace Shady
 		{
 		}
 
-		public ShaderChannelTextureItem.from_texture(Shader.Texture texture)
+		public ShaderChannelTextureItem.from_texture(Shader.Input texture)
 		{
 			int texture_width = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].width;
 			int texture_height = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].height;
@@ -77,6 +79,8 @@ namespace Shady
 			author = "shadertoy";
 			resolution = @"$(texture_width)x$(texture_height)";
 			channels = texture_channels;
+
+			resource = texture.resource;
 
 			int new_width = 180;
 

@@ -3,7 +3,7 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/shader-channel-type-popover.ui")]
 	public class ShaderChannelTypePopover : Gtk.Popover
 	{
-		public signal void channel_type_changed(ShaderChannel.ChannelType channel_type);
+		public signal void channel_type_changed(Shader.InputType channel_type);
 
 		public ShaderChannelTypePopover()
 		{
@@ -14,7 +14,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.NONE);
+				channel_type_changed(Shader.InputType.NONE);
 			}
 		}
 
@@ -23,7 +23,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.KEYBOARD);
+				channel_type_changed(Shader.InputType.KEYBOARD);
 			}
 		}
 
@@ -32,7 +32,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.WEBCAM);
+				channel_type_changed(Shader.InputType.WEBCAM);
 			}
 		}
 
@@ -41,7 +41,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.MICROPHONE);
+				channel_type_changed(Shader.InputType.MICROPHONE);
 			}
 		}
 
@@ -50,7 +50,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.SOUNDCLOUD);
+				channel_type_changed(Shader.InputType.SOUNDCLOUD);
 			}
 		}
 
@@ -59,7 +59,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.BUFFER);
+				channel_type_changed(Shader.InputType.BUFFER);
 			}
 		}
 
@@ -68,7 +68,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.TEXTURE);
+				channel_type_changed(Shader.InputType.TEXTURE);
 			}
 		}
 
@@ -77,7 +77,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.CUBEMAP);
+				channel_type_changed(Shader.InputType.CUBEMAP);
 			}
 		}
 
@@ -86,7 +86,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.VIDEO);
+				channel_type_changed(Shader.InputType.VIDEO);
 			}
 		}
 
@@ -95,7 +95,7 @@ namespace Shady
 		{
 			if (button.active)
 			{
-				channel_type_changed(ShaderChannel.ChannelType.MUSIC);
+				channel_type_changed(Shader.InputType.MUSIC);
 			}
 		}
 	}

@@ -111,33 +111,56 @@ namespace Shady
 							{
 								var renderpass_object = renderpass.get_object();
 
-								string buffer_type = renderpass_object.get_string_member("type");
-								string buffer_name = renderpass_object.get_string_member("name");
+								string renderpass_type = renderpass_object.get_string_member("type");
+								string renderpass_name = renderpass_object.get_string_member("name");
 
-								if (buffer_type == "image" || buffer_type == "buffer")
+								Shader.Renderpass new_renderpass = new Shader.Renderpass();
+								new_renderpass.type = Shader.RenderpassType.from_string(renderpass_type);
+								new_renderpass.name = renderpass_name;
+
+								if (new_renderpass.type == Shader.RenderpassType.AUDIO)
 								{
-									if (buffer_name == "")
-									{
-										if (buffer_type == "image")
-										{
-											buffer_name = "Image";
-										}
-										else if (buffer_type == "buffer")
-										{
-											buffer_name = @"Buf $((char) (0x41 + buffer_counter))'";
-											buffer_counter++;
-										}
-									}
-
-									shader.buffers.insert(buffer_name, new Shader.Buffer());
-
-									shader.buffers[buffer_name].type = buffer_type;
-									shader.buffers[buffer_name].name = buffer_name;
-
-									shader.buffers[buffer_name].code = renderpass_object.get_string_member("code");
-									shader.buffers[buffer_name].code = shader.buffers[buffer_name].code.replace("\\n", "\n");
-									shader.buffers[buffer_name].code = shader.buffers[buffer_name].code.replace("\\t", "\t");
+									renderpass_name = "Audio";
 								}
+								else if (new_renderpass.type == Shader.RenderpassType.IMAGE)
+								{
+									renderpass_name = "Image";
+								}
+								else if (new_renderpass.type == Shader.RenderpassType.BUFFER)
+								{
+									renderpass_name = @"Buf $((char) (0x41 + buffer_counter))'";
+									buffer_counter++;
+								}
+
+								new_renderpass.code = renderpass_object.get_string_member("code");
+								new_renderpass.code = new_renderpass.code.replace("\\n", "\n");
+								new_renderpass.code = new_renderpass.code.replace("\\t", "\t");
+
+								var inputs_node = renderpass_object.get_array_member("inputs");
+								foreach (var input in inputs_node.get_elements())
+								{
+									var input_object = input.get_object();
+
+									Shader.Input shader_input = new Shader.Input();
+									shader_input.id = (int) input_object.get_int_member("id");
+									shader_input.channel = (int) input_object.get_int_member("channel");
+									shader_input.type = Shader.InputType.from_string(input_object.get_string_member("ctype"));
+
+									new_renderpass.input_ids.append_val(shader_input.id);
+
+									var input_sampler_object = input_object.get_object_member("sampler");
+
+									Shader.Sampler shader_input_sampler = new Shader.Sampler();
+									shader_input_sampler.filter = Shader.FilterMode.from_string(input_sampler_object.get_string_member("filter"));
+									shader_input_sampler.wrap = Shader.WrapMode.from_string(input_sampler_object.get_string_member("wrap"));
+									shader_input_sampler.v_flip = input_sampler_object.get_boolean_member("vflip");
+
+									new_renderpass.samplers.insert(shader_input.id, shader_input_sampler);
+
+									// if this is a known resource, add info to it from the resources
+								}
+
+								shader.renderpasses.append_val(new_renderpass);
 							}
 
 							Idle.add(() =>

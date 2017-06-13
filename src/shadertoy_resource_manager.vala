@@ -4,7 +4,7 @@ namespace Shady
 	{
 		private static string TEXTURE_PREFIX = "/org/hasi/shady/data/shadertoy_presets/textures";
 
-		private static string[] TEXTURES_IDS =
+		public static string[] TEXTURE_IDS =
 		{
 			"abstract_1",
 			"abstract_2",
@@ -30,20 +30,20 @@ namespace Shady
 		};
 
 		public static HashTable<string, Gdk.Pixbuf> TEXTURE_PIXBUFS = new HashTable<string, Gdk.Pixbuf>(str_hash, str_equal);
-		public static HashTable<string, Shader.Texture> TEXTURES = new HashTable<string, Shader.Texture>(str_hash, str_equal);
+		public static HashTable<string, Shader.Input> TEXTURES = new HashTable<string, Shader.Input>(str_hash, str_equal);
 
 		construct
 		{
-			foreach (string texture_id in TEXTURES_IDS)
+			foreach (string texture_id in TEXTURE_IDS)
 			{
-				Shader.Texture texture = load_texture(texture_id);
+				Shader.Input texture = load_texture(texture_id);
 
 				TEXTURES.insert(texture_id, texture);
 				TEXTURE_PIXBUFS.insert(texture.resource, new Gdk.Pixbuf.from_resource(texture.resource));
 			}
 		}
 
-		public static Shader.Texture? load_texture(string texture_id)
+		public static Shader.Input? load_texture(string texture_id)
 		{
 			File texture_json_file = File.new_for_uri(@"resource://$(TEXTURE_PREFIX)/$(texture_id).json");
 
@@ -54,7 +54,7 @@ namespace Shady
 
 				var texture_root = texture_parser.get_root().get_object();
 
-				Shader.Texture texture = new Shader.Texture();
+				Shader.Input texture = new Shader.Input();
 				texture.hash = texture_root.get_string_member("hash");
 				texture.resource = texture_root.get_string_member("resource");
 				texture.name = texture_root.get_string_member("name");

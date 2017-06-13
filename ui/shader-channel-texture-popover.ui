@@ -21,7 +21,7 @@
 						<property name="can_focus">False</property>
 
 						<child>
-							<object class="GtkFlowBox" id="textures_box">
+							<object class="GtkFlowBox" id="texture_box">
 								<property name="visible">True</property>
 								<property name="can_focus">False</property>
 								<property name="homogeneous">True</property>

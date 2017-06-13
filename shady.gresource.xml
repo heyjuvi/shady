@@ -75,5 +75,15 @@
 		<file>data/shadertoy_presets/textures/stars.json</file>
 		<file>data/shadertoy_presets/textures/wood.jpg</file>
 		<file>data/shadertoy_presets/textures/wood.json</file>
+
+		<!-- shadertoy videos -->
+		<!--<file>data/shadertoy_presets/videos/1961_commercial.ogv</file>
+		<file>data/shadertoy_presets/videos/1961_commercial.json</file>
+		<file>data/shadertoy_presets/videos/britney_spears.webm</file>
+		<file>data/shadertoy_presets/videos/britney_spears.json</file>
+		<file>data/shadertoy_presets/videos/claude_van_damme.webm</file>
+		<file>data/shadertoy_presets/videos/claude_van_damme.json</file>
+		<file>data/shadertoy_presets/videos/google_logo.ogv</file>
+		<file>data/shadertoy_presets/videos/google_logo.json</file>-->
 	</gresource>
 </gresources>
