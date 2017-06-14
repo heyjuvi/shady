@@ -11,13 +11,23 @@ namespace Shady
 
 	public class ShaderArea : DrawingArea
 	{
+		private const int num_textures = 4;
+		private GLuint[] tex_ids = new GLuint[num_textures];
+		private string[] channel_string = {"iChannel0", "iChannel1", "iChannel2", "iChannel3"};
+
 		private GLuint program;
 		private GLuint program2;
 		private GLuint fragment_shader;
 		private GLuint[] vao = { 1337 };
+		private GLint date_loc;
 		private GLint time_loc;
+		private GLint delta_loc;
+		private GLint fps_loc;
+		private GLint frame_loc;
 		private GLint res_loc;
 		private GLint mouse_loc;
+		private GLint[] channel_loc = new GLint[num_textures];
+		private GLint samplerate_loc;
 		private int64 start_time;
 		private int64 curr_time;
 		private int64 pause_time;
@@ -76,9 +86,12 @@ namespace Shady
 
 		private bool program_switch = true;
 
-		//private static GlContext gl_context = new GlContext();
-		//private GlContext gl_context = new GlContext();
 		private GlContext gl_context;
+
+		private DateTime curr_date;
+		private float year;
+		private float month;
+		private float day;
 
 		public ShaderArea(string? fragment_source = null)
 		{
@@ -153,7 +166,44 @@ namespace Shady
 
 				glDeleteBuffers(1, vbo);
 
+				glGenTextures(num_textures, tex_ids);
+				glBindTexture( GL_TEXTURE_2D, tex_ids[0] );
+
+				/*
+				int tex_height = 512, tex_width = 512;
+				uchar[] tex_buffer = new uchar[512*512*4*4];
+
+				for(int i=0;i<512*512*4*4;i++){
+					tex_buffer[i]=255;
+				}
+
+				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_FLOAT, (GLvoid[])tex_buffer);
+				*/
+
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+				/*
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glGenerateMipmap (GL_TEXTURE_2D);
+				*/
+
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+				/*
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+				*/
+
 				start_time = get_monotonic_time();
+
+				curr_date =  new DateTime.now_local();
+
+				year = (float)curr_date.get_year();
+				month = (float)curr_date.get_month();
+				day = (float)curr_date.get_day_of_month();
 
 				initialized = true;
 
@@ -382,21 +432,31 @@ namespace Shady
 				curr_time = get_monotonic_time();
 				delta_time += curr_time;
 
+				float delta;
+
 				if (!paused)
 				{
 					time = (curr_time - start_time) / 1000000.0f;
+					delta = delta_time / 1000000.0f;
 				}
 				else
 				{
 					time = (pause_time - start_time) / 1000000.0f;
 					pause_time += (int)(time_slider * time_slider_factor * delta_time);
+					delta = 0.0f;
 				}
 
 				//stdout.printf("%f\n",time);
 
+				//#TODO: the time here should'nt depend on pausing…
+				glUniform4f(date_loc, year, month, day, (float)time);
 				glUniform1f(time_loc, (float)time);
+				glUniform1f(delta_loc, (float)delta);
+				//#TODO: implement proper frame counter
+				glUniform1i(frame_loc, (int)(time*60));
+				glUniform1f(fps_loc, (float)fps);
 				glUniform3f(res_loc, width, height, 0);
-
+				glUniform1f(samplerate_loc, 44100.0f);
 
 				//Device mouse_device = get_display().get_default_seat().get_pointer();
 				//get_window().get_device_position_double(mouse_device, out mouse_x, out mouse_y, null);
@@ -467,8 +527,13 @@ namespace Shady
 					glUseProgram(program2);
 				}
 
+				glUniform4f(date_loc, 0.0f, 0.0f, 0.0f, 0.0f);
 				glUniform1f(time_loc, 0.0f);
+				glUniform1f(delta_loc, 0.0f);
+				glUniform1i(frame_loc, 0);
+				glUniform1f(fps_loc, 0.0f);
 				glUniform3f(res_loc, width, height, 0);
+				glUniform1f(samplerate_loc, 0.0f);
 
 				glUniform4f(mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -547,44 +612,44 @@ namespace Shady
 			if(program_switch)
 			{
 				prog_mutex1.lock();
+				glLinkProgram(program);
+				date_loc = glGetUniformLocation(program, "iDate");
+				time_loc = glGetUniformLocation(program, "iGlobalTime");
+				delta_loc = glGetUniformLocation(program, "iTimeDelta");
+				frame_loc = glGetUniformLocation(program, "iFrame");
+				fps_loc = glGetUniformLocation(program, "iFrameRate");
+				res_loc = glGetUniformLocation(program, "iResolution");
+				samplerate_loc = glGetUniformLocation(program, "iSampleRate");
+				mouse_loc = glGetUniformLocation(program, "iMouse");
+
+				for(int i=0;i<num_textures;i++)
+				{
+					channel_loc[i] = glGetUniformLocation (program, channel_string[i]);
+					glActiveTexture (GL_TEXTURE0 + i);
+					glBindTexture (GL_TEXTURE_2D, tex_ids[i]);
+					glUniform1i (channel_loc[i], i);
+				}
 			}
 			else
 			{
 				prog_mutex2.lock();
-			}
-
-			if(program_switch)
-			{
-				glLinkProgram(program);
-			}
-			else
-			{
 				glLinkProgram(program2);
-			}
-
-			if(program_switch)
-			{
-				time_loc = glGetUniformLocation(program, "iGlobalTime");
-			}
-			else
-			{
+				date_loc = glGetUniformLocation(program2, "iDate");
 				time_loc = glGetUniformLocation(program2, "iGlobalTime");
-			}
-			if(program_switch)
-			{
-				res_loc = glGetUniformLocation(program, "iResolution");
-			}
-			else
-			{
+				delta_loc = glGetUniformLocation(program2, "iTimeDelta");
+				frame_loc = glGetUniformLocation(program2, "iFrame");
+				fps_loc = glGetUniformLocation(program2, "iFrameRate");
 				res_loc = glGetUniformLocation(program2, "iResolution");
-			}
-			if(program_switch)
-			{
-				mouse_loc = glGetUniformLocation(program, "iMouse");
-			}
-			else
-			{
+				samplerate_loc = glGetUniformLocation(program2, "iSampleRate");
 				mouse_loc = glGetUniformLocation(program2, "iMouse");
+
+				for(int i=0;i<num_textures;i++)
+				{
+					channel_loc[i] = glGetUniformLocation (program2, channel_string[i]);
+					glActiveTexture (GL_TEXTURE0 + i);
+					glBindTexture (GL_TEXTURE_2D, tex_ids[i]);
+					glUniform1i (channel_loc[i], i);
+				}
 			}
 
 			//prevent averaging in of old shader
