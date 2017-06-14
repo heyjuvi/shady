@@ -89,13 +89,29 @@ namespace Shady
 		private GlContext gl_context;
 
 		private DateTime curr_date;
-		private float year;
-		private float month;
-		private float day;
 
-		public ShaderArea(string? fragment_source = null)
+		private Shader curr_shader;
+
+		public ShaderArea(Shader default_shader)
 		{
 			initialized = false;
+
+			curr_shader = default_shader;
+
+			string fragment_source="";
+
+			for(int i=0; i<curr_shader.renderpasses.length;i++)
+			{
+				if(curr_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
+				{
+					fragment_source = curr_shader.renderpasses.index(i).code;
+				}
+			}
+
+			if(fragment_source.length == 0){
+				print("No image buffer found!\n");
+			}
+
 
 			realize.connect(() =>
 			{
@@ -167,43 +183,44 @@ namespace Shady
 				glDeleteBuffers(1, vbo);
 
 				glGenTextures(num_textures, tex_ids);
-				glBindTexture( GL_TEXTURE_2D, tex_ids[0] );
 
-				/*
-				int tex_height = 512, tex_width = 512;
-				uchar[] tex_buffer = new uchar[512*512*4*4];
+				for(int i=0;i<num_textures;i++){
+					glBindTexture( GL_TEXTURE_2D, tex_ids[0] );
 
-				for(int i=0;i<512*512*4*4;i++){
-					tex_buffer[i]=255;
+					int tex_height = 512, tex_width = 512;
+					uchar[] tex_buffer = new uchar[512*512*4*4];
+
+					for(int j=0;j<512*512*4*4;j++)
+					{
+						if(j%2 == 0)
+						{
+							tex_buffer[i]=255;
+						}
+					}
+
+					glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_FLOAT, (GLvoid[])tex_buffer);
+
+
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+					/*
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+					glGenerateMipmap(GL_TEXTURE_2D);
+					*/
+
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+					/*
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+					*/
+
 				}
 
-				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_FLOAT, (GLvoid[])tex_buffer);
-				*/
-
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-				/*
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				glGenerateMipmap (GL_TEXTURE_2D);
-				*/
-
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-				/*
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-				*/
-
 				start_time = get_monotonic_time();
-
-				curr_date =  new DateTime.now_local();
-
-				year = (float)curr_date.get_year();
-				month = (float)curr_date.get_month();
-				day = (float)curr_date.get_day_of_month();
 
 				initialized = true;
 
@@ -448,8 +465,16 @@ namespace Shady
 
 				//stdout.printf("%f\n",time);
 
-				//#TODO: the time here should'nt depend on pausing…
-				glUniform4f(date_loc, year, month, day, (float)time);
+				curr_date =  new DateTime.now_local();
+
+				float year, month, day;
+				curr_date.get_ymd(out year, out month, out day);
+
+				float seconds = (float)((curr_date.get_hour()*60+curr_date.get_minute())*60)+(float)curr_date.get_seconds();
+
+				//#TODO: synchronize locations with compiling
+
+				glUniform4f(date_loc, year, month, day, seconds);
 				glUniform1f(time_loc, (float)time);
 				glUniform1f(delta_loc, (float)delta);
 				//#TODO: implement proper frame counter
@@ -458,9 +483,15 @@ namespace Shady
 				glUniform3f(res_loc, width, height, 0);
 				glUniform1f(samplerate_loc, 44100.0f);
 
-				//Device mouse_device = get_display().get_default_seat().get_pointer();
-				//get_window().get_device_position_double(mouse_device, out mouse_x, out mouse_y, null);
-
+				for(int i=0;i<num_textures;i++)
+				{
+					if(channel_loc[i] > 0)
+					{
+						glActiveTexture(GL_TEXTURE0 + i);
+						glBindTexture(GL_TEXTURE_2D, tex_ids[i]);
+						glUniform1i(channel_loc[i], (GLint)i);
+					}
+				}
 
 				if (button_pressed)
 				{
@@ -477,9 +508,7 @@ namespace Shady
 
 				int64 time_before = get_monotonic_time();
 
-				//stdout.printf("before draw in thread:%d\n",(int)prog_switch);
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-				//stdout.printf("after draw in thread:%d\n",(int)prog_switch);
 
 				glFlush();
 				glFinish();
@@ -549,12 +578,30 @@ namespace Shady
 			}
 		}
 
-		public void compile(string shader_source) throws ShaderError
+		public void compile(Shader new_shader) throws ShaderError
 		{
+			curr_shader = new_shader;
+
 			new Thread<int>.try("compile_thread", () =>
 			{
+
 				if(compile_mutex.trylock())
 				{
+					string shader_source="";
+
+					for(int i=0; i<curr_shader.renderpasses.length;i++)
+					{
+						if(curr_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
+						{
+							shader_source = curr_shader.renderpasses.index(i).code;
+						}
+					}
+
+					if(shader_source.length == 0)
+					{
+						print("No image buffer found!\n");
+					}
+
 					gl_context.thread_context();
 					compile_blocking(shader_source);
 
@@ -624,10 +671,7 @@ namespace Shady
 
 				for(int i=0;i<num_textures;i++)
 				{
-					channel_loc[i] = glGetUniformLocation (program, channel_string[i]);
-					glActiveTexture (GL_TEXTURE0 + i);
-					glBindTexture (GL_TEXTURE_2D, tex_ids[i]);
-					glUniform1i (channel_loc[i], i);
+					channel_loc[i] = glGetUniformLocation(program, channel_string[i]);
 				}
 			}
 			else
@@ -645,10 +689,7 @@ namespace Shady
 
 				for(int i=0;i<num_textures;i++)
 				{
-					channel_loc[i] = glGetUniformLocation (program2, channel_string[i]);
-					glActiveTexture (GL_TEXTURE0 + i);
-					glBindTexture (GL_TEXTURE_2D, tex_ids[i]);
-					glUniform1i (channel_loc[i], i);
+					channel_loc[i] = glGetUniformLocation(program2, channel_string[i]);
 				}
 			}
 

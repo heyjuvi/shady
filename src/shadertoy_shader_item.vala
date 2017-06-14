@@ -70,7 +70,18 @@ namespace Shady
 		{
 			// for some reason the shader area must not be constructed in a ui
 			// file
-			_shader_area = new ShaderArea((string) (resources_lookup_data("/org/hasi/shady/data/shader/load.glsl", 0).get_data()));
+			string load_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/load.glsl", 0).get_data());
+
+			Shader load_shader = new Shader();
+
+			Shader.Renderpass renderpass = new Shader.Renderpass();
+
+			renderpass.code = load_code;
+			renderpass.type = Shader.RenderpassType.IMAGE;
+
+			load_shader.renderpasses.append_val(renderpass);
+
+			_shader_area = new ShaderArea(load_shader);
 			_shader_area.set_size_request(152, 140);
 
 			shader_container.pack_start(_shader_area, false, false);

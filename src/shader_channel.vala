@@ -31,7 +31,17 @@ namespace Shady
 		{
 			// for some reason the shader area must not be constructed in a ui
 			// file
-			_shader_area = new ShaderArea((string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data()));
+			string default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
+
+			Shader default_shader = new Shader();
+
+			Shader.Renderpass renderpass = new Shader.Renderpass();
+
+			renderpass.code = default_code;
+			renderpass.type = Shader.RenderpassType.IMAGE;
+
+			default_shader.renderpasses.append_val(renderpass);
+			_shader_area = new ShaderArea(default_shader);
 
 			shader_container.pack_start(_shader_area, true, true);
 
