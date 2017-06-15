@@ -25,6 +25,7 @@ shady_SOURCES = \
 	shader_source_view.vala \
 	shader_channel.vala \
 	shader_channel_type_popover.vala \
+	shader_channel_soundcloud_popover.vala \
 	shader_channel_texture_popover.vala \
 	shader_channel_texture_item.vala \
 	notebook_tab_label.vala \

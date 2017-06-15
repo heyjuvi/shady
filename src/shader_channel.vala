@@ -3,6 +3,8 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/shader-channel.ui")]
 	public class ShaderChannel : Gtk.Box
 	{
+		public signal void channel_type_changed(Shader.InputType channel_type);
+
 		public Shader.InputType channel_type { get; set; default = Shader.InputType.NONE; }
 
 		public string channel_name
@@ -23,6 +25,7 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Box shader_container;
 
+		private ShaderChannelSoundcloudPopover _soundcloud_popover = new ShaderChannelSoundcloudPopover();
 		private ShaderChannelTexturePopover _texture_popover = new ShaderChannelTexturePopover();
 
 		private ShaderArea _shader_area;
@@ -50,7 +53,12 @@ namespace Shady
 			{
 				value_button.visible = true;
 
-				if (channel_type == Shader.InputType.TEXTURE)
+				if (channel_type == Shader.InputType.SOUNDCLOUD)
+				{
+					_soundcloud_popover.hide();
+					value_button.popover = _soundcloud_popover;
+				}
+				else if (channel_type == Shader.InputType.TEXTURE)
 				{
 					_texture_popover.hide();
 					value_button.popover = _texture_popover;
@@ -60,6 +68,8 @@ namespace Shady
 			{
 				value_button.visible = false;
 			}
+
+			channel_type_changed(channel_type);
 		}
 
 		[GtkCallback]

@@ -1,4 +1,7 @@
 - saving shaders
+- add channel amount info to json files, since gdkpixpuf does not
+  correctly recognise textures wtih one channel (it says the texture
+  has three channels)
 - hotkeys
 - make closing of search window more responsive
 - compilation errors

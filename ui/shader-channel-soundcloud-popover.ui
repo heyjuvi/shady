@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<interface>
+	<template class="ShadyShaderChannelSoundcloudPopover" parent="GtkPopover">
+		<property name="visible">True</property>
+		<property name="can_focus">False</property>
+		<property name="width_request">280</property>
+
+		<style>
+			<class name="popover_padding" />
+		</style>
+
+		<child>
+			<object class="GtkEntry" id="soundcloud_entry">
+				<property name="visible">True</property>
+				<property name="can_focus">True</property>
+
+				<signal name="activate" handler="soundcloud_entry_activated" />
+			</object>
+		</child>
+	</template>
+</interface>
