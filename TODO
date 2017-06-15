@@ -8,7 +8,6 @@
 - texture support
 - audio shader support
 - glsl version switching
-- browse shaders on shadertoy.com
 - multipass
 - paste mouse coordinates in source code
 - adjustable resolution

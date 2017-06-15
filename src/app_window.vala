@@ -144,7 +144,8 @@ namespace Shady
 
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
 
-		private string _default_shader;
+		private string _default_code;
+		private Shader _curr_shader;
 
 		private uint _auto_compile_handler_id;
 		private bool _is_fullscreen = false;
@@ -153,9 +154,18 @@ namespace Shady
 		{
 			Object(application: app);
 
-			_default_shader = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
+			_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
 
-			_shader_area = new ShaderArea(_default_shader);
+			_curr_shader = new Shader();
+
+			Shader.Renderpass renderpass = new Shader.Renderpass();
+
+			renderpass.code = _default_code;
+			renderpass.type = Shader.RenderpassType.IMAGE;
+
+			_curr_shader.renderpasses.append_val(renderpass);
+
+			_shader_area = new ShaderArea(_curr_shader);
 			_shader_area.set_size_request(500, 600);
 
 			_foreground_box = new Box(Orientation.VERTICAL, 0);
@@ -268,7 +278,7 @@ namespace Shady
 			time_label.draw.connect(update_time);
 
 			add_buffer("Image", false);
-			set_buffer("Image", _default_shader);
+			set_buffer("Image", _default_code);
 
 			_edited = false;
 
@@ -438,7 +448,15 @@ namespace Shady
 
 		public void compile() throws ShaderError
 		{
-			_shader_area.compile(get_buffer("Image"));
+			for(int i=0; i<_curr_shader.renderpasses.length;i++)
+			{
+				if(_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
+				{
+					_curr_shader.renderpasses.index(i).code = get_buffer("Image");
+				}
+			}
+
+			_shader_area.compile(_curr_shader);
 		}
 
 		public void reset_time()
