@@ -14,7 +14,7 @@
 		<property name="show_menubar">False</property>
 		<property name="title">Shady</property>
 		<property name="width_request">1320</property>
-		<property name="height_request">680</property>
+		<property name="height_request">760</property>
 
 		<signal name="destroy" handler="on_destroy" />
 

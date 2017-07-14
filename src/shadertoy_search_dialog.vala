@@ -1,5 +1,112 @@
 namespace Shady
 {
+	public class LoadShaderThread
+	{
+		public signal void loading_finished();
+
+		public string shader_uri;
+		public int shader_index;
+
+		public Shader shader;
+
+		public LoadShaderThread(string uri, int index)
+		{
+			shader_uri = uri;
+			shader_index = index;
+		}
+
+		public int run()
+		{
+			var shader_session = new Soup.Session();
+			var shader_message = new Soup.Message("GET", shader_uri);
+
+			shader_session.send_message(shader_message);
+
+			try
+			{
+				shader = new Shader();
+
+				var shader_parser = new Json.Parser();
+				shader_parser.load_from_data((string) shader_message.response_body.flatten().data, -1);
+
+				var shader_root = shader_parser.get_root().get_object().get_object_member("Shader");
+				var info_node = shader_root.get_object_member("info");
+
+				shader.name = info_node.get_string_member("name");
+				shader.author = info_node.get_string_member("username");
+				shader.likes = (int) info_node.get_int_member("likes");
+				shader.views = (int) info_node.get_int_member("viewed");
+
+				var renderpasses_node = shader_root.get_array_member("renderpass");
+
+				int buffer_counter = 0;
+				foreach (var renderpass in renderpasses_node.get_elements())
+				{
+					var renderpass_object = renderpass.get_object();
+
+					string renderpass_type = renderpass_object.get_string_member("type");
+					string renderpass_name = renderpass_object.get_string_member("name");
+
+					Shader.Renderpass new_renderpass = new Shader.Renderpass();
+					new_renderpass.type = Shader.RenderpassType.from_string(renderpass_type);
+					new_renderpass.name = renderpass_name;
+
+					if (new_renderpass.type == Shader.RenderpassType.AUDIO)
+					{
+						renderpass_name = "Audio";
+					}
+					else if (new_renderpass.type == Shader.RenderpassType.IMAGE)
+					{
+						renderpass_name = "Image";
+					}
+					else if (new_renderpass.type == Shader.RenderpassType.BUFFER)
+					{
+						renderpass_name = @"Buf $((char) (0x41 + buffer_counter))'";
+						buffer_counter++;
+					}
+
+					new_renderpass.code = renderpass_object.get_string_member("code");
+					new_renderpass.code = new_renderpass.code.replace("\\n", "\n");
+					new_renderpass.code = new_renderpass.code.replace("\\t", "\t");
+
+					var inputs_node = renderpass_object.get_array_member("inputs");
+					foreach (var input in inputs_node.get_elements())
+					{
+						var input_object = input.get_object();
+
+						Shader.Input shader_input = new Shader.Input();
+						shader_input.id = (int) input_object.get_int_member("id");
+						shader_input.channel = (int) input_object.get_int_member("channel");
+						shader_input.type = Shader.InputType.from_string(input_object.get_string_member("ctype"));
+
+						new_renderpass.input_ids.append_val(shader_input.id);
+
+						var input_sampler_object = input_object.get_object_member("sampler");
+
+						Shader.Sampler shader_input_sampler = new Shader.Sampler();
+						shader_input_sampler.filter = Shader.FilterMode.from_string(input_sampler_object.get_string_member("filter"));
+						shader_input_sampler.wrap = Shader.WrapMode.from_string(input_sampler_object.get_string_member("wrap"));
+						shader_input_sampler.v_flip = input_sampler_object.get_boolean_member("vflip");
+
+						new_renderpass.samplers.insert(shader_input.id, shader_input_sampler);
+
+						// if this is a known resource, add info to it from the resources
+					}
+
+					shader.renderpasses.append_val(new_renderpass);
+				}
+			}
+			catch (Error e)
+			{
+				stderr.printf("Could not load shader with id $shader_id\n");
+			}
+
+			loading_finished();
+
+			return 0;
+		}
+	}
+
 	[GtkTemplate (ui = "/org/hasi/shady/ui/shadertoy-search-dialog.ui")]
 	public class ShadertoySearchDialog : Gtk.Dialog
 	{
@@ -7,11 +114,21 @@ namespace Shady
 
 		public Shader selected_shader { get; private set; default = null; }
 
+		private Shader?[] _found_shaders = null;
+
+		private string _current_child = "content";
+
 		[GtkChild]
 		private Gtk.SearchEntry shadertoy_search_entry;
 
 		[GtkChild]
 		private Gtk.Button load_shader_button;
+
+		[GtkChild]
+		private Gtk.Stack content_stack;
+
+		[GtkChild]
+		private Gtk.Label loading_label;
 
 		[GtkChild]
 		private Gtk.FlowBox shader_box;
@@ -25,6 +142,8 @@ namespace Shady
 		public ShadertoySearchDialog(Gtk.Window parent)
 		{
 			set_transient_for(parent);
+
+			content_stack.visible_child_name = "content";
 		}
 
 		[GtkCallback]
@@ -50,17 +169,94 @@ namespace Shady
 			}
 		}
 
+		[GtkCallback]
+		private void visible_child_changed()
+		{
+			if (_found_shaders != null &&
+			    content_stack.visible_child_name == "content" &&
+			    content_stack.visible_child_name != _current_child)
+			{
+				for (int i = 0; i < _found_shaders.length; i++)
+				{
+					if (_found_shaders[i] != null)
+					{
+						ShadertoyShaderItem element = new ShadertoyShaderItem();
+						shader_box.add(element);
+
+						element.name = _found_shaders[i].name;
+						element.author = _found_shaders[i].author;
+						element.likes = (int) _found_shaders[i].likes;
+						element.views = (int) _found_shaders[i].views;
+						element.shader = _found_shaders[i];
+
+						try
+						{
+							element.compile();
+						}
+						catch (ShaderError e)
+						{
+							print(@"Compilation error: $(e.message)");
+						}
+					}
+				}
+			}
+
+			// for some reason the corresponding signal is emitted twice, so
+			// we have to remember the state
+			_current_child = content_stack.visible_child_name;
+		}
+
 		public void search(string search_string)
 		{
+			shader_box.forall((widget) =>
+			{
+				shader_box.remove(widget);
+			});
+
 			new Thread<int>.try("search_thread", () =>
 			{
-				search_shaders(search_string);
+				loading_label.set_text("Loading shaders...");
+
+				content_stack.visible_child_name = "spinner";
+				shadertoy_search_entry.sensitive = false;
+
+				uint64 num_shaders = search_shaders(search_string);
+
+				bool search_finished = false;
+				while (!search_finished)
+				{
+					int count = 0;
+					bool null_shader_found = false;
+					for (int i = 0; i < num_shaders; i++)
+					{
+						if (_found_shaders[i] == null)
+						{
+							null_shader_found = true;
+						}
+						else
+						{
+							count++;
+						}
+					}
+
+					if (!null_shader_found)
+					{
+						search_finished = true;
+					}
+
+					loading_label.set_text(@"Loaded $count/$num_shaders shaders...");
+
+					Thread.usleep(100000);
+				}
+
+				content_stack.visible_child_name = "content";
+				shadertoy_search_entry.sensitive = true;
 
 				return 0;
 			});
 		}
 
-		private void search_shaders(string search_string)
+		private uint64 search_shaders(string search_string)
 		{
 			var search_session = new Soup.Session();
 
@@ -69,143 +265,47 @@ namespace Shady
 
 			search_session.send_message(search_message);
 
+			uint64 num_shaders = 0;
+
 			try
 			{
 				var search_parser = new Json.Parser();
 				search_parser.load_from_data((string) search_message.response_body.flatten().data, -1);
 
 				var search_root = search_parser.get_root().get_object();
+
+				num_shaders = search_root.get_int_member("Shaders");
 				var results = search_root.get_array_member("Results");
 
+				_found_shaders = new Shader[num_shaders];
+
+				for (int i = 0; i < num_shaders; i++)
+				{
+					_found_shaders[i] = null;
+				}
+
+				int index = 0;
 				foreach (var result_node in results.get_elements())
 				{
-					var shader_session = new Soup.Session();
-
 					string shader_uri = @"https://www.shadertoy.com/api/v1/shaders/$(result_node.get_string())?key=$API_KEY";
 
-					new Thread<int>.try("shader_thread", () =>
+					LoadShaderThread load_thread = new LoadShaderThread(shader_uri, index);
+					load_thread.loading_finished.connect(() =>
 					{
-						var shader_message = new Soup.Message("GET", shader_uri);
-
-						shader_session.send_message(shader_message);
-
-						try
-						{
-							Shader shader = new Shader();
-
-							var shader_parser = new Json.Parser();
-							shader_parser.load_from_data((string) shader_message.response_body.flatten().data, -1);
-
-							var shader_root = shader_parser.get_root().get_object().get_object_member("Shader");
-							var info_node = shader_root.get_object_member("info");
-
-							shader.name = info_node.get_string_member("name");
-							shader.author = info_node.get_string_member("username");
-							shader.likes = (int) info_node.get_int_member("likes");
-							shader.views = (int) info_node.get_int_member("viewed");
-
-							var renderpasses_node = shader_root.get_array_member("renderpass");
-
-							int buffer_counter = 0;
-							foreach (var renderpass in renderpasses_node.get_elements())
-							{
-								var renderpass_object = renderpass.get_object();
-
-								string renderpass_type = renderpass_object.get_string_member("type");
-								string renderpass_name = renderpass_object.get_string_member("name");
-
-								Shader.Renderpass new_renderpass = new Shader.Renderpass();
-								new_renderpass.type = Shader.RenderpassType.from_string(renderpass_type);
-								new_renderpass.name = renderpass_name;
-
-								if (new_renderpass.type == Shader.RenderpassType.AUDIO)
-								{
-									renderpass_name = "Audio";
-								}
-								else if (new_renderpass.type == Shader.RenderpassType.IMAGE)
-								{
-									renderpass_name = "Image";
-								}
-								else if (new_renderpass.type == Shader.RenderpassType.BUFFER)
-								{
-									renderpass_name = @"Buf $((char) (0x41 + buffer_counter))'";
-									buffer_counter++;
-								}
-
-								new_renderpass.code = renderpass_object.get_string_member("code");
-								new_renderpass.code = new_renderpass.code.replace("\\n", "\n");
-								new_renderpass.code = new_renderpass.code.replace("\\t", "\t");
-
-								var inputs_node = renderpass_object.get_array_member("inputs");
-								foreach (var input in inputs_node.get_elements())
-								{
-									var input_object = input.get_object();
-
-									Shader.Input shader_input = new Shader.Input();
-									shader_input.id = (int) input_object.get_int_member("id");
-									shader_input.channel = (int) input_object.get_int_member("channel");
-									shader_input.type = Shader.InputType.from_string(input_object.get_string_member("ctype"));
-
-									new_renderpass.input_ids.append_val(shader_input.id);
-
-									var input_sampler_object = input_object.get_object_member("sampler");
-
-									Shader.Sampler shader_input_sampler = new Shader.Sampler();
-									shader_input_sampler.filter = Shader.FilterMode.from_string(input_sampler_object.get_string_member("filter"));
-									shader_input_sampler.wrap = Shader.WrapMode.from_string(input_sampler_object.get_string_member("wrap"));
-									shader_input_sampler.v_flip = input_sampler_object.get_boolean_member("vflip");
-
-									new_renderpass.samplers.insert(shader_input.id, shader_input_sampler);
-
-									// if this is a known resource, add info to it from the resources
-								}
-
-								shader.renderpasses.append_val(new_renderpass);
-							}
-
-							Idle.add(() =>
-							{
-								ShadertoyShaderItem element = new ShadertoyShaderItem();
-								shader_box.add(element);
-
-								element.name = shader.name;
-								element.author = shader.author;
-								element.likes = (int) shader.likes;
-								element.views = (int) shader.views;
-								element.shader = shader;
-
-								Idle.add(() =>
-								{
-									try
-									{
-										element.compile();
-									}
-									catch (ShaderError e)
-									{
-										print(@"Compilation error: $(e.message)");
-									}
-
-									return false;
-								}, Priority.HIGH);
-
-								return false;
-							}, Priority.DEFAULT_IDLE);
-
-							Thread.usleep(500000);
-						}
-						catch (Error e)
-						{
-							stderr.printf("I guess something is not working...\n");
-						}
-
-						return 0;
+						_found_shaders[load_thread.shader_index] = load_thread.shader;
 					});
+
+					Thread thread = new Thread<int>("shader_thread", load_thread.run);
+
+					index++;
 				}
 			}
 			catch (Error e)
 			{
 				stderr.printf("I guess something is not working...\n");
 			}
+
+			return num_shaders;
 		}
 	}
 }

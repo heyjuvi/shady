@@ -8,8 +8,8 @@
 		<property name="resizable">True</property>
 		<property name="use_header_bar">1</property>
 
-		<property name="default_width">920</property>
-		<property name="default_height">540</property>
+		<property name="default_width">1080</property>
+		<property name="default_height">640</property>
 
 		<child type="action">
 			<object class="GtkButton" id="load_shader_button">
@@ -66,39 +66,100 @@
 
 		<child internal-child="vbox">
 			<object class="GtkBox">
-				<property name="can_focus">false</property>
+				<property name="visible">True</property>
 				<property name="orientation">vertical</property>
 				<property name="spacing">0</property>
 
 				<child>
-					<object class="GtkScrolledWindow">
+					<object class="GtkStack" id="content_stack">
 						<property name="visible">True</property>
-						<property name="can_focus">False</property>
+						<property name="can-focus">False</property>
+
+						<signal name="notify::visible_child" handler="visible_child_changed" />
 
 						<child>
-							<object class="GtkViewport">
+							<object class="GtkScrolledWindow">
 								<property name="visible">True</property>
 								<property name="can_focus">False</property>
 
 								<child>
-									<object class="GtkFlowBox" id="shader_box">
+									<object class="GtkViewport">
 										<property name="visible">True</property>
 										<property name="can_focus">False</property>
-										<property name="homogeneous">True</property>
-										<property name="valign">start</property>
-										<property name="column_spacing">6</property>
-										<property name="row_spacing">6</property>
-										<property name="min_children_per_line">4</property>
 
-										<signal name="selected_children_changed" handler="selected_children_changed" />
+										<child>
+											<object class="GtkFlowBox" id="shader_box">
+												<property name="visible">True</property>
+												<property name="can_focus">False</property>
+												<property name="homogeneous">True</property>
+												<property name="valign">start</property>
+												<property name="column_spacing">6</property>
+												<property name="row_spacing">6</property>
+												<property name="min_children_per_line">4</property>
+
+												<signal name="selected_children_changed" handler="selected_children_changed" />
+											</object>
+										</child>
 									</object>
 								</child>
 							</object>
+							<packing>
+								<property name="name">content</property>
+								<property name="position">0</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkBox">
+								<property name="visible">True</property>
+								<property name="can_focus">false</property>
+								<property name="orientation">vertical</property>
+								<property name="spacing">0</property>
+
+								<child>
+									<object class="GtkSpinner">
+										<property name="visible">True</property>
+										<property name="can_focus">False</property>
+										<property name="margin_left">48</property>
+										<property name="margin_right">48</property>
+										<property name="margin_top">48</property>
+										<property name="margin_bottom">12</property>
+										<property name="active">True</property>
+									</object>
+									<packing>
+										<property name="expand">True</property>
+										<property name="fill">True</property>
+										<property name="position">0</property>
+									</packing>
+								</child>
+
+								<child>
+									<object class="GtkLabel" id="loading_label">
+										<property name="visible">True</property>
+										<property name="can_focus">False</property>
+										<property name="margin_left">48</property>
+										<property name="margin_right">48</property>
+										<property name="margin_top">12</property>
+										<property name="margin_bottom">48</property>
+										<property name="label">Loading shaders...</property>
+									</object>
+									<packing>
+										<property name="expand">False</property>
+										<property name="fill">True</property>
+										<property name="position">1</property>
+									</packing>
+								</child>
+							</object>
+							<packing>
+								<property name="name">spinner</property>
+								<property name="position">1</property>
+							</packing>
 						</child>
 					</object>
 					<packing>
 						<property name="expand">True</property>
 						<property name="fill">True</property>
+						<property name="position">0</property>
 					</packing>
 				</child>
 			</object>

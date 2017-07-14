@@ -91,10 +91,7 @@ namespace Shady
 
 		public void compile() throws ShaderError
 		{
-			/*if ("Image" in shader.buffers)
-			{
-				_shader_area.compile(shader.buffers["Image"].code);
-			}*/
+			_shader_area.compile(shader);
 		}
 	}
 }
