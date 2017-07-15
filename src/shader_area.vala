@@ -9,7 +9,7 @@ namespace Shady
 		COMPILATION
 	}
 
-	public class ShaderArea : DrawingArea
+	public class ShaderArea : EventBox
 	{
 		private const int num_textures = 4;
 		private GLuint[] tex_ids = new GLuint[num_textures];
@@ -305,7 +305,11 @@ namespace Shady
 					return 0;
 				});
 
-				add_events( EventMask.BUTTON_PRESS_MASK | EventMask.BUTTON_RELEASE_MASK | EventMask.POINTER_MOTION_MASK );
+				add_events(EventMask.BUTTON_PRESS_MASK |
+				           EventMask.BUTTON_RELEASE_MASK |
+				           EventMask.POINTER_MOTION_MASK);
+				//add_events(EventMask.ALL_EVENTS_MASK);
+				//events = 0;
 			});
 
 			button_press_event.connect((widget, event) =>

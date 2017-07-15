@@ -83,8 +83,12 @@ namespace Shady
 
 			_shader_area = new ShaderArea(load_shader);
 			_shader_area.set_size_request(152, 140);
+			_shader_area.pause(true);
 
 			shader_container.pack_start(_shader_area, false, false);
+			/*Gtk.Button bla = new Gtk.Button();
+			bla.set_size_request(152, 140);
+			shader_container.pack_start(bla, false, false);*/
 
 			show_all();
 		}
@@ -92,6 +96,31 @@ namespace Shady
 		public void compile() throws ShaderError
 		{
 			_shader_area.compile(shader);
+		}
+
+		[GtkCallback]
+		private bool on_mouse_entered(Gdk.EventCrossing event)
+		{
+			if (event.detail != Gdk.NotifyType.INFERIOR)
+			{
+				_shader_area.reset_time();
+				_shader_area.pause(false);
+				print("enter\n");
+			}
+
+			return false;
+		}
+
+		[GtkCallback]
+		private bool on_mouse_left(Gdk.EventCrossing event)
+		{
+			if (event.detail != Gdk.NotifyType.INFERIOR)
+			{
+				_shader_area.reset_time();
+				_shader_area.pause(true);
+			}
+
+			return false;
 		}
 	}
 }

@@ -81,11 +81,13 @@
 							<object class="GtkScrolledWindow">
 								<property name="visible">True</property>
 								<property name="can_focus">False</property>
+								<property name="hscrollbar_policy">never</property>
 
 								<child>
 									<object class="GtkViewport">
 										<property name="visible">True</property>
 										<property name="can_focus">False</property>
+										<property name="valign">start</property>
 
 										<child>
 											<object class="GtkFlowBox" id="shader_box">
