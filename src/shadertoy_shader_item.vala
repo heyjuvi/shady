@@ -105,7 +105,6 @@ namespace Shady
 			{
 				_shader_area.reset_time();
 				_shader_area.pause(false);
-				print("enter\n");
 			}
 
 			return false;

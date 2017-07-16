@@ -46,6 +46,7 @@
 								<property name="visible">True</property>
 								<property name="can_focus">True</property>
 								<property name="receives_default">True</property>
+								<property name="placeholder_text">Please enter a search string...</property>
 								<property name="primary_icon_name">edit-find-symbolic</property>
 								<property name="primary_icon_activatable">False</property>
 								<property name="primary_icon_sensitive">False</property>
@@ -82,6 +83,8 @@
 								<property name="visible">True</property>
 								<property name="can_focus">False</property>
 								<property name="hscrollbar_policy">never</property>
+
+								<signal name="edge_reached" handler="edge_reached" />
 
 								<child>
 									<object class="GtkViewport">

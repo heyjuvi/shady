@@ -115,6 +115,7 @@ namespace Shady
 		public Shader selected_shader { get; private set; default = null; }
 
 		private Shader?[] _found_shaders = null;
+		private int _last_index = 0;
 
 		private string _current_child = "content";
 
@@ -151,7 +152,10 @@ namespace Shady
 		{
 			if (event_key.keyval == Gdk.Key.Return)
 			{
-				search(shadertoy_search_entry.text);
+				if (shadertoy_search_entry.text != "")
+				{
+					search(shadertoy_search_entry.text);
+				}
 			}
 
 			return false;
@@ -165,29 +169,28 @@ namespace Shady
 				ShadertoyShaderItem selected_shadertoy_item = shader_box.get_selected_children().nth_data(0) as ShadertoyShaderItem;
 				selected_shader = selected_shadertoy_item.shader;
 
-				load_shader_button.set_sensitive(true);
+				load_shader_button.sensitive = true;
 			}
 		}
 
-		[GtkCallback]
-		private void visible_child_changed()
+		private void show_n_more_shaders(int n)
 		{
-			if (_found_shaders != null &&
-			    content_stack.visible_child_name == "content" &&
-			    content_stack.visible_child_name != _current_child)
+			if (_found_shaders != null && _last_index < _found_shaders.length)
 			{
-				for (int i = 0; i < _found_shaders.length; i++)
+				for (int i = 0; i < n && i < _found_shaders.length; i++)
 				{
-					if (_found_shaders[i] != null)
+					int shader_index = _last_index + i;
+
+					if (_found_shaders[shader_index] != null)
 					{
 						ShadertoyShaderItem element = new ShadertoyShaderItem();
 						shader_box.add(element);
 
-						element.name = _found_shaders[i].name;
-						element.author = _found_shaders[i].author;
-						element.likes = (int) _found_shaders[i].likes;
-						element.views = (int) _found_shaders[i].views;
-						element.shader = _found_shaders[i];
+						element.name = _found_shaders[shader_index].name;
+						element.author = _found_shaders[shader_index].author;
+						element.likes = (int) _found_shaders[shader_index].likes;
+						element.views = (int) _found_shaders[shader_index].views;
+						element.shader = _found_shaders[shader_index];
 
 						try
 						{
@@ -199,11 +202,36 @@ namespace Shady
 						}
 					}
 				}
+
+				_last_index += n;
+			}
+		}
+
+		[GtkCallback]
+		private void visible_child_changed()
+		{
+			if (content_stack.visible_child_name == "content" &&
+			    content_stack.visible_child_name != _current_child)
+			{
+				_last_index = 0;
+				show_n_more_shaders(12);
 			}
 
 			// for some reason the corresponding signal is emitted twice, so
 			// we have to remember the state
 			_current_child = content_stack.visible_child_name;
+		}
+
+		[GtkCallback]
+		private void edge_reached(Gtk.PositionType position_type)
+		{
+			if (position_type == Gtk.PositionType.BOTTOM)
+			{
+				if (_last_index < _found_shaders.length)
+				{
+					show_n_more_shaders(4);
+				}
+			}
 		}
 
 		public void search(string search_string)

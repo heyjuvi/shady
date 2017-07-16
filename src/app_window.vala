@@ -323,11 +323,11 @@ namespace Shady
 					{
 						Shader.Renderpass renderpass = shader.renderpasses.index(i) as Shader.Renderpass;
 
-						if (renderpass.type != Shader.RenderpassType.AUDIO)
+						if (renderpass.type == Shader.RenderpassType.AUDIO)
 						{
 							audio_renderpass = renderpass;
 						}
-						else if (renderpass.type != Shader.RenderpassType.IMAGE)
+						else if (renderpass.type == Shader.RenderpassType.IMAGE)
 						{
 							image_renderpass = renderpass;
 						}
@@ -448,9 +448,9 @@ namespace Shady
 
 		public void compile() throws ShaderError
 		{
-			for(int i=0; i<_curr_shader.renderpasses.length;i++)
+			for (int i = 0; i < _curr_shader.renderpasses.length; i++)
 			{
-				if(_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
+				if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
 				{
 					_curr_shader.renderpasses.index(i).code = get_buffer("Image");
 				}

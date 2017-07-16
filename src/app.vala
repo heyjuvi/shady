@@ -111,6 +111,7 @@ namespace Shady
 							new_window.present();
 
 							newest_app_window = new_window;
+
 							break;
 
 						case Gtk.ResponseType.CANCEL:
