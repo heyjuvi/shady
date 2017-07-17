@@ -220,7 +220,12 @@ namespace Shady
 				main_paned.pack2(_shader_overlay, true, true);
 			}
 
-			menu_button.menu_model = app.app_menu;
+			print(@"Prefers app menu: $(app.prefers_app_menu())\n");
+			if (!app.prefers_app_menu())
+			{
+				menu_button.menu_model = app.app_menu;
+				menu_button.visible = true;
+			}
 
 			_notebook_action_widget.new_buffer_button.clicked.connect(add_buffer_alphabetically);
 
@@ -282,7 +287,18 @@ namespace Shady
 
 			_edited = false;
 
-			show_all();
+			//show_all();
+			_shader_overlay.show();
+			_shader_area.show();
+			_foreground_box.show();
+
+			_editor_box.show();
+
+			_editor_notebook.show();
+			_notebook_action_widget.show();
+
+			_channels_revealer.show();
+			_channels_box.show();
 
 			// test
 			ShaderChannel channel0 = new ShaderChannel();

@@ -2,9 +2,6 @@
 <gresources>
 	<gresource prefix="/org/hasi/shady">
 		<!-- ui -->
-		<file preprocess="xml-stripblanks" alias="gtk/menus.ui">ui/app-menu.ui</file>
-		<file preprocess="xml-stripblanks">ui/app-window.ui</file>
-		<file preprocess="xml-stripblanks">ui/app-preferences.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-area.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-source-buffer.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-source-view.ui</file>
@@ -17,6 +14,9 @@
 		<file preprocess="xml-stripblanks">ui/notebook-action-widget.ui</file>
 		<file preprocess="xml-stripblanks">ui/shadertoy-search-dialog.ui</file>
 		<file preprocess="xml-stripblanks">ui/shadertoy-shader-item.ui</file>
+		<file preprocess="xml-stripblanks">ui/app-preferences.ui</file>
+		<file preprocess="xml-stripblanks">ui/app-window.ui</file>
+		<file preprocess="xml-stripblanks" alias="gtk/menus.ui">ui/app-menu.ui</file>
 
 		<!-- style -->
 		<file>data/css/shady.css</file>

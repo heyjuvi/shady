@@ -140,7 +140,7 @@ namespace Shady
 				this.quit();
 			});
 
-			this.add_action(quit_action);
+			add_action(quit_action);
 		}
 
 		protected override void startup()
