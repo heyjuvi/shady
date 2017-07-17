@@ -76,6 +76,7 @@ namespace Shady
 					{
 						main_paned.remove(_editor_box);
 						_foreground_box.pack_start(_editor_box, true, true);
+						_channels_revealer.reveal_child = false;
 
 						_editor_notebook.get_style_context().add_class("live_mode");
 					}
@@ -288,17 +289,17 @@ namespace Shady
 			_edited = false;
 
 			//show_all();
-			_shader_overlay.show();
-			_shader_area.show();
-			_foreground_box.show();
+			_shader_overlay.show_all();
+			_shader_area.show_all();
+			_foreground_box.show_all();
 
-			_editor_box.show();
+			_editor_box.show_all();
 
-			_editor_notebook.show();
-			_notebook_action_widget.show();
+			_editor_notebook.show_all();
+			_notebook_action_widget.show_all();
 
-			_channels_revealer.show();
-			_channels_box.show();
+			_channels_revealer.show_all();
+			_channels_box.show_all();
 
 			// test
 			ShaderChannel channel0 = new ShaderChannel();

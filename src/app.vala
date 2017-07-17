@@ -29,6 +29,10 @@ namespace Shady
 				var new_window = new AppWindow(this, app_preferences);
 				new_window.reset_time();
 				new_window.play();
+
+				remove_window(newest_app_window);
+				add_window(new_window);
+
 				new_window.present();
 
 				newest_app_window = new_window;
@@ -68,6 +72,10 @@ namespace Shady
 							new_window.reset_time();
 							new_window.compile();
 							new_window.play();
+
+							remove_window(newest_app_window);
+							add_window(new_window);
+
 							new_window.present();
 
 							newest_app_window = new_window;
@@ -108,6 +116,10 @@ namespace Shady
 							new_window.reset_time();
 							new_window.compile();
 							new_window.play();
+
+							remove_window(newest_app_window);
+							add_window(new_window);
+
 							new_window.present();
 
 							newest_app_window = new_window;
@@ -167,6 +179,7 @@ namespace Shady
 
 			load_css();
 
+			add_window(newest_app_window);
 			newest_app_window.present();
 		}
 
