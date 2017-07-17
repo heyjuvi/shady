@@ -10,11 +10,45 @@
 		</style>
 
 		<child>
-			<object class="GtkEntry" id="soundcloud_entry">
+			<object class="GtkBox">
 				<property name="visible">True</property>
-				<property name="can_focus">True</property>
+				<property name="can_focus">False</property>
+				<property name="orientation">horizontal</property>
+				<property name="spacing">6</property>
 
-				<signal name="activate" handler="soundcloud_entry_activated" />
+				<child>
+					<object class="GtkEntry" id="soundcloud_entry">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="receives_default">True</property>
+
+						<signal name="activate" handler="soundcloud_entry_activated" />
+					</object>
+					<packing>
+						<property name="expand">True</property>
+						<property name="fill">True</property>
+						<property name="position">0</property>
+					</packing>
+				</child>
+
+				<child>
+					<object class="GtkButton" id="set_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="label">Set</property>
+
+						<signal name="clicked" handler="set_button_clicked" />
+
+						<style>
+							<class name="suggested-action" />
+						</style>
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">1</property>
+					</packing>
+				</child>
 			</object>
 		</child>
 	</template>

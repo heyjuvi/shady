@@ -15,6 +15,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.NONE);
+				popdown();
 			}
 		}
 
@@ -24,6 +25,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.KEYBOARD);
+				popdown();
 			}
 		}
 
@@ -33,6 +35,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.WEBCAM);
+				popdown();
 			}
 		}
 
@@ -42,6 +45,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.MICROPHONE);
+				popdown();
 			}
 		}
 
@@ -51,6 +55,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.SOUNDCLOUD);
+				popdown();
 			}
 		}
 
@@ -60,6 +65,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.BUFFER);
+				popdown();
 			}
 		}
 
@@ -69,6 +75,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.TEXTURE);
+				popdown();
 			}
 		}
 
@@ -78,6 +85,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.CUBEMAP);
+				popdown();
 			}
 		}
 
@@ -87,6 +95,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.VIDEO);
+				popdown();
 			}
 		}
 
@@ -96,6 +105,7 @@ namespace Shady
 			if (button.active)
 			{
 				channel_type_changed(Shader.InputType.MUSIC);
+				popdown();
 			}
 		}
 	}

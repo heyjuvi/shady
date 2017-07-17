@@ -214,7 +214,38 @@ namespace Shady
 			    content_stack.visible_child_name != _current_child)
 			{
 				_last_index = 0;
-				show_n_more_shaders(12);
+
+				for (int i = 0; i < 4; i++)
+				{
+					show_n_more_shaders(4);
+
+					Gtk.Allocation allocation;
+					shader_box.get_allocated_size(out allocation, null);
+
+					print(@"$(allocation.y)\n");
+					if (allocation.y > 20)
+					{
+						break;
+					}
+				}
+
+				/*Gtk.Allocation allocation;
+				shader_box.get_allocation(out allocation);
+				print(@"$(allocation.y)\n");
+				print("Geht das noch?\n");
+				while (allocation.y < 100 && _last_index < _found_shaders.length);
+				{
+					print("Ja!\n");
+					print(@"$(allocation.y)\n");
+
+					show_n_more_shaders(4);
+
+					Thread.usleep(500000);
+
+					shader_box.get_allocation(out allocation);
+				}
+
+				print("??????????????????\n");*/
 			}
 
 			// for some reason the corresponding signal is emitted twice, so

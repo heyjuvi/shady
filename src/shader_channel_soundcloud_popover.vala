@@ -18,5 +18,12 @@ namespace Shady
 			soundcloud_link_entered(soundcloud_entry.text);
 			popdown();
 		}
+
+		[GtkCallback]
+		private void set_button_clicked()
+		{
+			soundcloud_link_entered(soundcloud_entry.text);
+			popdown();
+		}
 	}
 }
