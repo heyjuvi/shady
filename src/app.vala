@@ -10,7 +10,7 @@ namespace Shady
 		public App()
 		{
 			GLib.Object(application_id: "org.hasi.shady",
-			            flags: ApplicationFlags.FLAGS_NONE);
+			            flags: ApplicationFlags.HANDLES_OPEN);
 
 			add_actions();
 		}
@@ -94,8 +94,8 @@ namespace Shady
 
 			this.add_action(open_action);
 
-			SimpleAction load_from_shadertoy_action = new SimpleAction("load_from_shadertoy", null);
-			load_from_shadertoy_action.activate.connect(() =>
+			SimpleAction search_on_shadertoy_action = new SimpleAction("search", null);
+			search_on_shadertoy_action.activate.connect(() =>
 			{
 				var shadertoy_search_dialog = new Shady.ShadertoySearchDialog(newest_app_window);
 
@@ -136,7 +136,7 @@ namespace Shady
 				shadertoy_search_dialog.show();
 			});
 
-			this.add_action(load_from_shadertoy_action);
+			this.add_action(search_on_shadertoy_action);
 
 			SimpleAction preferences_action = new SimpleAction("preferences", null);
 			preferences_action.activate.connect(() =>

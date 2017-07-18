@@ -181,8 +181,6 @@ namespace Shady
 			_shader_overlay.add(_shader_area);
 			_shader_overlay.add_overlay(dummy);
 
-			_shader_overlay.set_overlay_pass_through(dummy,true);
-
 			_editor_box = new Gtk.Box(Orientation.VERTICAL, 0);
 
 			_editor_notebook = new Notebook();
@@ -222,7 +220,7 @@ namespace Shady
 			}
 
 			print(@"Prefers app menu: $(app.prefers_app_menu())\n");
-			if (!app.prefers_app_menu())
+			//if (!app.prefers_app_menu())
 			{
 				menu_button.menu_model = app.app_menu;
 				menu_button.visible = true;
