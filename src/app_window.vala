@@ -461,7 +461,7 @@ namespace Shady
 			_shader_buffers.remove(buffer_name);
 		}
 
-		public void compile() throws ShaderError
+		public void compile()
 		{
 			for (int i = 0; i < _curr_shader.renderpasses.length; i++)
 			{
@@ -471,7 +471,34 @@ namespace Shady
 				}
 			}
 
-			_shader_area.compile(_curr_shader);
+			_shader_area.compile(_curr_shader, (e) =>
+			{
+				if (e is ShaderError.COMPILATION)
+				{
+					string[] error_lines = e.message.split("\n");
+
+					_shader_buffers["Image"].clear_error_messages();
+
+					foreach (string error_line in error_lines)
+					{
+						if (":" in error_line)
+						{
+							string[] parsed_message = error_line.split(":", 3);
+							string error_number = parsed_message[0];
+							string position = parsed_message[1];
+							string error = parsed_message[2];
+
+							int prefix_length = ((string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data())).split("\n").length;
+
+							string[] line_and_row = position.split("(", 2);
+							int line = int.parse(line_and_row[0]) - prefix_length - 1;
+							int what_is_this = int.parse(line_and_row[1][0:line_and_row[0].length - 2]);
+
+							_shader_buffers["Image"].add_error_message(line, "error", error);
+						}
+					}
+				}
+			});
 		}
 
 		public void reset_time()

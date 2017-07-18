@@ -11,6 +11,8 @@ namespace Shady
 
 	public class ShaderArea : EventBox
 	{
+		public delegate void ShaderErrorHandler(ShaderError e);
+
 		/* Properties */
 		private bool _paused = false;
 		public bool paused
@@ -258,11 +260,11 @@ namespace Shady
 			});
 		}
 
-		public void compile(Shader new_shader) throws ShaderError
+		public void compile(Shader new_shader, ShaderErrorHandler? callback=null)
 		{
 			_curr_shader = new_shader;
 
-			new Thread<int>.try("compile_thread", () =>
+			new Thread<int>("compile_thread", () =>
 			{
 
 				if(_compile_mutex.trylock())
@@ -283,7 +285,15 @@ namespace Shady
 					}
 
 					_gl_context.thread_context();
-					compile_blocking(shader_source);
+
+					try
+					{
+						compile_blocking(shader_source);
+					}
+					catch (ShaderError e)
+					{
+						callback(e);
+					}
 
 					_gl_context.free_context();
 					_compile_mutex.unlock();
@@ -322,15 +332,16 @@ namespace Shady
 
 				if (log.length > 0)
 				{
-					//throw new ShaderError.COMPILATION((string) log);
 					foreach (GLubyte c in log)
 					{
 						stdout.printf("%c", c);
 					}
+
+					throw new ShaderError.COMPILATION((string) log);
 				}
 				else
 				{
-					throw new ShaderError.COMPILATION("Something went wrong.");
+					throw new ShaderError.COMPILATION("Something went substantially wrong...");
 				}
 
 				return;
