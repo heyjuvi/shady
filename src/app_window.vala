@@ -481,7 +481,7 @@ namespace Shady
 
 		public void play()
 		{
-			_shader_area.pause(false);
+			_shader_area.paused = false;
 
 			play_button_image.set_from_icon_name("media-playback-pause-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(false);
@@ -489,7 +489,7 @@ namespace Shady
 
 		public void pause()
 		{
-			_shader_area.pause(true);
+			_shader_area.paused = true;
 
 			play_button_image.set_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(true);
@@ -537,7 +537,7 @@ namespace Shady
 		[GtkCallback]
 		private void rubber_band_scale_value_changed()
 		{
-			_shader_area.time_slider=rubber_band_scale.get_value();
+			_shader_area.time_slider = rubber_band_scale.get_value();
 		}
 
 		[GtkCallback]

@@ -83,7 +83,7 @@ namespace Shady
 
 			_shader_area = new ShaderArea(load_shader);
 			_shader_area.set_size_request(152, 140);
-			_shader_area.pause(true);
+			_shader_area.paused = true;
 
 			shader_container.pack_start(_shader_area, false, false);
 			/*Gtk.Button bla = new Gtk.Button();
@@ -104,7 +104,7 @@ namespace Shady
 			if (event.detail != Gdk.NotifyType.INFERIOR)
 			{
 				_shader_area.reset_time();
-				_shader_area.pause(false);
+				_shader_area.paused = false;
 			}
 
 			return false;
@@ -116,7 +116,7 @@ namespace Shady
 			if (event.detail != Gdk.NotifyType.INFERIOR)
 			{
 				_shader_area.reset_time();
-				_shader_area.pause(true);
+				_shader_area.paused = true;
 			}
 
 			return false;

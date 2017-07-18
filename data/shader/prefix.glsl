@@ -11,6 +11,7 @@ out vec4 fragColor;
 
 uniform vec3 iResolution;
 uniform float iGlobalTime;
+uniform float iTime;
 uniform float iTimeDelta;
 uniform int iFrame;
 uniform float iFrameRate;
