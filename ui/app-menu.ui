@@ -16,7 +16,7 @@
 			<item>
 				<attribute name="label">Search on Shadertoy</attribute>
 				<attribute name="action">app.search</attribute>
-				<attribute name="accel">&lt;Primary&gt;w</attribute>
+				<attribute name="accel">&lt;Primary&gt;l</attribute>
 			</item>
 		</section>
 		<section>
