@@ -13,7 +13,8 @@ namespace Shady
 			TEXTURE,
 			CUBEMAP,
 			VIDEO,
-			MUSIC;
+			MUSIC,
+			INVALID;
 
 			public static InputType from_string(string type)
 			{
@@ -58,8 +59,7 @@ namespace Shady
 					return MUSIC;
 				}
 
-				// that should be implemented otherwise
-				return NONE;
+				return INVALID;
 			}
 		}
 
@@ -83,7 +83,8 @@ namespace Shady
 		public enum FilterMode
 		{
 			LINEAR,
-			NEAREST;
+			NEAREST,
+			INVALID;
 
 			public static FilterMode from_string(string mode)
 			{
@@ -96,15 +97,15 @@ namespace Shady
 					return NEAREST;
 				}
 
-				// that should be implemented otherwise
-				return LINEAR;
+				return INVALID;
 			}
 		}
 
 		public enum WrapMode
 		{
 			CLAMP,
-			REPEAT;
+			REPEAT,
+			INVALID;
 
 			public static WrapMode from_string(string mode)
 			{
@@ -117,8 +118,7 @@ namespace Shady
 					return REPEAT;
 				}
 
-				// that should be implemented otherwise
-				return CLAMP;
+				return INVALID;
 			}
 		}
 
@@ -131,15 +131,16 @@ namespace Shady
 
 		public enum RenderpassType
 		{
-			AUDIO,
+			SOUND,
 			IMAGE,
-			BUFFER;
+			BUFFER,
+			INVALID;
 
 			public static RenderpassType from_string(string type)
 			{
-				if (type == "audio")
+				if (type == "sound")
 				{
-					return AUDIO;
+					return SOUND;
 				}
 				else if (type == "image")
 				{
@@ -150,8 +151,7 @@ namespace Shady
 					return BUFFER;
 				}
 
-				// that should be implemented otherwise
-				return BUFFER;
+				return INVALID;
 			}
 		}
 

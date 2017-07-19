@@ -254,7 +254,7 @@ namespace Shady
 					unfullscreen();
 				}
 
-				if (is_fullscreen && live_mode && event.keyval == Gdk.Key.Control_R)
+				if (live_mode && event.keyval == Gdk.Key.Control_R)
 				{
 					_editor_box.set_visible(!_editor_box.get_visible());
 				}
@@ -329,7 +329,7 @@ namespace Shady
 			{
 				List<string> sorted_keys = new List<string>();
 
-				Shader.Renderpass audio_renderpass = null;
+				Shader.Renderpass sound_renderpass = null;
 				Shader.Renderpass image_renderpass = null;
 
 				for (int i = 0; i < shader.renderpasses.length; i++)
@@ -338,9 +338,9 @@ namespace Shady
 					{
 						Shader.Renderpass renderpass = shader.renderpasses.index(i) as Shader.Renderpass;
 
-						if (renderpass.type == Shader.RenderpassType.AUDIO)
+						if (renderpass.type == Shader.RenderpassType.SOUND)
 						{
-							audio_renderpass = renderpass;
+							sound_renderpass = renderpass;
 						}
 						else if (renderpass.type == Shader.RenderpassType.IMAGE)
 						{
@@ -353,8 +353,10 @@ namespace Shady
 					}
 				}
 
-				if (audio_renderpass != null)
+				if (sound_renderpass != null)
 				{
+					add_buffer("Sound", false);
+					set_buffer("Sound", sound_renderpass.code);
 				}
 
 				if (image_renderpass != null)
@@ -471,14 +473,16 @@ namespace Shady
 				}
 			}
 
+			_shader_buffers["Image"].clear_error_messages();
 			_shader_area.compile(_curr_shader, (e) =>
 			{
 				if (e is ShaderError.COMPILATION)
 				{
 					string[] error_lines = e.message.split("\n");
 
-					_shader_buffers["Image"].clear_error_messages();
-
+					string current_error = "";
+					int last_line = -1;
+					int last_row = -1;
 					foreach (string error_line in error_lines)
 					{
 						if (":" in error_line)
@@ -486,17 +490,34 @@ namespace Shady
 							string[] parsed_message = error_line.split(":", 3);
 							string error_number = parsed_message[0];
 							string position = parsed_message[1];
-							string error = parsed_message[2];
+							string error = parsed_message[2].split("error: ")[1];
 
 							int prefix_length = ((string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data())).split("\n").length;
 
 							string[] line_and_row = position.split("(", 2);
-							int line = int.parse(line_and_row[0]) - prefix_length - 1;
-							int what_is_this = int.parse(line_and_row[1][0:line_and_row[0].length - 2]);
+							int line = int.parse(line_and_row[0]) - prefix_length;
+							int row = int.parse(line_and_row[1][0:line_and_row[0].length]);
 
-							_shader_buffers["Image"].add_error_message(line, "error", error);
+							if (line != last_line)
+							{
+								if (last_line != -1)
+								{
+									_shader_buffers["Image"].add_error_message(line, @"error-$line-$row", current_error);
+								}
+
+								current_error = error;
+							}
+							else
+							{
+								current_error += "\n" + error;
+							}
+
+							last_line = line;
+							last_row = row;
 						}
 					}
+
+					_shader_buffers["Image"].add_error_message(last_line, @"error-$last_line-$last_row", current_error);
 				}
 			});
 		}

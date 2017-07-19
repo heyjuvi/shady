@@ -51,9 +51,9 @@ namespace Shady
 					new_renderpass.type = Shader.RenderpassType.from_string(renderpass_type);
 					new_renderpass.name = renderpass_name;
 
-					if (new_renderpass.type == Shader.RenderpassType.AUDIO)
+					if (new_renderpass.type == Shader.RenderpassType.SOUND)
 					{
-						renderpass_name = "Audio";
+						renderpass_name = "Sound";
 					}
 					else if (new_renderpass.type == Shader.RenderpassType.IMAGE)
 					{
