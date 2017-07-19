@@ -56,8 +56,7 @@ namespace Shady
 		{
 			Gtk.TextIter start_iter, end_iter;
 
-			buffer.get_start_iter(out start_iter);
-			buffer.get_end_iter(out end_iter);
+			buffer.get_bounds(out start_iter, out end_iter);
 
 			buffer.remove_source_marks(start_iter, end_iter, "error");
 		}

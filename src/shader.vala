@@ -68,6 +68,7 @@ namespace Shady
 			public int id;
 			public int channel;
 			public InputType type;
+			public Sampler sampler;
 			public string hash;
 			public string resource;
 			public string name;
@@ -75,6 +76,8 @@ namespace Shady
 
 		public class Output
 		{
+			public int id;
+			public int channel;
 		}
 
 		public enum FilterMode
@@ -152,14 +155,14 @@ namespace Shady
 			}
 		}
 
-		public class Renderpass : Output
+		public class Renderpass
 		{
 			public string code;
 			public RenderpassType type;
 			public string name;
 
-			public Array<int> input_ids = new Array<int>();
-			public HashTable<int, Sampler> samplers = new HashTable<int, Sampler>(direct_hash, direct_equal);
+			public Array<Input> inputs = new Array<Input>();
+			public Array<Output> outputs = new Array<Output>();
 		}
 
 		public string name;

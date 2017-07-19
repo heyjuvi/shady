@@ -79,8 +79,6 @@ namespace Shady
 						shader_input.channel = (int) input_object.get_int_member("channel");
 						shader_input.type = Shader.InputType.from_string(input_object.get_string_member("ctype"));
 
-						new_renderpass.input_ids.append_val(shader_input.id);
-
 						var input_sampler_object = input_object.get_object_member("sampler");
 
 						Shader.Sampler shader_input_sampler = new Shader.Sampler();
@@ -88,9 +86,23 @@ namespace Shady
 						shader_input_sampler.wrap = Shader.WrapMode.from_string(input_sampler_object.get_string_member("wrap"));
 						shader_input_sampler.v_flip = input_sampler_object.get_boolean_member("vflip");
 
-						new_renderpass.samplers.insert(shader_input.id, shader_input_sampler);
+						shader_input.sampler = shader_input_sampler;
+
+						new_renderpass.inputs.append_val(shader_input);
 
 						// if this is a known resource, add info to it from the resources
+					}
+
+					var outputs_node = renderpass_object.get_array_member("outputs");
+					foreach (var output in outputs_node.get_elements())
+					{
+						var output_object = output.get_object();
+
+						Shader.Output shader_output = new Shader.Output();
+						shader_output.id = (int) output_object.get_int_member("id");
+						shader_output.channel = (int) output_object.get_int_member("channel");
+
+						new_renderpass.outputs.append_val(shader_output);
 					}
 
 					shader.renderpasses.append_val(new_renderpass);
