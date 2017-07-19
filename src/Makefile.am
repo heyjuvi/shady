@@ -3,6 +3,7 @@ bin_PROGRAMS = shady
 WARN_CFLAGS += \
 	-Wno-error=discarded-qualifiers \
 	-Wno-error=unused-variable \
+	-Wno-error=unused-label \
 	-Wno-error=unused-but-set-variable \
 	-Wno-error=deprecated-declarations \
 	-Wno-error=incompatible-pointer-types \
