@@ -45,6 +45,7 @@
 							<object class="GtkSearchEntry" id="shadertoy_search_entry">
 								<property name="visible">True</property>
 								<property name="can_focus">True</property>
+								<property name="has_focus">True</property>
 								<property name="receives_default">True</property>
 								<property name="placeholder_text">Please enter a search string...</property>
 								<property name="primary_icon_name">edit-find-symbolic</property>

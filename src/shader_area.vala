@@ -11,6 +11,8 @@ namespace Shady
 
 	public class ShaderArea : EventBox
 	{
+		public signal void compilation_finished();
+
 		public delegate void ShaderErrorHandler(ShaderError e);
 
 		struct BufferProperties {
@@ -430,6 +432,8 @@ namespace Shady
 			{
 				_prog_mutex2.unlock();
 			}
+
+			compilation_finished();
 		}
 
 		public void reset_time()

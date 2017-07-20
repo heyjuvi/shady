@@ -128,6 +128,9 @@ namespace Shady
 		private Gtk.Label time_label;
 
 		[GtkChild]
+		private Gtk.Stack compile_button_stack;
+
+		[GtkChild]
 		private Gtk.Paned main_paned;
 
 		private Overlay _shader_overlay;
@@ -474,6 +477,14 @@ namespace Shady
 			}
 
 			_shader_buffers["Image"].clear_error_messages();
+
+			_shader_area.compilation_finished.connect(() =>
+			{
+				compile_button_stack.visible_child_name = "compile_image";
+			});
+
+			compile_button_stack.visible_child_name = "compile_spinner";
+
 			_shader_area.compile(_curr_shader, (e) =>
 			{
 				if (e is ShaderError.COMPILATION)
