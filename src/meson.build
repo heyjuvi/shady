@@ -15,7 +15,6 @@ libsoup_dep = dependency('libsoup-2.4')
 json_glib_dep = dependency('json-glib-1.0')
 
 app_sources = files(
-  'shady.gresource.c',
   'main.vala',
   'io_sugar.vala',
   'app.vala',
@@ -53,6 +52,7 @@ executable('shady',
     libsoup_dep,
     json_glib_dep
   ],
-  link_args : ['-lepoxy', '-lX11', '-lEGL']
+  link_args : ['-lepoxy', '-lX11', '-lEGL'],
+  install: true,
 )
 
