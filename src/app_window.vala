@@ -222,8 +222,7 @@ namespace Shady
 				main_paned.pack2(_shader_overlay, true, true);
 			}
 
-			print(@"Prefers app menu: $(app.prefers_app_menu())\n");
-			//if (!app.prefers_app_menu())
+			if (!app.prefers_app_menu())
 			{
 				menu_button.menu_model = app.app_menu;
 				menu_button.visible = true;

@@ -4,8 +4,8 @@ namespace Shady
 	{
 		private Gtk.CssProvider css_provider;
 
-		private AppWindow newest_app_window;
-		private AppPreferences app_preferences;
+		private AppWindow newest_app_window = null;
+		private AppPreferences app_preferences = null;
 
 		public App()
 		{
@@ -175,12 +175,13 @@ namespace Shady
 
 			app_preferences = new AppPreferences();
 			newest_app_window = new AppWindow(this, app_preferences);
-			newest_app_window.compile();
 
 			load_css();
 
 			add_window(newest_app_window);
+
 			newest_app_window.present();
+			newest_app_window.compile();
 		}
 
 		private void load_css()

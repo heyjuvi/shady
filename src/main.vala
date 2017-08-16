@@ -18,11 +18,7 @@
 
 int main(string[] args)
 {
-	print("TEEEEEST\n");
-	print("TEEEEEST\n");
-	print("TEEEEEST\n");
-
 	X.init_threads();
-	Environment.set_variable("EGL_LOG_LEVEL","fatal",true);
+	Environment.set_variable("EGL_LOG_LEVEL", "fatal", true);
 	return new Shady.App().run(args);
 }
