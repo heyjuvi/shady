@@ -1,0 +1,2 @@
+subdir('gsettings')
+subdir('desktop')

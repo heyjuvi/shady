@@ -13,4 +13,5 @@ app_resources = gnome.compile_resources(
   c_name : 'shady_resources')
 
 subdir('src')
+subdir('data')
 

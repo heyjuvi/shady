@@ -1,0 +1,21 @@
+<schemalist>
+	<schema id="org.hasi.shady" path="/org/hasi/shady/" gettext-domain="shady">
+		<key name="switched-layout" type="b">
+			<default>false</default>
+			<summary>Switched editor layout</summary>
+			<description>
+				Specifies, whether the editor should be in the left and the
+				shader area in the right or the other way around
+			</description>
+		</key>
+
+		<key name="auto-compile" type="b">
+			<default>false</default>
+			<summary>Auto compile shader</summary>
+			<description>
+				Specifies, whether the current shader source should automatically
+				be compiled every few seconds
+			</description>
+		</key>
+	</schema>
+</schemalist>
