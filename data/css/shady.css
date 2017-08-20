@@ -26,7 +26,7 @@
 
 .header_bar .highlighted
 {
-	background: alpha(#FFFFFF, 0.5);
+	background: @theme_bg_color;
 	border-radius: 3pt;
 	padding: 3pt;
 }
@@ -44,37 +44,38 @@ notebook textview
 
 notebook.live_mode textview.view text, notebook.live_mode textview text, notebook.live_mode textview
 {
-	background: alpha(#FFFFFF, 0.4);
+	background: alpha(@theme_bg_color, 0.4);
 }
 
 notebook.live_mode textview.view window, notebook.live_mode textview window
 {
-	background: alpha(#FFFFFF, 0.4);
+	background: alpha(@theme_bg_color, 0.4);
 }
 
 notebook.live_mode textview.view text selection, notebook.live_mode textview text selection
 {
-	color: #000000;
-	background: alpha(#FFFFFF, 0.4);
+	color: @theme_fg_color;
+	background: alpha(@theme_bg_color, 0.4);
 }
 
 notebook.live_mode textview.view border, notebook.live_mode textview border
 {
-	background: alpha(#FFFFFF, 0.4);
+	background: alpha(@theme_bg_color, 0.4);
 }
 
 /* channels */
 .channel_header
 {
 	padding-left: 6pt;
-	background: #FFFFFF;
+	background: #000000;
+	color: #FFFFFF;
 	border-top-right-radius: 6pt;
 }
 
 .channel_header button,.channel_header button:hover
 {
-	background: #FFFFFF;
-	color: #000000;
+	background: #000000;
+	color: #FFFFFF;
 	border: 0;
 	border-radius: 0;
 	transition-duration: 0s;
@@ -95,8 +96,8 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 .channel_settings
 {
 	padding: 6pt;
-	background: #FFFFFF;
-	color: #000000;
+	background: #000000;
+	color: #FFFFFF;
 }
 
 .channel_settings button
@@ -108,16 +109,16 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 	padding-right: 3pt;
 	padding-top: 0;
 	padding-bottom: 0;
-	border: 1px #000000 solid;
+	border: 1px #FFFFFF solid;
 	border-radius: 0;
-	background: #FFFFFF;
-	color: #000000;
+	background: #000000;
+	color: #FFFFFF;
 }
 
 .channel_settings button:hover, .channel_settings button:active
 {
-	background: #000000;
-	color: #FFFFFF;
+	background: #FFFFFF;
+	color: #000000;
 }
 
 .channel_settings switch
@@ -125,17 +126,17 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 	box-shadow: none;
 	text-shadow: none;
 	outline: none;
-	border: 1px #000000 solid;
+	border: 1px #FFFFFF solid;
 	border-radius: 0;
-	background: #FFFFFF;
-	color: #000000;
+	background: #000000;
+	color: #FFFFFF;
 }
 
 .channel_settings switch:checked
 {
-	border: 1px #000000 solid;
+	border: 1px #FFFFFF solid;
 	border-radius: 0;
-	background: #FFFFFF;
+	background: #000000;
 }
 
 .channel_settings switch slider
@@ -144,9 +145,9 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 	text-shadow: none;
 	outline: none;
 	padding: 0;
-	border: 1px #000000 solid;
+	border: 1px #FFFFFF solid;
 	border-radius: 0;
-	background: #000000;
+	background: #FFFFFF;
 }
 
 /* shadertoy search */

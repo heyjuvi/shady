@@ -1,11 +1,14 @@
 add_project_arguments([
     '--vapidir', join_paths(meson.current_source_dir(), 'vapi'),
-    '--pkg', 'shady-gl',   # those are handled extra, because they
-    '--pkg', 'shady-egl',  # are in the custom vapi directory of
-    '--pkg', 'shady-epoxy' # the project
+    '--pkg', 'shady-gl',     # those are handled extra, because they
+    '--pkg', 'shady-egl',    # are in the custom vapi directory of
+    '--pkg', 'shady-epoxy'   # the project
+#    '--pkg', 'shady-glslang'
   ],
   language: 'vala'
 )
+
+add_global_arguments('-std=c11', language : 'c')
 
 glib_dep = dependency('glib-2.0')
 gtk_dep = dependency('gtk+-3.0')
@@ -52,7 +55,7 @@ executable('shady',
     libsoup_dep,
     json_glib_dep
   ],
-  link_args : ['-lepoxy', '-lX11', '-lEGL'],
+  link_args : ['-lepoxy', '-lX11', '-lEGL', '-lglslang'],
   install: true,
 )
 

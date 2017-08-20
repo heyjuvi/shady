@@ -163,6 +163,7 @@ namespace Shady
 
 			// use only minimal window decorations
 			gtk_settings.gtk_decoration_layout = ":close";
+			gtk_settings.get_default().gtk_application_prefer_dark_theme = true;
 		}
 
 		protected override void activate()

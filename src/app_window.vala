@@ -488,9 +488,13 @@ namespace Shady
 			{
 				if (e is ShaderError.COMPILATION)
 				{
+					// append a line, so the loop below really adds all different
+					// errors, very hacky
+					string errors_str = e.message;
+
 					string[] error_lines = e.message.split("\n");
 
-					string current_error = "";
+					string current_error = null;
 					int last_line = -1;
 					int last_row = -1;
 					foreach (string error_line in error_lines)
@@ -502,17 +506,23 @@ namespace Shady
 							string position = parsed_message[1];
 							string error = parsed_message[2].split("error: ")[1];
 
+							if (current_error == null)
+							{
+								current_error = error;
+							}
+
 							int prefix_length = ((string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data())).split("\n").length;
 
 							string[] line_and_row = position.split("(", 2);
-							int line = int.parse(line_and_row[0]) - prefix_length;
+							int line = int.parse(line_and_row[0]) - prefix_length + 1;
 							int row = int.parse(line_and_row[1][0:line_and_row[0].length]);
 
 							if (line != last_line)
 							{
 								if (last_line != -1)
 								{
-									_shader_buffers["Image"].add_error_message(line, @"error-$line-$row", current_error);
+									print(@"Line: $last_line, Row: $last_row, Error: $current_error\n");
+									_shader_buffers["Image"].add_error_message(last_line, @"error-$last_line-$last_row", current_error);
 								}
 
 								current_error = error;
@@ -527,6 +537,7 @@ namespace Shady
 						}
 					}
 
+					print(@"Line: $last_line, Row: $last_row, Error: $current_error\n");
 					_shader_buffers["Image"].add_error_message(last_line, @"error-$last_line-$last_row", current_error);
 				}
 			});

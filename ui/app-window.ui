@@ -107,7 +107,7 @@
 					<object class="GtkImage">
 						<property name="visible">True</property>
 						<property name="can_focus">False</property>
-						<property name="resource">/org/hasi/shady/data/images/shady_logo_title.svg</property>
+						<property name="resource">/org/hasi/shady/data/images/shady_logo_header_bar.svg</property>
 					</object>
 				</child>
 
@@ -128,7 +128,7 @@
 					</object>
 					<packing>
 						<property name="pack-type">end</property>
-						<property name="position">4</property>
+						<property name="position">5</property>
 					</packing>
 				</child>
 
@@ -152,6 +152,44 @@
 						<property name="position">4</property>
 					</packing>
 				</child>
+
+				<child>
+					<object class="GtkToggleButton" id="live_mode_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="receives_default">False</property>
+						<property name="label">Live</property>
+
+						<signal name="toggled" handler="live_mode_button_toggled" />
+					</object>
+					<packing>
+						<property name="pack-type">end</property>
+						<property name="position">3</property>
+					</packing>
+				</child>
+
+				<child>
+					<object class="GtkButton" id="fullscreen_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="receives_default">False</property>
+
+						<signal name="clicked" handler="fullscreen_button_clicked" />
+
+						<child>
+							<object class="GtkImage">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="icon_name">view-fullscreen-symbolic</property>
+							</object>
+						</child>
+					</object>
+					<packing>
+						<property name="pack-type">end</property>
+						<property name="position">2</property>
+					</packing>
+				</child>
+
 
 				<child>
 					<object class="GtkButton" id="compile_button">
@@ -192,43 +230,6 @@
 										<property name="name">compile_spinner</property>
 									</packing>
 								</child>
-							</object>
-						</child>
-					</object>
-					<packing>
-						<property name="pack-type">end</property>
-						<property name="position">3</property>
-					</packing>
-				</child>
-
-				<child>
-					<object class="GtkToggleButton" id="live_mode_button">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
-						<property name="label">Live</property>
-
-						<signal name="toggled" handler="live_mode_button_toggled" />
-					</object>
-					<packing>
-						<property name="pack-type">end</property>
-						<property name="position">2</property>
-					</packing>
-				</child>
-
-				<child>
-					<object class="GtkButton" id="fullscreen_button">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
-
-						<signal name="clicked" handler="fullscreen_button_clicked" />
-
-						<child>
-							<object class="GtkImage">
-								<property name="visible">True</property>
-								<property name="can_focus">False</property>
-								<property name="icon_name">view-fullscreen-symbolic</property>
 							</object>
 						</child>
 					</object>
