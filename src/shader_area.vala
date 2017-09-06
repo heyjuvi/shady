@@ -17,6 +17,7 @@ namespace Shady
 		struct BufferProperties
 		{
 			public GLuint program;
+			public GLuint fb;
 
 			public GLuint[] tex_ids;
 
@@ -69,8 +70,11 @@ namespace Shady
 		private Mutex _image_prog1_mutex = Mutex();
 		private Mutex _image_prog2_mutex = Mutex();
 
-		private BufferProperties[] _buffer_props1;
-		private BufferProperties[] _buffer_props2;
+		private BufferProperties[] _buffer_props1 = {};
+		private BufferProperties[] _buffer_props2 = {};
+
+		private Mutex _buffer_props1_mutex = Mutex();
+		private Mutex _buffer_props2_mutex = Mutex();
 
 		private Mutex[] _buffer_prog1_mutexes;
 		private Mutex[] _buffer_prog2_mutexes;
@@ -87,8 +91,6 @@ namespace Shady
 		private GLuint[] _tex_ids = new GLuint[_num_textures];
 		private string[] _channel_string = {"iChannel0", "iChannel1", "iChannel2", "iChannel3"};
 
-		private GLuint _program1;
-		private GLuint _program2;
 		private GLuint _fragment_shader;
 		private GLuint[] _vao = { 1337 };
 
@@ -315,13 +317,13 @@ namespace Shady
 			{
 				if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
 				{
-					stdout.printf("IMAGE, i:%d\n",i);
+					//stdout.printf("IMAGE, i:%d\n",i);
 					image_source = new_shader.renderpasses.index(i).code;
 					image_index = i;
 				}
 				else if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
 				{
-					stdout.printf("BUFFER, i:%d\n",i);
+					//stdout.printf("BUFFER, i:%d\n",i);
 					buffer_count++;
 				}
 			}
@@ -329,25 +331,55 @@ namespace Shady
 			string[] buffer_sources = new string[buffer_count];
 			int[] buffer_indices = new int[buffer_count];
 
-			if(!_program_switch)
+			if(buffer_count>0)
 			{
-				_buffer_props1 = new BufferProperties[buffer_count];
-				_buffer_prog1_mutexes = new Mutex[buffer_count];
-			}
-			else
-			{
-				_buffer_props2 = new BufferProperties[buffer_count];
-				_buffer_prog2_mutexes = new Mutex[buffer_count];
-			}
-
-			int buffer_index=0;
-			for(int i=0; i<new_shader.renderpasses.length;i++)
-			{
-				if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
+				if(!_program_switch)
 				{
-					buffer_indices[buffer_index] = i;
-					buffer_sources[buffer_index] = new_shader.renderpasses.index(i).code;
-					buffer_index++;
+					_buffer_props1_mutex.lock();
+					_buffer_props1 = new BufferProperties[buffer_count];
+					_buffer_prog1_mutexes = new Mutex[buffer_count];
+				}
+				else
+				{
+					_buffer_props2_mutex.lock();
+					_buffer_props2 = new BufferProperties[buffer_count];
+					_buffer_prog2_mutexes = new Mutex[buffer_count];
+				}
+
+				GLuint[] fbs = new GLuint[buffer_count];
+				glGenFramebuffers(buffer_count, fbs);
+
+				for(int i=0; i<buffer_count; i++)
+				{
+					if(!_program_switch)
+					{
+						_buffer_props1[i].fb = fbs[i];
+						glBindFramebuffer(GL_FRAMEBUFFER, fbs[i]);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _tex_ids[0], 0);
+						_buffer_props1[i].program = glCreateProgram();
+						glAttachShader(_buffer_props1[i].program, _gl_context.vertex_shader);
+						glAttachShader(_buffer_props1[i].program, _fragment_shader);
+					}
+					else
+					{
+						_buffer_props2[i].fb = fbs[i];
+						glBindFramebuffer(GL_FRAMEBUFFER, fbs[i]);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _tex_ids[0], 0);
+						_buffer_props2[i].program = glCreateProgram();
+						glAttachShader(_buffer_props2[i].program, _gl_context.vertex_shader);
+						glAttachShader(_buffer_props2[i].program, _fragment_shader);
+					}
+				}
+
+				int buffer_index=0;
+				for(int i=0; i<new_shader.renderpasses.length;i++)
+				{
+					if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
+					{
+						buffer_indices[buffer_index] = i;
+						buffer_sources[buffer_index] = new_shader.renderpasses.index(i).code;
+						buffer_index++;
+					}
 				}
 			}
 
@@ -377,10 +409,12 @@ namespace Shady
 				if(!_program_switch)
 				{
 					compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props1[i], ref _buffer_prog1_mutexes[i]);
+					_buffer_props1_mutex.unlock();
 				}
 				else
 				{
 					compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props2[i], ref _buffer_prog2_mutexes[i]);
+					_buffer_props2_mutex.unlock();
 				}
 			}
 
@@ -399,7 +433,6 @@ namespace Shady
 
 		private void compile_pass(int pass_index, string shader_source, ref BufferProperties buf_prop, ref Mutex prog_mutex)
 		{
-
 			buf_prop.tex_ids = _tex_ids;
 
 			string[] source_array = { shader_source, null };
@@ -435,16 +468,7 @@ namespace Shady
 				return;
 			}
 
-			if(_program_switch)
-			{
-				buf_prop.program = _program1;
-				prog_mutex.lock();
-			}
-			else
-			{
-				buf_prop.program = _program2;
-				prog_mutex.lock();
-			}
+			prog_mutex.lock();
 
 			glLinkProgram(buf_prop.program);
 
@@ -469,14 +493,7 @@ namespace Shady
 
 			pass_compilation_terminated(pass_index, null);
 
-			if(_program_switch)
-			{
-				prog_mutex.unlock();
-			}
-			else
-			{
-				prog_mutex.unlock();
-			}
+			prog_mutex.unlock();
 
 			compilation_finished();
 		}
@@ -532,11 +549,11 @@ namespace Shady
 				prog_mutex.lock();
 				if(thread_switch)
 				{
-					render_image(_image_prop2, _image_prog2_mutex);
+					render_image(_image_prop2, _image_prog2_mutex, _buffer_props2, _buffer_props2_mutex, _buffer_prog2_mutexes);
 				}
 				else
 				{
-					render_image(_image_prop1, _image_prog1_mutex);
+					render_image(_image_prop1, _image_prog1_mutex, _buffer_props1, _buffer_props1_mutex, _buffer_prog1_mutexes);
 				}
 				prog_mutex.unlock();
 			}
@@ -548,14 +565,17 @@ namespace Shady
 			
 			_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
-			_program1 = glCreateProgram();
-			_program2 = glCreateProgram();
+			_image_prop1.program = glCreateProgram();
+			_image_prop2.program = glCreateProgram();
 
-			glAttachShader(_program1, _gl_context.vertex_shader);
-			glAttachShader(_program1, _fragment_shader);
+			_image_prop1.fb = 0;
+			_image_prop2.fb = 0;
 
-			glAttachShader(_program2, _gl_context.vertex_shader);
-			glAttachShader(_program2, _fragment_shader);
+			glAttachShader(_image_prop1.program, _gl_context.vertex_shader);
+			glAttachShader(_image_prop1.program, _fragment_shader);
+
+			glAttachShader(_image_prop2.program, _gl_context.vertex_shader);
+			glAttachShader(_image_prop2.program, _fragment_shader);
 
 			compile_blocking(default_shader);
 			compile_blocking(default_shader);
@@ -576,8 +596,8 @@ namespace Shady
 			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 			glBufferData(GL_ARRAY_BUFFER, vertices.length * sizeof (GLfloat), (GLvoid[]) vertices, GL_STATIC_DRAW);
 
-			GLuint attrib = glGetAttribLocation(_program1, "v");
-			GLuint attrib2 = glGetAttribLocation(_program2, "v");
+			GLuint attrib = glGetAttribLocation(_image_prop1.program, "v");
+			GLuint attrib2 = glGetAttribLocation(_image_prop2.program, "v");
 
 			glEnableVertexAttribArray(attrib);
 			glVertexAttribPointer(attrib, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
@@ -616,18 +636,18 @@ namespace Shady
 			for(int i=0;i<_num_textures;i++){
 				glBindTexture( GL_TEXTURE_2D, _tex_ids[i] );
 
-				int tex__height = 512, tex__width = 512;
-				uchar[] tex__buffer = new uchar[512*512*4*4];
+				int tex_height = 512, tex_width = 512;
+				uchar[] tex_buffer = new uchar[512*512*4*4];
 
 				for(int j=0;j<512*512*4*4;j++)
 				{
 					if(j%2 == 0)
 					{
-						tex__buffer[i]=255;
+						tex_buffer[i]=255;
 					}
 				}
 
-				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, tex__width, tex__height, 0, GL_RGBA, GL_FLOAT, (GLvoid[])tex__buffer);
+				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_FLOAT, (GLvoid[])tex_buffer);
 
 
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -702,7 +722,7 @@ namespace Shady
 
 		}
 
-		private void render_image(BufferProperties buf_prop, Mutex prog_mutex)
+		private void render_image(BufferProperties img_prop, Mutex img_prog_mutex, BufferProperties[] buf_props, Mutex buf_prop_mutex, Mutex[] buf_prog_mutexes)
 		{
 			if (_initialized)
 			{
@@ -715,7 +735,14 @@ namespace Shady
 
 				update_uniform_values();
 
-				int64 time_delta = render_gl(buf_prop, prog_mutex);
+				if(buf_prop_mutex.trylock()){
+					for(int i=0; i<buf_props.length; i++){
+						render_gl(buf_props[i], buf_prog_mutexes[i]);
+					}
+					buf_prop_mutex.unlock();
+				}
+
+				int64 time_delta = render_gl(img_prop, img_prog_mutex);
 
 				// compute moving average
 				if (fps != 0)
@@ -746,6 +773,8 @@ namespace Shady
 
 		private int64 render_gl(BufferProperties buf_prop, Mutex prog_mutex)
 		{
+			glBindFramebuffer(GL_FRAMEBUFFER, buf_prop.fb);
+
 			glViewport(0, 0, _width, _height);
 
 			glUseProgram(buf_prop.program);

@@ -149,6 +149,7 @@ namespace Shady
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
 
 		private string _default_code;
+		private string _buffer_default_code;
 		private Shader _curr_shader;
 
 		private uint _auto_compile_handler_id;
@@ -159,6 +160,7 @@ namespace Shady
 			Object(application: app);
 
 			_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
+			_buffer_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/buffer_default.glsl", 0).get_data());
 
 			_curr_shader = new Shader();
 
@@ -228,7 +230,7 @@ namespace Shady
 				menu_button.visible = true;
 			}
 
-			_notebook_action_widget.new_buffer_button.clicked.connect(add_buffer_alphabetically);
+			_notebook_action_widget.new_buffer_button.clicked.connect(add_renderpass);
 
 			_notebook_action_widget.show_channels_button.clicked.connect(() =>
 			{
@@ -419,7 +421,20 @@ namespace Shady
 			switched_layout = _settings.get_boolean("switched-layout");
 		}
 
-		private void add_buffer_alphabetically()
+		private void add_renderpass()
+		{
+			string renderpass_name = add_buffer_alphabetically();
+
+			Shader.Renderpass renderpass = new Shader.Renderpass();
+
+			renderpass.name = renderpass_name;
+			renderpass.code = _buffer_default_code;
+			renderpass.type = Shader.RenderpassType.BUFFER;
+
+			_curr_shader.renderpasses.append_val(renderpass);
+		}
+
+		private string add_buffer_alphabetically()
 		{
 			int i = 0;
 
@@ -430,10 +445,14 @@ namespace Shady
 				buffer_name = @"Buf $((char) (0x41 + i))";
 			}
 
-			add_buffer(buffer_name);
+			int new_page_num = add_buffer(buffer_name);
+			set_buffer(buffer_name, _buffer_default_code);
+			_editor_notebook.set_current_page(new_page_num);
+
+			return buffer_name;
 		}
 
-		private void add_buffer(string buffer_name, bool show_close_button=true)
+		private int add_buffer(string buffer_name, bool show_close_button=true)
 		{
 			ShaderSourceBuffer shader_buffer = new ShaderSourceBuffer(buffer_name);
 			shader_buffer.buffer.changed.connect(() =>
@@ -456,7 +475,7 @@ namespace Shady
 			});
 
 			_shader_buffers.insert(buffer_name, shader_buffer);
-			_editor_notebook.append_page(shader_buffer, shader_buffer_label);
+			return _editor_notebook.append_page(shader_buffer, shader_buffer_label);
 		}
 
 		private void remove_buffer(string buffer_name)
@@ -472,10 +491,15 @@ namespace Shady
 				if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
 				{
 					_curr_shader.renderpasses.index(i).code = get_buffer("Image");
+					_shader_buffers["Image"].clear_error_messages();
+				}
+				if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
+				{
+					string renderpass_name = _curr_shader.renderpasses.index(i).name;
+					_curr_shader.renderpasses.index(i).code = get_buffer(renderpass_name);
+					_shader_buffers[renderpass_name].clear_error_messages();
 				}
 			}
-
-			_shader_buffers["Image"].clear_error_messages();
 
 			_shader_area.compilation_finished.connect(() =>
 			{
