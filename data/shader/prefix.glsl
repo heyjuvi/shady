@@ -10,7 +10,6 @@ out vec4 fragColor;
 #endif
 
 uniform vec3 iResolution;
-uniform float iGlobalTime;
 uniform float iTime;
 uniform float iTimeDelta;
 uniform int iFrame;

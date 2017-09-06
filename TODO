@@ -1,20 +1,27 @@
-- moving cursor doesn't scroll
-- saving shaders
-- add channel amount info to json files, since gdkpixpuf does not
-  correctly recognise textures wtih one channel (it says the texture
-  has three channels)
-- hotkeys
-- source code search
-- character counter
-- make closing of search window more responsive
-- compilation errors
-- texture support
-- audio shader support
-- glsl version switching
-- multipass
-- paste mouse coordinates in source code
-- adjustable resolution
-- watch file changes, load altered shader
-- syntax highlighting must get better
-- video and screenshot export
-- export to small shaderstub for 4k demos
+issues:
+	- doesn't start sometimes
+	- moving cursor doesn't scroll
+	- mouse input not working
+	- add channel amount info to json files, since gdkpixpuf does not
+	  correctly recognise textures wtih one channel (it says the texture
+	  has three channels)
+	- make closing of search window more responsive
+	- doesn't start when window width too small
+
+feature requests:
+	- saving shaders
+	- hotkeys
+	- source code search
+	- character counter
+	- compilation errors
+	- texture support
+	- audio shader support
+	- glsl version switching
+	- multipass
+	- paste mouse coordinates in source code
+	- adjustable resolution
+	- watch file changes, load altered shader
+	- syntax highlighting must get better
+	- video and screenshot export
+	- export to small shaderstub for 4k demos
+	- vr support

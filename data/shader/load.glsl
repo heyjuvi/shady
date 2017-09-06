@@ -6,7 +6,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	uv -= .5;
 	uv.x *= iResolution.x / iResolution.y;
 	
-	float t = iGlobalTime;
+	float t = iTime;
 	
 	float b = 16. / (2. * pi);
 	float d = floor(0.5 + ( atan(uv.x,uv.y) - t ) * b) / b + t;

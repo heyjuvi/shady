@@ -484,9 +484,9 @@ namespace Shady
 
 			compile_button_stack.visible_child_name = "compile_spinner";
 
-			_shader_area.compile(_curr_shader, (e) =>
+			_shader_area.pass_compilation_terminated.connect((index, e) =>
 			{
-				if (e is ShaderError.COMPILATION)
+				if (e != null && e is ShaderError.COMPILATION)
 				{
 					// append a line, so the loop below really adds all different
 					// errors, very hacky
@@ -541,6 +541,8 @@ namespace Shady
 					_shader_buffers["Image"].add_error_message(last_line, @"error-$last_line-$last_row", current_error);
 				}
 			});
+
+			_shader_area.compile(_curr_shader);
 		}
 
 		public void reset_time()

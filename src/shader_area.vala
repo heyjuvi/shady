@@ -12,10 +12,10 @@ namespace Shady
 	public class ShaderArea : EventBox
 	{
 		public signal void compilation_finished();
+		public signal void pass_compilation_terminated(int pass_index, ShaderError? e);
 
-		public delegate void ShaderErrorHandler(ShaderError e);
-
-		struct BufferProperties {
+		struct BufferProperties
+		{
 			public GLuint program;
 
 			public GLuint[] tex_ids;
@@ -26,7 +26,6 @@ namespace Shady
 			public double[] tex_times;
 
 			public GLint date_loc;
-			public GLint global_time_loc;
 			public GLint time_loc;
 			public GLint channel_time_loc;
 			public GLint delta_loc;
@@ -64,11 +63,17 @@ namespace Shady
 		public double time_slider { get; set; default = 0.0; }
 
 		/* Buffer properties structs*/
-		private BufferProperties _image_prop1;
-		private BufferProperties _image_prop2;
+		private BufferProperties _image_prop1 = BufferProperties();
+		private BufferProperties _image_prop2 = BufferProperties();
+
+		private Mutex _image_prog1_mutex = Mutex();
+		private Mutex _image_prog2_mutex = Mutex();
 
 		private BufferProperties[] _buffer_props1;
 		private BufferProperties[] _buffer_props2;
+
+		private Mutex[] _buffer_prog1_mutexes;
+		private Mutex[] _buffer_prog2_mutexes;
 
 		/* Objects */
 		private GlContext _gl_context;
@@ -86,19 +91,6 @@ namespace Shady
 		private GLuint _program2;
 		private GLuint _fragment_shader;
 		private GLuint[] _vao = { 1337 };
-
-		private GLint _date_loc;
-		private GLint _global_time_loc;
-		private GLint _time_loc;
-		private GLint _channel_time_loc;
-		private GLint _delta_loc;
-		private GLint _fps_loc;
-		private GLint _frame_loc;
-		private GLint _res_loc;
-		private GLint _channel_res_loc;
-		private GLint _mouse_loc;
-		private GLint _samplerate_loc;
-		private GLint[] _channel_loc = new GLint[_num_textures];
 
 		/* Time variables */
 		private DateTime _curr_date;
@@ -164,9 +156,6 @@ namespace Shady
 		private bool _render_thread2_running = true;
 
 		private Mutex _compile_mutex = Mutex();
-
-		private Mutex _prog_mutex1 = Mutex();
-		private Mutex _prog_mutex2 = Mutex();
 
 		public ShaderArea(Shader default_shader)
 		{
@@ -292,7 +281,7 @@ namespace Shady
 			});
 		}
 
-		public void compile(Shader new_shader, ShaderErrorHandler? callback=null)
+		public void compile(Shader new_shader)
 		{
 			//_curr_shader = new_shader;
 
@@ -303,14 +292,7 @@ namespace Shady
 				{
 					_gl_context.thread_context();
 
-					try
-					{
-						compile_blocking(new_shader);
-					}
-					catch (ShaderError e)
-					{
-						callback(e);
-					}
+					compile_blocking(new_shader);
 
 					_gl_context.free_context();
 					_compile_mutex.unlock();
@@ -323,10 +305,11 @@ namespace Shady
 			});
 		}
 
-		public void compile_blocking(Shader new_shader) throws ShaderError
+		public void compile_blocking(Shader new_shader)
 		{
-			string image_source="";
-			Array<string> buffer_sources = new Array<string>();
+			string image_source = "";
+			int image_index = -1;
+			int buffer_count = 0;
 
 			for(int i=0; i<new_shader.renderpasses.length;i++)
 			{
@@ -334,17 +317,44 @@ namespace Shady
 				{
 					stdout.printf("IMAGE, i:%d\n",i);
 					image_source = new_shader.renderpasses.index(i).code;
+					image_index = i;
 				}
 				else if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
 				{
 					stdout.printf("BUFFER, i:%d\n",i);
-					buffer_sources.append_val(new_shader.renderpasses.index(i).code);
+					buffer_count++;
+				}
+			}
+
+			string[] buffer_sources = new string[buffer_count];
+			int[] buffer_indices = new int[buffer_count];
+
+			if(!_program_switch)
+			{
+				_buffer_props1 = new BufferProperties[buffer_count];
+				_buffer_prog1_mutexes = new Mutex[buffer_count];
+			}
+			else
+			{
+				_buffer_props2 = new BufferProperties[buffer_count];
+				_buffer_prog2_mutexes = new Mutex[buffer_count];
+			}
+
+			int buffer_index=0;
+			for(int i=0; i<new_shader.renderpasses.length;i++)
+			{
+				if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
+				{
+					buffer_indices[buffer_index] = i;
+					buffer_sources[buffer_index] = new_shader.renderpasses.index(i).code;
+					buffer_index++;
 				}
 			}
 
 			if(image_source.length == 0)
 			{
 				print("No image _buffer found!\n");
+				return;
 			}
 
 			string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
@@ -352,8 +362,47 @@ namespace Shady
 
 			string full_image_source = shader_prefix + image_source + shader_suffix;
 
+			if(!_program_switch)
+			{
+				compile_pass(image_index, full_image_source, ref _image_prop1, ref _image_prog1_mutex);
+			}
+			else
+			{
+				compile_pass(image_index, full_image_source, ref _image_prop2, ref _image_prog2_mutex);
+			}
 
-			string[] source_array = { full_image_source, null };
+			for(int i=0;i<buffer_count;i++)
+			{
+				string full_buffer_source = shader_prefix + buffer_sources[i] + shader_suffix;
+				if(!_program_switch)
+				{
+					compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props1[i], ref _buffer_prog1_mutexes[i]);
+				}
+				else
+				{
+					compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props2[i], ref _buffer_prog2_mutexes[i]);
+				}
+			}
+
+			//prevent averaging in of old shader
+			fps = 0;
+
+			_program_switch = !_program_switch;
+
+		}
+
+		public void reset_time()
+		{
+			_start_time = _curr_time;
+			_pause_time = _curr_time;
+		}
+
+		private void compile_pass(int pass_index, string shader_source, ref BufferProperties buf_prop, ref Mutex prog_mutex)
+		{
+
+			buf_prop.tex_ids = _tex_ids;
+
+			string[] source_array = { shader_source, null };
 
 			glShaderSource(_fragment_shader, 1, source_array, null);
 			glCompileShader(_fragment_shader);
@@ -376,75 +425,60 @@ namespace Shady
 						stdout.printf("%c", c);
 					}
 
-					throw new ShaderError.COMPILATION((string) log);
+					pass_compilation_terminated(pass_index, new ShaderError.COMPILATION((string) log));
 				}
 				else
 				{
-					throw new ShaderError.COMPILATION("Something went substantially wrong...");
+					pass_compilation_terminated(pass_index, new ShaderError.COMPILATION("Something went substantially wrong..."));
 				}
 
 				return;
 			}
 
-			GLuint program;
-
 			if(_program_switch)
 			{
-				program = _program1;
-				_prog_mutex1.lock();
+				buf_prop.program = _program1;
+				prog_mutex.lock();
 			}
 			else
 			{
-				program = _program2;
-				_prog_mutex2.lock();
+				buf_prop.program = _program2;
+				prog_mutex.lock();
 			}
 
-			glLinkProgram(program);
+			glLinkProgram(buf_prop.program);
 
-			_res_loc = glGetUniformLocation(program, "iResolution");
-			_global_time_loc = glGetUniformLocation(program, "iGlobalTime");
-			_time_loc = glGetUniformLocation(program, "iTime");
-			_delta_loc = glGetUniformLocation(program, "iTimeDelta");
-			_frame_loc = glGetUniformLocation(program, "iFrame");
-			_fps_loc = glGetUniformLocation(program, "iFrameRate");
-			_channel_time_loc = glGetUniformLocation(program, "iChannelTime");
-			_channel_res_loc = glGetUniformLocation(program, "iChannelResolution");
-			_mouse_loc = glGetUniformLocation(program, "iMouse");
+			buf_prop.res_loc = glGetUniformLocation(buf_prop.program, "iResolution");
+			buf_prop.time_loc = glGetUniformLocation(buf_prop.program, "iTime");
+			buf_prop.delta_loc = glGetUniformLocation(buf_prop.program, "iTimeDelta");
+			buf_prop.frame_loc = glGetUniformLocation(buf_prop.program, "iFrame");
+			buf_prop.fps_loc = glGetUniformLocation(buf_prop.program, "iFrameRate");
+			buf_prop.channel_time_loc = glGetUniformLocation(buf_prop.program, "iChannelTime");
+			buf_prop.channel_res_loc = glGetUniformLocation(buf_prop.program, "iChannelResolution");
+			buf_prop.mouse_loc = glGetUniformLocation(buf_prop.program, "iMouse");
+
+			buf_prop.channel_loc = new GLint[_num_textures];
 
 			for(int i=0;i<_num_textures;i++)
 			{
-				_channel_loc[i] = glGetUniformLocation(program, _channel_string[i]);
+				buf_prop.channel_loc[i] = glGetUniformLocation(buf_prop.program, _channel_string[i]);
 			}
 
-			_date_loc = glGetUniformLocation(program, "iDate");
-			_samplerate_loc = glGetUniformLocation(program, "iSampleRate");
+			buf_prop.date_loc = glGetUniformLocation(buf_prop.program, "iDate");
+			buf_prop.samplerate_loc = glGetUniformLocation(buf_prop.program, "iSampleRate");
 
-			//prevent averaging in of old shader
-			fps = 0;
+			pass_compilation_terminated(pass_index, null);
 
-			_program_switch = !_program_switch;
-
-			if(!_program_switch)
+			if(_program_switch)
 			{
-				_prog_mutex1.unlock();
+				prog_mutex.unlock();
 			}
 			else
 			{
-				_prog_mutex2.unlock();
+				prog_mutex.unlock();
 			}
 
 			compilation_finished();
-		}
-
-		public void reset_time()
-		{
-			_start_time = _curr_time;
-			_pause_time = _curr_time;
-		}
-
-		private void partial_compile()
-		{
-
 		}
 
 		private void render_thread_func(bool thread_switch, Mutex prog_mutex, Mutex render_switch_mutex, ref bool thread_running)
@@ -480,21 +514,29 @@ namespace Shady
 					}
 
 					prog_mutex.lock();
-					dummy_render_gl(thread_switch);
-					prog_mutex.unlock();
-					_render_switch = !_render_switch;
-				}
+
+					if(thread_switch)
+					{
+						dummy_render_gl(_image_prop2, _image_prog2_mutex);
+					}
+					else
+					{
+						dummy_render_gl(_image_prop1, _image_prog1_mutex);
+					}
+						prog_mutex.unlock();
+						_render_switch = !_render_switch;
+					}
 				
 				render_switch_mutex.unlock();
 
 				prog_mutex.lock();
 				if(thread_switch)
 				{
-					render_image(_program2);
+					render_image(_image_prop2, _image_prog2_mutex);
 				}
 				else
 				{
-					render_image(_program1);
+					render_image(_image_prop1, _image_prog1_mutex);
 				}
 				prog_mutex.unlock();
 			}
@@ -615,13 +657,13 @@ namespace Shady
 
 			_render_thread1 = new Thread<int>.try("_render_thread1", () =>
 			{
-				render_thread_func(true, _prog_mutex2, _render_switch_mutex1, ref _render_thread1_running);
+				render_thread_func(true, _image_prog2_mutex, _render_switch_mutex1, ref _render_thread1_running);
 				return 0;
 			});
 
 			_render_thread2 = new Thread<int>.try("_render_thread2", () =>
 			{
-				render_thread_func(false, _prog_mutex1, _render_switch_mutex2, ref _render_thread2_running);
+				render_thread_func(false, _image_prog1_mutex, _render_switch_mutex2, ref _render_thread2_running);
 				return 0;
 			});
 
@@ -658,17 +700,9 @@ namespace Shady
 
 			_seconds = (float)((_curr_date.get_hour()*60+_curr_date.get_minute())*60)+(float)_curr_date.get_seconds();
 
-			if (_button_pressed)
-			{
-				glUniform4f(_mouse_loc, (float) _mouse_x, (float) _mouse_y, (float) _button_pressed_x, (float) _button_pressed_y);
-			}
-			else
-			{
-				glUniform4f(_mouse_loc, (float) _button_released_x, (float) _button_released_y, -(float) _button_pressed_x, -(float) _button_pressed_y);
-			}
 		}
 
-		private void render_image(GLuint program)
+		private void render_image(BufferProperties buf_prop, Mutex prog_mutex)
 		{
 			if (_initialized)
 			{
@@ -681,31 +715,7 @@ namespace Shady
 
 				update_uniform_values();
 
-				BufferProperties buf_prop = BufferProperties() {
-					program = program,
-
-					tex_ids = _tex_ids,
-
-					tex_widths = {},
-					tex_heights = {},
-
-					tex_times = {},
-
-					date_loc = _date_loc,
-					global_time_loc = _global_time_loc,
-					time_loc = _time_loc,
-					channel_time_loc = _channel_time_loc,
-					delta_loc = _delta_loc,
-					fps_loc = _fps_loc,
-					frame_loc = _frame_loc,
-					res_loc = _res_loc,
-					channel_res_loc = _channel_res_loc,
-					mouse_loc = _mouse_loc,
-					samplerate_loc = _samplerate_loc,
-					channel_loc = _channel_loc
-				};
-
-				int64 time_delta = render_gl(buf_prop);
+				int64 time_delta = render_gl(buf_prop, prog_mutex);
 
 				// compute moving average
 				if (fps != 0)
@@ -734,7 +744,7 @@ namespace Shady
 			}
 		}
 
-		private int64 render_gl(BufferProperties buf_prop)
+		private int64 render_gl(BufferProperties buf_prop, Mutex prog_mutex)
 		{
 			glViewport(0, 0, _width, _height);
 
@@ -743,7 +753,6 @@ namespace Shady
 			//#TODO: synchronize locations with compiling
 
 			glUniform4f(buf_prop.date_loc, _year, _month, _day, _seconds);
-			glUniform1f(buf_prop.global_time_loc, (float)time);
 			glUniform1f(buf_prop.time_loc, (float)time);
 			glUniform1f(buf_prop.delta_loc, (float)_delta);
 			//#TODO: implement proper frame counter
@@ -751,6 +760,15 @@ namespace Shady
 			glUniform1f(buf_prop.fps_loc, (float)fps);
 			glUniform3f(buf_prop.res_loc, _width, _height, 0);
 			glUniform1f(buf_prop.samplerate_loc, _samplerate);
+
+			if (_button_pressed)
+			{
+				glUniform4f(buf_prop.mouse_loc, (float) _mouse_x, (float) _mouse_y, (float) _button_pressed_x, (float) _button_pressed_y);
+			}
+			else
+			{
+				glUniform4f(buf_prop.mouse_loc, (float) _button_released_x, (float) _button_released_y, -(float) _button_pressed_x, -(float) _button_pressed_y);
+			}
 
 			for(int i=0;i<_num_textures;i++)
 			{
@@ -778,31 +796,23 @@ namespace Shady
 			return time_after - time_before;
 		}
 
-		private void dummy_render_gl(bool prog_switch)
+		private void dummy_render_gl(BufferProperties buf_prop, Mutex prog_mutex)
 		{
 			if (_initialized)
 			{
 				glViewport(0, 0, _width, _height);
 
-				if(!prog_switch)
-				{
-					glUseProgram(_program1);
-				}
-				else
-				{
-					glUseProgram(_program2);
-				}
+				glUseProgram(buf_prop.program);
 
-				glUniform4f(_date_loc, 0.0f, 0.0f, 0.0f, 0.0f);
-				glUniform1f(_global_time_loc, 0.0f);
-				glUniform1f(_time_loc, 0.0f);
-				glUniform1f(_delta_loc, 0.0f);
-				glUniform1i(_frame_loc, 0);
-				glUniform1f(_fps_loc, 0.0f);
-				glUniform3f(_res_loc, _width, _height, 0);
-				glUniform1f(_samplerate_loc, 0.0f);
+				glUniform4f(buf_prop.date_loc, 0.0f, 0.0f, 0.0f, 0.0f);
+				glUniform1f(buf_prop.time_loc, 0.0f);
+				glUniform1f(buf_prop.delta_loc, 0.0f);
+				glUniform1i(buf_prop.frame_loc, 0);
+				glUniform1f(buf_prop.fps_loc, 0.0f);
+				glUniform3f(buf_prop.res_loc, _width, _height, 0);
+				glUniform1f(buf_prop.samplerate_loc, 0.0f);
 
-				glUniform4f(_mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
+				glUniform4f(buf_prop.mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
 
 				glBindVertexArray(_vao[0]);
 
