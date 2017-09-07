@@ -84,6 +84,7 @@ namespace Shady
 		{
 			LINEAR,
 			NEAREST,
+			MIPMAP,
 			INVALID;
 
 			public static FilterMode from_string(string mode)
@@ -95,6 +96,10 @@ namespace Shady
 				else if (mode == "nearest")
 				{
 					return NEAREST;
+				}
+				else if (mode == "mipmap")
+				{
+					return MIPMAP;
 				}
 
 				return INVALID;

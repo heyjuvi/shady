@@ -21,6 +21,8 @@ namespace Shady
 
 			public GLuint[] tex_ids;
 
+			public GLuint tex_id_out;
+
 			public int[] tex_widths;
 			public int[] tex_heights;
 
@@ -85,10 +87,8 @@ namespace Shady
 
 		/* Constants */
 		private const double _time_slider_factor = 2.0;
-		private const int _num_textures = 4;
 
 		/* OpenGL ids */
-		private GLuint[] _tex_ids = new GLuint[_num_textures];
 		private string[] _channel_string = {"iChannel0", "iChannel1", "iChannel2", "iChannel3"};
 
 		private GLuint _fragment_shader;
@@ -312,6 +312,7 @@ namespace Shady
 			string image_source = "";
 			int image_index = -1;
 			int buffer_count = 0;
+			Array<Shader.Input> image_inputs = new Array<Shader.Input>();
 
 			for(int i=0; i<new_shader.renderpasses.length;i++)
 			{
@@ -319,6 +320,7 @@ namespace Shady
 				{
 					//stdout.printf("IMAGE, i:%d\n",i);
 					image_source = new_shader.renderpasses.index(i).code;
+					image_inputs = new_shader.renderpasses.index(i).inputs;
 					image_index = i;
 				}
 				else if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
@@ -328,8 +330,29 @@ namespace Shady
 				}
 			}
 
+			if(image_index != -1)
+			{
+				int num_textures = (int)image_inputs.length;
+
+				_image_prop1.tex_ids = new GLuint[num_textures];
+				glGenTextures(num_textures, _image_prop1.tex_ids);
+				_image_prop2.tex_ids = _image_prop1.tex_ids;
+
+				for(int i=0;i<num_textures;i++)
+				{
+					init_input_texture(image_inputs.index(i), _image_prop1.tex_ids[i]);
+				}
+
+			}
+			else
+			{
+				print("No image _buffer found!\n");
+				return;
+			}
+
 			string[] buffer_sources = new string[buffer_count];
 			int[] buffer_indices = new int[buffer_count];
+			Array<Shader.Input>[] buffer_inputs = new Array<Shader.Input>[buffer_count];
 
 			if(buffer_count>0)
 			{
@@ -349,28 +372,6 @@ namespace Shady
 				GLuint[] fbs = new GLuint[buffer_count];
 				glGenFramebuffers(buffer_count, fbs);
 
-				for(int i=0; i<buffer_count; i++)
-				{
-					if(!_program_switch)
-					{
-						_buffer_props1[i].fb = fbs[i];
-						glBindFramebuffer(GL_FRAMEBUFFER, fbs[i]);
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _tex_ids[0], 0);
-						_buffer_props1[i].program = glCreateProgram();
-						glAttachShader(_buffer_props1[i].program, _gl_context.vertex_shader);
-						glAttachShader(_buffer_props1[i].program, _fragment_shader);
-					}
-					else
-					{
-						_buffer_props2[i].fb = fbs[i];
-						glBindFramebuffer(GL_FRAMEBUFFER, fbs[i]);
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _tex_ids[0], 0);
-						_buffer_props2[i].program = glCreateProgram();
-						glAttachShader(_buffer_props2[i].program, _gl_context.vertex_shader);
-						glAttachShader(_buffer_props2[i].program, _fragment_shader);
-					}
-				}
-
 				int buffer_index=0;
 				for(int i=0; i<new_shader.renderpasses.length;i++)
 				{
@@ -378,15 +379,51 @@ namespace Shady
 					{
 						buffer_indices[buffer_index] = i;
 						buffer_sources[buffer_index] = new_shader.renderpasses.index(i).code;
+						buffer_inputs[buffer_index] = new_shader.renderpasses.index(i).inputs;
 						buffer_index++;
 					}
 				}
-			}
 
-			if(image_source.length == 0)
-			{
-				print("No image _buffer found!\n");
-				return;
+				for(int i=0; i<buffer_count; i++)
+				{
+					if(!_program_switch)
+					{
+						_buffer_props1[i].fb = fbs[i];
+						_buffer_props1[i].tex_id_out = _image_prop1.tex_ids[0];
+						_buffer_props1[i].program = glCreateProgram();
+						glAttachShader(_buffer_props1[i].program, _gl_context.vertex_shader);
+						glAttachShader(_buffer_props1[i].program, _fragment_shader);
+
+						int num_textures = (int)buffer_inputs.length;
+
+						_buffer_props1[i].tex_ids = new GLuint[num_textures];
+						glGenTextures(num_textures, _buffer_props1[i].tex_ids);
+
+						for(int j=0;j<num_textures;j++)
+						{
+							init_input_texture(buffer_inputs[i].index(j),_buffer_props1[i].tex_ids[j]);
+						}
+
+					}
+					else
+					{
+						_buffer_props2[i].fb = fbs[i];
+						_buffer_props2[i].tex_id_out = _image_prop1.tex_ids[0];
+						_buffer_props2[i].program = glCreateProgram();
+						glAttachShader(_buffer_props2[i].program, _gl_context.vertex_shader);
+						glAttachShader(_buffer_props2[i].program, _fragment_shader);
+
+						int num_textures = (int)buffer_inputs.length;
+
+						_buffer_props2[i].tex_ids = new GLuint[num_textures];
+						glGenTextures(num_textures, _buffer_props2[i].tex_ids);
+
+						for(int j=0;j<num_textures;j++)
+						{
+							init_input_texture(buffer_inputs[i].index(j),_buffer_props2[i].tex_ids[j]);
+						}
+					}
+				}
 			}
 
 			string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
@@ -433,8 +470,6 @@ namespace Shady
 
 		private void compile_pass(int pass_index, string shader_source, ref BufferProperties buf_prop, ref Mutex prog_mutex)
 		{
-			buf_prop.tex_ids = _tex_ids;
-
 			string[] source_array = { shader_source, null };
 
 			glShaderSource(_fragment_shader, 1, source_array, null);
@@ -481,9 +516,9 @@ namespace Shady
 			buf_prop.channel_res_loc = glGetUniformLocation(buf_prop.program, "iChannelResolution");
 			buf_prop.mouse_loc = glGetUniformLocation(buf_prop.program, "iMouse");
 
-			buf_prop.channel_loc = new GLint[_num_textures];
+			buf_prop.channel_loc = new GLint[buf_prop.tex_ids.length];
 
-			for(int i=0;i<_num_textures;i++)
+			for(int i=0;i<buf_prop.tex_ids.length;i++)
 			{
 				buf_prop.channel_loc[i] = glGetUniformLocation(buf_prop.program, _channel_string[i]);
 			}
@@ -631,44 +666,6 @@ namespace Shady
 
 			glDeleteBuffers(1, vbo);
 
-			glGenTextures(_num_textures, _tex_ids);
-
-			for(int i=0;i<_num_textures;i++){
-				glBindTexture( GL_TEXTURE_2D, _tex_ids[i] );
-
-				int tex_height = 512, tex_width = 512;
-				uchar[] tex_buffer = new uchar[512*512*4*4];
-
-				for(int j=0;j<512*512*4*4;j++)
-				{
-					if(j%2 == 0)
-					{
-						tex_buffer[i]=255;
-					}
-				}
-
-				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_FLOAT, (GLvoid[])tex_buffer);
-
-
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-				/*
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				glGenerateMipmap(GL_TEXTURE_2D);
-				*/
-
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-				/*
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-				*/
-
-			}
-
 			_start_time = get_monotonic_time();
 
 			_initialized = true;
@@ -692,6 +689,58 @@ namespace Shady
 					   EventMask.POINTER_MOTION_MASK);
 			//add_events(EventMask.ALL_EVENTS_MASK);
 			//events = 0;
+		}
+
+		private void init_input_texture(Shader.Input input, GLuint tex_id)
+		{
+
+			print("new texture\n");
+
+			glBindTexture(GL_TEXTURE_2D, tex_id);
+
+			Gdk.Pixbuf buf = ShadertoyResourceManager.TEXTURE_PIXBUFS[input.resource];
+
+			int format=-1;
+
+			if(buf.get_n_channels() == 3)
+			{
+				format = GL_RGB;
+			}
+			else if(buf.get_n_channels() == 4)
+			{
+				format = GL_RGBA;
+			}
+
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, buf.get_width(), buf.get_height(), 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+
+			if(input.sampler.filter == Shader.FilterMode.NEAREST)
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			}
+			else if(input.sampler.filter == Shader.FilterMode.LINEAR)
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			}
+			else if(input.sampler.filter == Shader.FilterMode.MIPMAP)
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glGenerateMipmap(GL_TEXTURE_2D);
+			}
+
+			if(input.sampler.wrap == Shader.WrapMode.REPEAT)
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			}
+			else if(input.sampler.wrap == Shader.WrapMode.CLAMP)
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			}
+
 		}
 
 		private void update_uniform_values()
@@ -774,6 +823,9 @@ namespace Shady
 		private int64 render_gl(BufferProperties buf_prop, Mutex prog_mutex)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, buf_prop.fb);
+			if(buf_prop.fb!=0){
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buf_prop.tex_id_out, 0);
+			}
 
 			glViewport(0, 0, _width, _height);
 
@@ -799,7 +851,7 @@ namespace Shady
 				glUniform4f(buf_prop.mouse_loc, (float) _button_released_x, (float) _button_released_y, -(float) _button_pressed_x, -(float) _button_pressed_y);
 			}
 
-			for(int i=0;i<_num_textures;i++)
+			for(int i=0;i<buf_prop.tex_ids.length;i++)
 			{
 				if(buf_prop.channel_loc[i] > 0)
 				{

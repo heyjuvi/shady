@@ -29,6 +29,7 @@
 		<!-- shaders -->
 		<file>data/shader/prefix.glsl</file>
 		<file>data/shader/default.glsl</file>
+		<file>data/shader/default-texture.glsl</file>
 		<file>data/shader/buffer_default.glsl</file>
 		<file>data/shader/load.glsl</file>
 		<file>data/shader/suffix.glsl</file>
