@@ -83,8 +83,8 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 
 .channel_header button:active, .channel_header button:checked
 {
-	background: #000000;
-	color: #FFFFFF;
+	background: #FFFFFF;
+	color: #000000;
 	transition-duration: 0s;
 }
 

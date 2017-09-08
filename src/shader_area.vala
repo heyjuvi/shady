@@ -307,7 +307,23 @@ namespace Shady
 			});
 		}
 
-		public void compile_blocking(Shader new_shader)
+		public void compile_no_thread(Shader new_shader)
+		{
+			if(_compile_mutex.trylock())
+			{
+				_gl_context.thread_context();
+
+				compile_blocking(new_shader);
+
+				_gl_context.free_context();
+				_compile_mutex.unlock();
+
+				//_render_switch = !_render_switch;
+				_render_switch_cond.signal();
+			}
+		}
+
+		private void compile_blocking(Shader new_shader)
 		{
 			string image_source = "";
 			int image_index = -1;
@@ -851,7 +867,7 @@ namespace Shady
 				glUniform4f(buf_prop.mouse_loc, (float) _button_released_x, (float) _button_released_y, -(float) _button_pressed_x, -(float) _button_pressed_y);
 			}
 
-			for(int i=0;i<buf_prop.tex_ids.length;i++)
+			for(int i=0;i<buf_prop.channel_loc.length;i++)
 			{
 				if(buf_prop.channel_loc[i] > 0)
 				{

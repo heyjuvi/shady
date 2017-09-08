@@ -4,6 +4,7 @@ namespace Shady
 	public class ShaderChannel : Gtk.Box
 	{
 		public signal void channel_type_changed(Shader.InputType channel_type);
+		public signal void channel_input_changed(Shader.Input channel_input);
 
 		public Shader.InputType channel_type { get; set; default = Shader.InputType.NONE; }
 
@@ -47,6 +48,21 @@ namespace Shady
 			_shader_area = new ShaderArea(default_shader);
 
 			shader_container.pack_start(_shader_area, true, true);
+
+			_texture_popover.texture_selected.connect((texture_input) =>
+			{
+				Shader.Renderpass texture_renderpass = new Shader.Renderpass();
+				texture_renderpass.type = Shader.RenderpassType.IMAGE;
+				texture_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
+				texture_renderpass.inputs.append_val(texture_input);
+
+				Shader texture_shader = new Shader();
+				texture_shader.renderpasses.append_val(texture_renderpass);
+
+				_shader_area.compile_no_thread(texture_shader);
+
+				channel_input_changed(texture_input);
+			});
 
 			_shader_area.show();
 		}

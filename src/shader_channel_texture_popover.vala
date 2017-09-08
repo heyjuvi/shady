@@ -3,7 +3,7 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/shader-channel-texture-popover.ui")]
 	public class ShaderChannelTexturePopover : Gtk.Popover
 	{
-		public signal void texture_selected(string texture_id);
+		public signal void texture_selected(Shader.Input texture_input);
 
 		[GtkChild]
 		private Gtk.FlowBox texture_box;
@@ -31,7 +31,7 @@ namespace Shady
 			if (texture_box.get_selected_children().length() == 1)
 			{
 				ShaderChannelTextureItem selected_texture_item = texture_box.get_selected_children().nth_data(0) as ShaderChannelTextureItem;
-				texture_selected(selected_texture_item.resource);
+				texture_selected(selected_texture_item.texture_input);
 
 				_last_selected = selected_texture_item;
 

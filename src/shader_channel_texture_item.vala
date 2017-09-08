@@ -47,7 +47,7 @@ namespace Shady
 			}
 		}
 
-		public string resource { get; set; default = null; }
+		public Shader.Input texture_input { get; private set; default = null; }
 
 		[GtkChild]
 		private Gtk.Label name_label;
@@ -80,7 +80,7 @@ namespace Shady
 			resolution = @"$(texture_width)x$(texture_height)";
 			channels = texture_channels;
 
-			resource = texture.resource;
+			this.texture_input = texture;
 
 			int new_width = 180;
 

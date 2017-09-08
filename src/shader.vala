@@ -68,7 +68,7 @@ namespace Shady
 			public int id;
 			public int channel;
 			public InputType type;
-			public Sampler sampler;
+			public Sampler sampler = new Sampler();
 			public string hash;
 			public string resource;
 			public string name;

@@ -151,6 +151,7 @@ namespace Shady
 		private string _default_code;
 		private string _buffer_default_code;
 		private Shader _curr_shader;
+		private ShaderSourceBuffer _curr_buffer;
 
 		private uint _auto_compile_handler_id;
 		private bool _is_fullscreen = false;
@@ -166,6 +167,7 @@ namespace Shady
 
 			Shader.Renderpass renderpass = new Shader.Renderpass();
 
+			renderpass.name = "Image";
 			renderpass.code = _default_code;
 			renderpass.type = Shader.RenderpassType.IMAGE;
 
@@ -276,6 +278,11 @@ namespace Shady
 				return false;
 			});
 
+			_editor_notebook.switch_page.connect((buffer, page_num) =>
+			{
+				_curr_buffer = buffer as ShaderSourceBuffer;
+			});
+
 			// react to changed editor layout
 			_settings.changed["switched-layout"].connect(switched_layout_handler);
 
@@ -287,6 +294,8 @@ namespace Shady
 
 			add_buffer("Image", false);
 			set_buffer("Image", _default_code);
+
+			_curr_buffer = _shader_buffers["Image"];
 
 			_edited = false;
 
@@ -312,6 +321,37 @@ namespace Shady
 			channel2.channel_name = "iChannel2";
 			ShaderChannel channel3 = new ShaderChannel();
 			channel3.channel_name = "iChannel3";
+
+			channel0.channel_input_changed.connect((channel_input) =>
+			{
+				Shader.Renderpass curr_renderpass = null;
+
+				for (int i = 0; i < _curr_shader.renderpasses.length; i++)
+				{
+					print(@"$(_curr_shader.renderpasses.index(i).name)\n");
+					print(@"$(_curr_buffer.name)\n");
+					if (_curr_shader.renderpasses.index(i).name == _curr_buffer.name)
+					{
+						curr_renderpass = _curr_shader.renderpasses.index(i);
+					}
+				}
+
+				if (curr_renderpass == null)
+				{
+					return;
+				}
+
+				if (curr_renderpass.inputs.length >= 1)
+				{
+					curr_renderpass.inputs.data[0] = channel_input;
+				}
+				else
+				{
+					curr_renderpass.inputs.append_val(channel_input);
+				}
+
+				print(@"Set $(channel_input.resource) on buffer $(curr_renderpass.name)\n");
+			});
 
 			_channels_box.pack_start(channel0, false, true);
 			_channels_box.pack_start(channel1, false, true);
