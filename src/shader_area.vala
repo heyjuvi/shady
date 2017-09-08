@@ -23,10 +23,10 @@ namespace Shady
 
 			public GLuint tex_id_out;
 
-			public int[] tex_widths;
-			public int[] tex_heights;
+			//public int[] tex_widths;
+			//public int[] tex_heights;
 
-			public double[] tex_times;
+			//public double[] tex_times;
 
 			public GLint date_loc;
 			public GLint time_loc;
@@ -442,33 +442,38 @@ namespace Shady
 				}
 			}
 
-			string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
-			string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
+			try{
+				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
+				string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
 
-			string full_image_source = shader_prefix + image_source + shader_suffix;
+				string full_image_source = shader_prefix + image_source + shader_suffix;
 
-			if(!_program_switch)
-			{
-				compile_pass(image_index, full_image_source, ref _image_prop1, ref _image_prog1_mutex);
-			}
-			else
-			{
-				compile_pass(image_index, full_image_source, ref _image_prop2, ref _image_prog2_mutex);
-			}
-
-			for(int i=0;i<buffer_count;i++)
-			{
-				string full_buffer_source = shader_prefix + buffer_sources[i] + shader_suffix;
 				if(!_program_switch)
 				{
-					compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props1[i], ref _buffer_prog1_mutexes[i]);
-					_buffer_props1_mutex.unlock();
+					compile_pass(image_index, full_image_source, ref _image_prop1, ref _image_prog1_mutex);
 				}
 				else
 				{
-					compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props2[i], ref _buffer_prog2_mutexes[i]);
-					_buffer_props2_mutex.unlock();
+					compile_pass(image_index, full_image_source, ref _image_prop2, ref _image_prog2_mutex);
 				}
+
+				for(int i=0;i<buffer_count;i++)
+				{
+					string full_buffer_source = shader_prefix + buffer_sources[i] + shader_suffix;
+					if(!_program_switch)
+					{
+						compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props1[i], ref _buffer_prog1_mutexes[i]);
+						_buffer_props1_mutex.unlock();
+					}
+					else
+					{
+						compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props2[i], ref _buffer_prog2_mutexes[i]);
+						_buffer_props2_mutex.unlock();
+					}
+				}
+			}
+			catch(Error e){
+				print("Couldn't load shader prefix or suffix\n");
 			}
 
 			//prevent averaging in of old shader
@@ -688,17 +693,22 @@ namespace Shady
 
 			_gl_context.unbind_context();
 
-			_render_thread1 = new Thread<int>.try("_render_thread1", () =>
-			{
-				render_thread_func(true, _image_prog2_mutex, _render_switch_mutex1, ref _render_thread1_running);
-				return 0;
-			});
+			try{
+				_render_thread1 = new Thread<int>.try("_render_thread1", () =>
+				{
+					render_thread_func(true, _image_prog2_mutex, _render_switch_mutex1, ref _render_thread1_running);
+					return 0;
+				});
 
-			_render_thread2 = new Thread<int>.try("_render_thread2", () =>
-			{
-				render_thread_func(false, _image_prog1_mutex, _render_switch_mutex2, ref _render_thread2_running);
-				return 0;
-			});
+				_render_thread2 = new Thread<int>.try("_render_thread2", () =>
+				{
+					render_thread_func(false, _image_prog1_mutex, _render_switch_mutex2, ref _render_thread2_running);
+					return 0;
+				});
+			}
+			catch(Error e){
+				print("Couldn't start render threads\n");
+			}
 
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |

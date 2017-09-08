@@ -72,12 +72,17 @@ namespace Shady
 			glReadBuffer(GL_FRONT);
 			glDrawBuffer(GL_FRONT);
 
-			string vertex_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/vertex.glsl", 0).get_data());
-			string[] vertex_source_array = { vertex_source, null };
+			try{
+				string vertex_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/vertex.glsl", 0).get_data());
+				string[] vertex_source_array = { vertex_source, null };
 
-			vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-			glShaderSource(vertex_shader, 1, vertex_source_array, null);
-			glCompileShader(vertex_shader);
+				vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+				glShaderSource(vertex_shader, 1, vertex_source_array, null);
+				glCompileShader(vertex_shader);
+			}
+			catch(Error e){
+				print("Couldn't load vertex shader\n");
+			}
 		}
 
 		public void render_context1()

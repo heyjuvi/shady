@@ -46,9 +46,9 @@ namespace Shady
 				var open_dialog = new Gtk.FileChooserDialog("Pick a file",
 				                                            newest_app_window as Gtk.Window,
 				                                            Gtk.FileChooserAction.OPEN,
-				                                            Gtk.Stock.CANCEL,
+				                                            "_Cancel",
 				                                            Gtk.ResponseType.CANCEL,
-				                                            Gtk.Stock.OPEN,
+				                                            "_Open",
 				                                            Gtk.ResponseType.ACCEPT);
 
 				open_dialog.local_only = false;
@@ -163,7 +163,7 @@ namespace Shady
 
 			// use only minimal window decorations
 			gtk_settings.gtk_decoration_layout = ":close";
-			gtk_settings.get_default().gtk_application_prefer_dark_theme = true;
+			gtk_settings.gtk_application_prefer_dark_theme = true;
 		}
 
 		protected override void activate()

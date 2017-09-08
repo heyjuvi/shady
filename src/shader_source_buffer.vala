@@ -6,7 +6,7 @@ namespace Shady
 		public Gtk.SourceBuffer buffer { get; private set; }
 		public ShaderSourceView view { get; private set; }
 
-		public string name { get; set; default = null; }
+		public string buf_name { get; set; default = null; }
 
 		private bool _live_mode = false;
 		public bool live_mode
@@ -38,7 +38,7 @@ namespace Shady
 
 		public ShaderSourceBuffer(string buffer_name)
 		{
-			name = buffer_name;
+			buf_name = buffer_name;
 
 			Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
 			Gtk.SourceLanguage source_language = source_language_manager.get_language("glsl");
@@ -94,7 +94,7 @@ namespace Shady
 
 			view.set_mark_attributes("error", _source_mark_attributes, 10);
 
-			Gtk.SourceMark new_source_mark = buffer.create_source_mark(name, "error", start_iter);
+			//Gtk.SourceMark new_source_mark = buffer.create_source_mark(name, "error", start_iter);
 
 			_source_mark_attributes.query_tooltip_markup.connect((source_mark) =>
 			{

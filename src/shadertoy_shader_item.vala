@@ -4,7 +4,7 @@ namespace Shady
 	public class ShadertoyShaderItem : Gtk.FlowBoxChild
 	{
 		private string _name;
-		public string name
+		public string sh_it_name
 		{
 			get { return _name; }
 			set
@@ -70,13 +70,17 @@ namespace Shady
 		{
 			// for some reason the shader area must not be constructed in a ui
 			// file
-			string load_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/load.glsl", 0).get_data());
 
 			Shader load_shader = new Shader();
-
 			Shader.Renderpass renderpass = new Shader.Renderpass();
 
-			renderpass.code = load_code;
+			try{
+				string load_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/load.glsl", 0).get_data());
+				renderpass.code = load_code;
+			}
+			catch(Error e){
+				print("Couldn't load loading shader\n");
+			}
 			renderpass.type = Shader.RenderpassType.IMAGE;
 
 			load_shader.renderpasses.append_val(renderpass);

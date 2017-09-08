@@ -103,8 +103,8 @@ namespace Shady
 			}
 		}
 
-		[GtkChild]
-		private HeaderBar header_bar;
+		//[GtkChild]
+		//private HeaderBar header_bar;
 
 		[GtkChild]
 		private Gtk.MenuButton menu_button;
@@ -154,14 +154,19 @@ namespace Shady
 		private ShaderSourceBuffer _curr_buffer;
 
 		private uint _auto_compile_handler_id;
-		private bool _is_fullscreen = false;
+		//private bool _is_fullscreen = false;
 
 		public AppWindow(Gtk.Application app, AppPreferences preferences)
 		{
 			Object(application: app);
 
-			_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
-			_buffer_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/buffer_default.glsl", 0).get_data());
+			try{
+				_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
+				_buffer_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/buffer_default.glsl", 0).get_data());
+			}
+			catch(Error e){
+				print("Couldn't load default code\n");
+			}
 
 			_curr_shader = new Shader();
 
@@ -329,8 +334,8 @@ namespace Shady
 				for (int i = 0; i < _curr_shader.renderpasses.length; i++)
 				{
 					print(@"$(_curr_shader.renderpasses.index(i).name)\n");
-					print(@"$(_curr_buffer.name)\n");
-					if (_curr_shader.renderpasses.index(i).name == _curr_buffer.name)
+					print(@"$(_curr_buffer.buf_name)\n");
+					if (_curr_shader.renderpasses.index(i).name == _curr_buffer.buf_name)
 					{
 						curr_renderpass = _curr_shader.renderpasses.index(i);
 					}
@@ -554,7 +559,7 @@ namespace Shady
 				{
 					// append a line, so the loop below really adds all different
 					// errors, very hacky
-					string errors_str = e.message;
+					//string errors_str = e.message;
 
 					string[] error_lines = e.message.split("\n");
 
@@ -566,7 +571,7 @@ namespace Shady
 						if (":" in error_line)
 						{
 							string[] parsed_message = error_line.split(":", 3);
-							string error_number = parsed_message[0];
+							//string error_number = parsed_message[0];
 							string position = parsed_message[1];
 							string error = parsed_message[2].split("error: ")[1];
 
@@ -575,29 +580,34 @@ namespace Shady
 								current_error = error;
 							}
 
-							int prefix_length = ((string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data())).split("\n").length;
+							try{
+								int prefix_length = ((string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data())).split("\n").length;
 
-							string[] line_and_row = position.split("(", 2);
-							int line = int.parse(line_and_row[0]) - prefix_length + 1;
-							int row = int.parse(line_and_row[1][0:line_and_row[0].length]);
+								string[] line_and_row = position.split("(", 2);
+								int line = int.parse(line_and_row[0]) - prefix_length + 1;
+								int row = int.parse(line_and_row[1][0:line_and_row[0].length]);
 
-							if (line != last_line)
-							{
-								if (last_line != -1)
+								if (line != last_line)
 								{
-									print(@"Line: $last_line, Row: $last_row, Error: $current_error\n");
-									_shader_buffers["Image"].add_error_message(last_line, @"error-$last_line-$last_row", current_error);
+									if (last_line != -1)
+									{
+										print(@"Line: $last_line, Row: $last_row, Error: $current_error\n");
+										_shader_buffers["Image"].add_error_message(last_line, @"error-$last_line-$last_row", current_error);
+									}
+
+									current_error = error;
+								}
+								else
+								{
+									current_error += "\n" + error;
 								}
 
-								current_error = error;
+								last_line = line;
+								last_row = row;
 							}
-							else
-							{
-								current_error += "\n" + error;
+							catch(Error e){
+								print("Couldn't load shader prefix\n");
 							}
-
-							last_line = line;
-							last_row = row;
 						}
 					}
 
@@ -703,6 +713,8 @@ namespace Shady
 		[GtkCallback]
 		private void compile_button_clicked()
 		{
+			compile();
+			/*
 			try
 			{
 				compile();
@@ -711,6 +723,7 @@ namespace Shady
 			{
 				print(@"Compilation error: $(e.message)");
 			}
+			*/
 		}
 	}
 }

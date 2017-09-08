@@ -39,7 +39,12 @@ namespace Shady
 				Shader.Input texture = load_texture(texture_id);
 
 				TEXTURES.insert(texture_id, texture);
-				TEXTURE_PIXBUFS.insert(texture.resource, new Gdk.Pixbuf.from_resource(texture.resource));
+				try{
+					TEXTURE_PIXBUFS.insert(texture.resource, new Gdk.Pixbuf.from_resource(texture.resource));
+				}
+				catch(Error e){
+					print(@"Couldn't load texture $(texture_id)\n");
+				}
 			}
 		}
 

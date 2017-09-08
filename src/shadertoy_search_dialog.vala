@@ -198,7 +198,7 @@ namespace Shady
 						ShadertoyShaderItem element = new ShadertoyShaderItem();
 						shader_box.add(element);
 
-						element.name = _found_shaders[shader_index].name;
+						element.sh_it_name = _found_shaders[shader_index].name;
 						element.author = _found_shaders[shader_index].author;
 						element.likes = (int) _found_shaders[shader_index].likes;
 						element.views = (int) _found_shaders[shader_index].views;
@@ -284,47 +284,52 @@ namespace Shady
 				shader_box.remove(widget);
 			});
 
-			new Thread<int>.try("search_thread", () =>
-			{
-				loading_label.set_text("Loading shaders...");
-
-				content_stack.visible_child_name = "spinner";
-				shadertoy_search_entry.sensitive = false;
-
-				uint64 num_shaders = search_shaders(search_string);
-
-				bool search_finished = false;
-				while (!search_finished)
+			try{
+				new Thread<int>.try("search_thread", () =>
 				{
-					int count = 0;
-					bool null_shader_found = false;
-					for (int i = 0; i < num_shaders; i++)
+					loading_label.set_text("Loading shaders...");
+
+					content_stack.visible_child_name = "spinner";
+					shadertoy_search_entry.sensitive = false;
+
+					uint64 num_shaders = search_shaders(search_string);
+
+					bool search_finished = false;
+					while (!search_finished)
 					{
-						if (_found_shaders[i] == null)
+						int count = 0;
+						bool null_shader_found = false;
+						for (int i = 0; i < num_shaders; i++)
 						{
-							null_shader_found = true;
+							if (_found_shaders[i] == null)
+							{
+								null_shader_found = true;
+							}
+							else
+							{
+								count++;
+							}
 						}
-						else
+
+						if (!null_shader_found)
 						{
-							count++;
+							search_finished = true;
 						}
+
+						loading_label.set_text(@"Loaded $count/$num_shaders shaders...");
+
+						Thread.usleep(100000);
 					}
 
-					if (!null_shader_found)
-					{
-						search_finished = true;
-					}
+					content_stack.visible_child_name = "content";
+					shadertoy_search_entry.sensitive = true;
 
-					loading_label.set_text(@"Loaded $count/$num_shaders shaders...");
-
-					Thread.usleep(100000);
-				}
-
-				content_stack.visible_child_name = "content";
-				shadertoy_search_entry.sensitive = true;
-
-				return 0;
-			});
+					return 0;
+				});
+			}
+			catch(Error e){
+				print("Couldn't start shader loading thread\n");
+			}
 		}
 
 		private uint64 search_shaders(string search_string)
@@ -366,7 +371,8 @@ namespace Shady
 						_found_shaders[load_thread.shader_index] = load_thread.shader;
 					});
 
-					Thread thread = new Thread<int>("shader_thread", load_thread.run);
+					//Thread thread = new Thread<int>("shader_thread", load_thread.run);
+					new Thread<int>("shader_thread", load_thread.run);
 
 					index++;
 				}

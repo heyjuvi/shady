@@ -35,13 +35,16 @@ namespace Shady
 		{
 			// for some reason the shader area must not be constructed in a ui
 			// file
-			string default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
-
 			Shader default_shader = new Shader();
-
 			Shader.Renderpass renderpass = new Shader.Renderpass();
 
-			renderpass.code = default_code;
+			try{
+				string default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
+				renderpass.code = default_code;
+			}
+			catch(Error e){
+				print("Couldn't load default shader \n");
+			}
 			renderpass.type = Shader.RenderpassType.IMAGE;
 
 			default_shader.renderpasses.append_val(renderpass);
@@ -53,7 +56,12 @@ namespace Shady
 			{
 				Shader.Renderpass texture_renderpass = new Shader.Renderpass();
 				texture_renderpass.type = Shader.RenderpassType.IMAGE;
-				texture_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
+				try{
+					texture_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
+				}
+				catch(Error e){
+					print("Couldn't load texture channel default shader\n");
+				}
 				texture_renderpass.inputs.append_val(texture_input);
 
 				Shader texture_shader = new Shader();

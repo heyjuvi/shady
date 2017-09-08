@@ -43,7 +43,7 @@ namespace Shady
 		}
 
 		[GtkCallback]
-		private bool hide_on_delete()
+		private new bool hide_on_delete()
 		{
 			hide();
 

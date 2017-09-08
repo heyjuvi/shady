@@ -4,7 +4,7 @@ namespace Shady
 	public class ShaderChannelTextureItem : Gtk.FlowBoxChild
 	{
 		private string _name;
-		public string name
+		public string chn_name
 		{
 			get { return _name; }
 			set
@@ -75,7 +75,7 @@ namespace Shady
 
 			int texture_channels = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].n_channels;
 
-			name = texture.name;
+			chn_name = texture.name;
 			author = "shadertoy";
 			resolution = @"$(texture_width)x$(texture_height)";
 			channels = texture_channels;
