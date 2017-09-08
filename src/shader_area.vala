@@ -23,8 +23,8 @@ namespace Shady
 
 			public GLuint tex_id_out;
 
-			//public int[] tex_widths;
-			//public int[] tex_heights;
+			public int[] tex_widths;
+			public int[] tex_heights;
 
 			//public double[] tex_times;
 
@@ -38,7 +38,7 @@ namespace Shady
 			public GLint channel_res_loc;
 			public GLint mouse_loc;
 			public GLint samplerate_loc;
-			public GLint[] channel_loc;
+			public GLint[] channel_locs;
 		}
 
 		/* Properties */
@@ -354,9 +354,28 @@ namespace Shady
 				glGenTextures(num_textures, _image_prop1.tex_ids);
 				_image_prop2.tex_ids = _image_prop1.tex_ids;
 
+				_image_prop1.tex_widths = {0,0,0,0};
+				_image_prop2.tex_widths = {0,0,0,0};
+
+				_image_prop1.tex_heights = {0,0,0,0};
+				_image_prop2.tex_heights = {0,0,0,0};
+
 				for(int i=0;i<num_textures;i++)
 				{
-					init_input_texture(image_inputs.index(i), _image_prop1.tex_ids[i]);
+					int width, height, channel;
+					init_input_texture(image_inputs.index(i), _image_prop1.tex_ids[i], out width, out height, out channel);
+
+					if(channel>=0 && channel<4){
+						_image_prop1.tex_widths[channel] = width;
+						_image_prop1.tex_heights[channel] = height;
+					}
+
+					init_input_texture(image_inputs.index(i), _image_prop2.tex_ids[i], out width, out height, out channel);
+
+					if(channel>=0 && channel<4){
+						_image_prop1.tex_widths[channel] = width;
+						_image_prop1.tex_heights[channel] = height;
+					}
 				}
 
 			}
@@ -415,9 +434,18 @@ namespace Shady
 						_buffer_props1[i].tex_ids = new GLuint[num_textures];
 						glGenTextures(num_textures, _buffer_props1[i].tex_ids);
 
+						_buffer_props1[i].tex_widths = {0,0,0,0};
+						_buffer_props1[i].tex_heights = {0,0,0,0};
+
 						for(int j=0;j<num_textures;j++)
 						{
-							init_input_texture(buffer_inputs[i].index(j),_buffer_props1[i].tex_ids[j]);
+							int width, height, channel;
+							init_input_texture(buffer_inputs[i].index(j),_buffer_props1[i].tex_ids[j], out width, out height, out channel);
+
+							if(channel>=0 && channel<4){
+								_buffer_props1[i].tex_widths[channel] = width;
+								_buffer_props1[i].tex_heights[channel] = height;
+							}
 						}
 
 					}
@@ -434,9 +462,18 @@ namespace Shady
 						_buffer_props2[i].tex_ids = new GLuint[num_textures];
 						glGenTextures(num_textures, _buffer_props2[i].tex_ids);
 
+						_buffer_props2[i].tex_widths = {0,0,0,0};
+						_buffer_props2[i].tex_heights = {0,0,0,0};
+
 						for(int j=0;j<num_textures;j++)
 						{
-							init_input_texture(buffer_inputs[i].index(j),_buffer_props2[i].tex_ids[j]);
+							int width, height, channel;
+							init_input_texture(buffer_inputs[i].index(j),_buffer_props2[i].tex_ids[j], out width, out height, out channel);
+
+							if(channel>=0 && channel<4){
+								_buffer_props2[i].tex_widths[channel] = width;
+								_buffer_props2[i].tex_heights[channel] = height;
+							}
 						}
 					}
 				}
@@ -537,11 +574,11 @@ namespace Shady
 			buf_prop.channel_res_loc = glGetUniformLocation(buf_prop.program, "iChannelResolution");
 			buf_prop.mouse_loc = glGetUniformLocation(buf_prop.program, "iMouse");
 
-			buf_prop.channel_loc = new GLint[buf_prop.tex_ids.length];
+			buf_prop.channel_locs = new GLint[buf_prop.tex_ids.length];
 
 			for(int i=0;i<buf_prop.tex_ids.length;i++)
 			{
-				buf_prop.channel_loc[i] = glGetUniformLocation(buf_prop.program, _channel_string[i]);
+				buf_prop.channel_locs[i] = glGetUniformLocation(buf_prop.program, _channel_string[i]);
 			}
 
 			buf_prop.date_loc = glGetUniformLocation(buf_prop.program, "iDate");
@@ -717,10 +754,11 @@ namespace Shady
 			//events = 0;
 		}
 
-		private void init_input_texture(Shader.Input input, GLuint tex_id)
+		private void init_input_texture(Shader.Input input, GLuint tex_id, out int width, out int height, out int channel)
 		{
 
 			print("new texture\n");
+			print(@"tex_id: $(tex_id)\n");
 
 			glBindTexture(GL_TEXTURE_2D, tex_id);
 
@@ -736,6 +774,10 @@ namespace Shady
 			{
 				format = GL_RGBA;
 			}
+
+			width = buf.get_width();
+			height = buf.get_height();
+			channel = input.channel;
 
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, buf.get_width(), buf.get_height(), 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 
@@ -866,6 +908,11 @@ namespace Shady
 			glUniform1i(buf_prop.frame_loc, (int)(time*60));
 			glUniform1f(buf_prop.fps_loc, (float)fps);
 			glUniform3f(buf_prop.res_loc, _width, _height, 0);
+			float[] channel_res = {(float)buf_prop.tex_widths[0],(float)buf_prop.tex_heights[0],0.0f,
+			                       (float)buf_prop.tex_widths[1],(float)buf_prop.tex_heights[1],0.0f,
+			                       (float)buf_prop.tex_widths[2],(float)buf_prop.tex_heights[2],0.0f,
+			                       (float)buf_prop.tex_widths[3],(float)buf_prop.tex_heights[3],0.0f};
+			glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
 			glUniform1f(buf_prop.samplerate_loc, _samplerate);
 
 			if (_button_pressed)
@@ -877,13 +924,13 @@ namespace Shady
 				glUniform4f(buf_prop.mouse_loc, (float) _button_released_x, (float) _button_released_y, -(float) _button_pressed_x, -(float) _button_pressed_y);
 			}
 
-			for(int i=0;i<buf_prop.channel_loc.length;i++)
+			for(int i=0;i<buf_prop.channel_locs.length;i++)
 			{
-				if(buf_prop.channel_loc[i] > 0)
+				if(buf_prop.channel_locs[i] > 0)
 				{
 					glActiveTexture(GL_TEXTURE0 + i);
 					glBindTexture(GL_TEXTURE_2D, buf_prop.tex_ids[i]);
-					glUniform1i(buf_prop.channel_loc[i], (GLint)i);
+					glUniform1i(buf_prop.channel_locs[i], (GLint)i);
 				}
 			}
 
@@ -917,6 +964,8 @@ namespace Shady
 				glUniform1i(buf_prop.frame_loc, 0);
 				glUniform1f(buf_prop.fps_loc, 0.0f);
 				glUniform3f(buf_prop.res_loc, _width, _height, 0);
+				float[] channel_res = new float[12];
+				glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
 				glUniform1f(buf_prop.samplerate_loc, 0.0f);
 
 				glUniform4f(buf_prop.mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
