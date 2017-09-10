@@ -329,18 +329,12 @@ namespace Shady
 
 			channel0.channel_input_changed.connect((channel_input) =>
 			{
-				Shader.Renderpass curr_renderpass = null;
-
-				for (int i = 0; i < _curr_shader.renderpasses.length; i++)
+				if (channel_input.resource == null)
 				{
-					print(@"$(_curr_shader.renderpasses.index(i).name)\n");
-					print(@"$(_curr_buffer.buf_name)\n");
-					if (_curr_shader.renderpasses.index(i).name == _curr_buffer.buf_name)
-					{
-						curr_renderpass = _curr_shader.renderpasses.index(i);
-					}
+					return;
 				}
 
+				Shader.Renderpass curr_renderpass = find_current_renderpass();
 				if (curr_renderpass == null)
 				{
 					return;
@@ -349,13 +343,22 @@ namespace Shady
 				if (curr_renderpass.inputs.length >= 1)
 				{
 					curr_renderpass.inputs.data[0] = channel_input;
+
+					print("filter:");
+					print(@"$(channel_input.sampler.filter.to_string())\n");
+
+					print("wrap:");
+					print(@"$(channel_input.sampler.wrap.to_string())\n");
+
+					print("v_flip:");
+					print(@"$(channel_input.sampler.v_flip)\n\n\n\n\n\n");
 				}
 				else
 				{
 					curr_renderpass.inputs.append_val(channel_input);
 				}
 
-				print(@"Set $(channel_input.resource) on buffer $(curr_renderpass.name)\n");
+				compile();
 			});
 
 			_channels_box.pack_start(channel0, false, true);
@@ -363,6 +366,21 @@ namespace Shady
 			_channels_box.pack_start(channel2, false, true);
 			_channels_box.pack_start(channel3, false, true);
 			// end test
+		}
+
+		private Shader.Renderpass find_current_renderpass()
+		{
+			Shader.Renderpass curr_renderpass = null;
+
+			for (int i = 0; i < _curr_shader.renderpasses.length; i++)
+			{
+				if (_curr_shader.renderpasses.index(i).name == _curr_buffer.buf_name)
+				{
+					curr_renderpass = _curr_shader.renderpasses.index(i);
+				}
+			}
+
+			return curr_renderpass;
 		}
 
 		public void set_shader(Shader? shader)

@@ -145,10 +145,9 @@
 				</child>
 
 				<child>
-					<object class="GtkStack" id="content_stack">
+					<object class="GtkOverlay">
 						<property name="visible">True</property>
 						<property name="can_focus">False</property>
-						<property name="transition_type">crossfade</property>
 
 						<child>
 							<object class="GtkBox" id="shader_container">
@@ -156,20 +155,13 @@
 								<property name="can_focus">False</property>
 								<property name="orientation">vertical</property>
 							</object>
-							<packing>
-								<property name="name">shader_container</property>
-								<property name="title">Shader</property>
-							</packing>
 						</child>
 
-						<child>
-							<object class="GtkStack" id="settings_stack">
+						<child type="overlay">
+							<object class="GtkRevealer" id="settings_revealer">
 								<property name="visible">True</property>
 								<property name="can_focus">False</property>
-
-								<style>
-									<class name="channel_settings" />
-								</style>
+								<property name="transition_type">crossfade</property>
 
 								<child>
 									<object class="GtkBox">
@@ -177,6 +169,10 @@
 										<property name="can_focus">False</property>
 										<property name="orientation">vertical</property>
 										<property name="spacing">6</property>
+
+										<style>
+											<class name="channel_settings" />
+										</style>
 
 										<child>
 											<object class="GtkBox">
@@ -201,10 +197,12 @@
 												</child>
 
 												<child>
-													<object class="GtkComboBoxText">
+													<object class="GtkComboBoxText" id="filter_mode_combo_box">
 														<property name="visible">True</property>
 														<property name="can_focus">False</property>
 														<property name="active">2</property>
+
+														<signal name="changed" handler="filter_mode_combo_box_changed" />
 
 														<items>
 															<item>nearest</item>
@@ -249,10 +247,12 @@
 												</child>
 
 												<child>
-													<object class="GtkComboBoxText">
+													<object class="GtkComboBoxText" id="wrap_mode_combo_box">
 														<property name="visible">True</property>
 														<property name="can_focus">False</property>
 														<property name="active">1</property>
+
+														<signal name="changed" handler="wrap_mode_combo_box_changed" />
 
 														<items>
 															<item>clamp</item>
@@ -296,10 +296,12 @@
 												</child>
 
 												<child>
-													<object class="GtkSwitch">
+													<object class="GtkSwitch" id="v_flip_switch">
 														<property name="visible">True</property>
 														<property name="can_focus">False</property>
 														<property name="halign">start</property>
+
+														<signal name="notify::active" handler="v_flip_switch_toggled" />
 													</object>
 													<packing>
 														<property name="expand">False</property>
@@ -315,16 +317,8 @@
 											</packing>
 										</child>
 									</object>
-									<packing>
-										<property name="name">default_filter_settings</property>
-										<property name="title">Default filter settings</property>
-									</packing>
 								</child>
 							</object>
-							<packing>
-								<property name="name">settings_stack</property>
-								<property name="title">Settings</property>
-							</packing>
 						</child>
 					</object>
 					<packing>
