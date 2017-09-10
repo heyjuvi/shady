@@ -72,11 +72,6 @@ namespace Shady
 
 			shader_container.pack_start(_shader_area, true, true);
 
-			_shader_area.show();
-
-			_shader_area.compile_shader_input_no_thread(input);
-			_shader_area.compile_shader_input_no_thread(input);
-
 			if (input.type == Shader.InputType.TEXTURE)
 			{
 				int texture_width = ShadertoyResourceManager.TEXTURE_PIXBUFS[input.resource_index].width;
@@ -91,6 +86,14 @@ namespace Shady
 			}
 
 			this.input = input;
+
+			_shader_area.show();
+
+			_shader_area.initialized.connect(() =>
+			{
+				_shader_area.compile_shader_input_no_thread(input);
+				_shader_area.compile_shader_input_no_thread(input);
+			});
 		}
 	}
 }

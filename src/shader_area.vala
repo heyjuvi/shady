@@ -11,6 +11,8 @@ namespace Shady
 
 	public class ShaderArea : EventBox
 	{
+		public signal void initialized();
+
 		public signal void compilation_finished();
 		public signal void pass_compilation_terminated(int pass_index, ShaderError? e);
 
@@ -874,6 +876,9 @@ namespace Shady
 					   EventMask.POINTER_MOTION_MASK);
 			//add_events(EventMask.ALL_EVENTS_MASK);
 			//events = 0;
+
+
+			initialized();
 		}
 
 		private void init_input_texture(Shader.Input input, GLuint tex_id, out int width, out int height, out int depth)

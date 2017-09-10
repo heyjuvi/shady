@@ -23,7 +23,7 @@ namespace Shady
 			{
 				for (int i = 0; i < ShadertoyResourceManager.CUBEMAP_IDS.length; i++)
 				{
-					input_box.add(new ShaderChannelInputItem.from_input(ShadertoyResourceManager.TEXTURES[i]));
+					input_box.add(new ShaderChannelInputItem.from_input(ShadertoyResourceManager.CUBEMAPS[i]));
 				}
 			}
 
