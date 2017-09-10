@@ -70,8 +70,8 @@ namespace Shady
 
 		public class Input
 		{
-			public int id;
-			public int channel;
+			public int id = -1;
+			public int channel = -1;
 			public InputType type;
 			public Sampler sampler = new Sampler();
 			public string hash;

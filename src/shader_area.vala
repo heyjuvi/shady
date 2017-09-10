@@ -907,8 +907,8 @@ namespace Shady
 			}
 			else if(input.sampler.wrap == Shader.WrapMode.CLAMP)
 			{
-				glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
-				glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 			}
 
 		}

@@ -87,21 +87,24 @@ namespace Shady
 			3DTEXTURE_BUFFERS = new Voxmap[3DTEXTURE_IDS.length];
 			3DTEXTURES = new Shader.Input[3DTEXTURE_IDS.length];
 
-			for(int i=0; i<3DTEXTURE_IDS.length; i++)
+			for (int i = 0; i < 3DTEXTURE_IDS.length; i++)
 			{
 				Shader.Input 3dtexture = load_3dtexture(3DTEXTURE_IDS[i]);
 				3dtexture.resource_index = i;
 				3DTEXTURES[i] = 3dtexture;
 
-				try{
+				try
+				{
 					uint8[] data = resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data();
-					3DTEXTURE_BUFFERS[i].width = (int)data[4:8];
-					3DTEXTURE_BUFFERS[i].height = (int)data[8:12];
-					3DTEXTURE_BUFFERS[i].depth = (int)data[12:16];
-					3DTEXTURE_BUFFERS[i].channels = (int)data[16:20];
+
+					3DTEXTURE_BUFFERS[i].width = (int) data[4:8];
+					3DTEXTURE_BUFFERS[i].height = (int) data[8:12];
+					3DTEXTURE_BUFFERS[i].depth = (int) data[12:16];
+					3DTEXTURE_BUFFERS[i].channels = (int) data[16:20];
 					3DTEXTURE_BUFFERS[i].voxels = data[20:-0];
 				}
-				catch(Error e){
+				catch (Error e)
+				{
 					print(@"Couldn't load 3dtexture $(3DTEXTURE_IDS[i])\n");
 				}
 			}
@@ -109,18 +112,21 @@ namespace Shady
 			CUBEMAP_PIXBUFS_ARRAY = new Gdk.Pixbuf[CUBEMAPS.length,6];
 			CUBEMAPS = new Shader.Input[CUBEMAPS.length];
 
-			for(int i=0; i<CUBEMAP_IDS.length; i++)
+			for (int i = 0; i < CUBEMAP_IDS.length; i++)
 			{
 				Shader.Input cubemap = load_cubemap(CUBEMAP_IDS[i]);
 				cubemap.resource_index = i;
 				CUBEMAPS[i] = cubemap;
 
-				try{
-					for(int j=0;j<6;j++){
+				try
+				{
+					for (int j = 0; j < 6;j++)
+					{
 						CUBEMAP_PIXBUFS_ARRAY[i,j] = new Gdk.Pixbuf.from_resource(cubemap.resource.replace("$j",@"$j"));
 					}
 				}
-				catch(Error e){
+				catch (Error e)
+				{
 					print(@"Couldn't load cubemap $(CUBEMAP_IDS[i])\n");
 				}
 			}
@@ -129,7 +135,7 @@ namespace Shady
 		public int texture_index_from_string(string index)
 		{
 			int i;
-			for(i=0;i<TEXTURE_IDS.length;i++)
+			for (i = 0; i < TEXTURE_IDS.length; i++)
 			{
 				if(TEXTURE_IDS[i] == index)
 				{
@@ -148,7 +154,7 @@ namespace Shady
 		public int 3dtexture_index_from_string(string index)
 		{
 			int i;
-			for(i=0;i<3DTEXTURE_IDS.length;i++)
+			for (i = 0; i < 3DTEXTURE_IDS.length; i++)
 			{
 				if(3DTEXTURE_IDS[i] == index)
 				{
@@ -156,7 +162,7 @@ namespace Shady
 				}
 			}
 
-			if(i==3DTEXTURE_IDS.length)
+			if(i == 3DTEXTURE_IDS.length)
 			{
 				print("3dtexture index not found");
 			}
@@ -167,7 +173,7 @@ namespace Shady
 		public int cubemap_index_from_string(string index)
 		{
 			int i;
-			for(i=0;i<CUBEMAP_IDS.length;i++)
+			for (i = 0; i < CUBEMAP_IDS.length; i++)
 			{
 				if(CUBEMAP_IDS[i] == index)
 				{
@@ -175,7 +181,7 @@ namespace Shady
 				}
 			}
 
-			if(i==CUBEMAP_IDS.length)
+			if (i == CUBEMAP_IDS.length)
 			{
 				print("Cubemap index not found");
 			}
@@ -195,6 +201,7 @@ namespace Shady
 				var texture_root = texture_parser.get_root().get_object();
 
 				Shader.Input texture = new Shader.Input();
+				texture.type = Shader.InputType.TEXTURE;
 				texture.hash = texture_root.get_string_member("hash");
 				texture.resource = texture_root.get_string_member("resource");
 				texture.name = texture_root.get_string_member("name");
@@ -221,6 +228,7 @@ namespace Shady
 				var 3dtexture_root = 3dtexture_parser.get_root().get_object();
 
 				Shader.Input 3dtexture = new Shader.Input();
+				3dtexture.type = Shader.InputType.3DTEXTURE;
 				3dtexture.hash = 3dtexture_root.get_string_member("hash");
 				3dtexture.resource = 3dtexture_root.get_string_member("resource");
 				3dtexture.name = 3dtexture_root.get_string_member("name");
@@ -247,6 +255,7 @@ namespace Shady
 				var cubemap_root = cubemap_parser.get_root().get_object();
 
 				Shader.Input cubemap = new Shader.Input();
+				cubemap.type = Shader.InputType.CUBEMAP;
 				cubemap.hash = cubemap_root.get_string_member("hash");
 				cubemap.resource = cubemap_root.get_string_member("resource");
 				cubemap.name = cubemap_root.get_string_member("name");
