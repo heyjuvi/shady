@@ -74,6 +74,7 @@ namespace Shady
 
 		private ShaderChannelSoundcloudPopover _soundcloud_popover = new ShaderChannelSoundcloudPopover();
 		private ShaderChannelInputPopover _texture_popover = new ShaderChannelInputPopover(Shader.InputType.TEXTURE);
+		private ShaderChannelInputPopover _cubemap_popover = new ShaderChannelInputPopover(Shader.InputType.CUBEMAP);
 
 		private ShaderArea _shader_area;
 
@@ -130,6 +131,11 @@ namespace Shady
 					_texture_popover.hide();
 					value_button.popover = _texture_popover;
 				}
+				else if (_channel_input.type == Shader.InputType.CUBEMAP)
+				{
+					_cubemap_popover.hide();
+					value_button.popover = _cubemap_popover;
+				}
 			}
 			else
 			{
@@ -139,7 +145,7 @@ namespace Shady
 
 		private void update_shader()
 		{
-			_shader_area.compile_shader_input_no_thread(_channel_input);
+			_shader_area.compile_shader_input(_channel_input);
 		}
 
 		[GtkCallback]

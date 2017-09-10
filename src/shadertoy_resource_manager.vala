@@ -109,10 +109,10 @@ namespace Shady
 				{
 					print(@"Couldn't load 3dtexture $(3DTEXTURE_IDS[i])\n");
 				}
-			}
+			}*/
 
-			CUBEMAP_PIXBUFS_ARRAY = new Gdk.Pixbuf[CUBEMAPS.length,6];
-			CUBEMAPS = new Shader.Input[CUBEMAPS.length];
+			CUBEMAP_PIXBUFS_ARRAY = new Gdk.Pixbuf[CUBEMAP_IDS.length, 6];
+			CUBEMAPS = new Shader.Input[CUBEMAP_IDS.length];
 
 			for (int i = 0; i < CUBEMAP_IDS.length; i++)
 			{
@@ -122,7 +122,7 @@ namespace Shady
 
 				try
 				{
-					for (int j = 0; j < 6;j++)
+					for (int j = 0; j < 6; j++)
 					{
 						CUBEMAP_PIXBUFS_ARRAY[i, j] = new Gdk.Pixbuf.from_resource(cubemap.resource.replace("$j", @"$j"));
 					}
@@ -131,7 +131,7 @@ namespace Shady
 				{
 					print(@"Couldn't load cubemap $(CUBEMAP_IDS[i])\n");
 				}
-			}*/
+			}
 		}
 
 		public int texture_index_from_string(string index)

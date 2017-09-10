@@ -30,6 +30,7 @@
 		<file>data/shader/prefix.glsl</file>
 		<file>data/shader/default.glsl</file>
 		<file>data/shader/texture_channel_default.glsl</file>
+		<file>data/shader/cubemap_channel_default.glsl</file>
 		<file>data/shader/buffer_default.glsl</file>
 		<file>data/shader/load.glsl</file>
 		<file>data/shader/suffix.glsl</file>

@@ -29,7 +29,7 @@ namespace Shady
 
 			input_box.focus.connect(() =>
 			{
-				input_box.unselect_all();
+				//input_box.unselect_all();
 
 				return true;
 			});
@@ -42,6 +42,7 @@ namespace Shady
 			{
 				ShaderChannelInputItem selected_input_item = input_box.get_selected_children().nth_data(0) as ShaderChannelInputItem;
 				input_selected(selected_input_item.input);
+				selected_input_item.recompile();
 
 				_last_selected = selected_input_item;
 

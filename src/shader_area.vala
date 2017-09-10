@@ -301,6 +301,10 @@ namespace Shady
 				{
 					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
 				}
+				else if (input.type == Shader.InputType.CUBEMAP)
+				{
+					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/cubemap_channel_default.glsl", 0).get_data());
+				}
 			}
 			catch (Error e)
 			{

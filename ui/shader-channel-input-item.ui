@@ -3,7 +3,8 @@
 	<template class="ShadyShaderChannelInputItem" parent="GtkFlowBoxChild">
 		<property name="visible">True</property>
 		<property name="can_focus">True</property>
-		<property name="width_request">140</property>
+		<property name="width_request">156</property>
+		<property name="height_request">132</property>
 
 		<child>
 			<object class="GtkBox">

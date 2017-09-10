@@ -66,6 +66,11 @@ namespace Shady
 
 		private ShaderArea _shader_area;
 
+		public void recompile()
+		{
+			_shader_area.compile_shader_input(input);
+		}
+
 		public ShaderChannelInputItem.from_input(Shader.Input input)
 		{
 			_shader_area = new ShaderArea();
@@ -84,6 +89,18 @@ namespace Shady
 				resolution = @"$(texture_width)x$(texture_height)";
 				channels = texture_channels;
 			}
+			else if (input.type == Shader.InputType.CUBEMAP)
+			{
+				int cubemap_width = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index, 0].width;
+				int cubemap_height = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index, 0].height;
+
+				int cubemap_channels = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index, 0].n_channels;
+
+				chn_name = input.name;
+				author = "shadertoy";
+				resolution = @"$(cubemap_width)x$(cubemap_height)";
+				channels = cubemap_channels;
+			}
 
 			this.input = input;
 
@@ -91,8 +108,7 @@ namespace Shady
 
 			_shader_area.initialized.connect(() =>
 			{
-				_shader_area.compile_shader_input_no_thread(input);
-				_shader_area.compile_shader_input_no_thread(input);
+				_shader_area.compile_shader_input(input);
 			});
 		}
 	}
