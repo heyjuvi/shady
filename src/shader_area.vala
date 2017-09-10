@@ -161,14 +161,11 @@ namespace Shady
 
 		private Mutex _compile_mutex = Mutex();
 
-		public ShaderArea(Shader default_shader)
+		public ShaderArea()
 		{
-
-			//_curr_shader = default_shader;
-
 			realize.connect(() =>
 			{
-				init_gl(default_shader);
+				init_gl(get_default_shader());
 			});
 
 			button_press_event.connect((widget, event) =>
@@ -249,7 +246,6 @@ namespace Shady
 				queue_draw();
 
 				return true;
-
 			});
 
 			size_allocate.connect((allocation) =>
@@ -271,7 +267,7 @@ namespace Shady
 				_draw_cond.signal();
 			});
 
-			unrealize.connect(()=>
+			unrealize.connect(() =>
 			{
 				_render_thread1_running = false;
 				_render_thread2_running = false;
@@ -283,6 +279,100 @@ namespace Shady
 				_compile_mutex.lock();
 				_compile_mutex.unlock();
 			});
+		}
+
+		public Shader? get_shader_from_input(Shader.Input input)
+		{
+			Shader.Renderpass input_renderpass = new Shader.Renderpass();
+			input_renderpass.inputs.append_val(input);
+			input_renderpass.type = Shader.RenderpassType.IMAGE;
+
+			if (input.resource == null)
+			{
+				print("Input has no specified resource!\n");
+				return null;
+			}
+
+			try
+			{
+				if (input.type == Shader.InputType.TEXTURE)
+				{
+					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
+				}
+			}
+			catch (Error e)
+			{
+				print("Couldn't load default shader for input type!\n");
+				return null;
+			}
+
+			Shader input_shader = new Shader();
+			input_shader.renderpasses.append_val(input_renderpass);
+
+			return input_shader;
+		}
+
+		public void compile_shader_input(Shader.Input input)
+		{
+			Shader? input_shader = get_shader_from_input(input);
+
+			if (input_shader != null)
+			{
+				compile(input_shader);
+			}
+		}
+
+		public void compile_shader_input_no_thread(Shader.Input input)
+		{
+			Shader? input_shader = get_shader_from_input(input);
+
+			if (input_shader != null)
+			{
+				compile_no_thread(input_shader);
+			}
+		}
+
+		public Shader? get_default_shader()
+		{
+			Shader default_shader = new Shader();
+			Shader.Renderpass renderpass = new Shader.Renderpass();
+
+			try
+			{
+				string default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
+				renderpass.code = default_code;
+			}
+			catch (Error e)
+			{
+				print("Couldn't load default shader!\n");
+				return null;
+			}
+
+			renderpass.type = Shader.RenderpassType.IMAGE;
+
+			default_shader.renderpasses.append_val(renderpass);
+
+			return default_shader;
+		}
+
+		public void compile_default_shader()
+		{
+			Shader? input_shader = get_default_shader();
+
+			if (input_shader != null)
+			{
+				compile(input_shader);
+			}
+		}
+
+		public void compile_default_shader_no_thread()
+		{
+			Shader? input_shader = get_default_shader();
+
+			if (input_shader != null)
+			{
+				compile_no_thread(input_shader);
+			}
 		}
 
 		public void compile(Shader new_shader)

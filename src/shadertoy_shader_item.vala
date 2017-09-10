@@ -85,7 +85,7 @@ namespace Shady
 
 			load_shader.renderpasses.append_val(renderpass);
 
-			_shader_area = new ShaderArea(load_shader);
+			_shader_area = new ShaderArea();
 			_shader_area.set_size_request(152, 140);
 			_shader_area.paused = true;
 

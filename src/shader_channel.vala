@@ -73,37 +73,19 @@ namespace Shady
 		private Gtk.Switch v_flip_switch;
 
 		private ShaderChannelSoundcloudPopover _soundcloud_popover = new ShaderChannelSoundcloudPopover();
-		private ShaderChannelTexturePopover _texture_popover = new ShaderChannelTexturePopover();
+		private ShaderChannelInputPopover _texture_popover = new ShaderChannelInputPopover(Shader.InputType.TEXTURE);
 
 		private ShaderArea _shader_area;
 
 		public ShaderChannel()
 		{
-			// for some reason the shader area must not be constructed in a ui
-			// file
-			Shader default_shader = new Shader();
-			Shader.Renderpass renderpass = new Shader.Renderpass();
-
-			try
-			{
-				string default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
-				renderpass.code = default_code;
-			}
-			catch (Error e)
-			{
-				print("Couldn't load default shader\n");
-			}
-
-			renderpass.type = Shader.RenderpassType.IMAGE;
-
-			default_shader.renderpasses.append_val(renderpass);
-			_shader_area = new ShaderArea(default_shader);
+			_shader_area = new ShaderArea();
 
 			shader_container.pack_start(_shader_area, true, true);
 
-			_texture_popover.texture_selected.connect((texture_id) =>
+			_texture_popover.input_selected.connect((input) =>
 			{
-				_channel_input = ShadertoyResourceManager.TEXTURES[texture_id];
+				_channel_input = input;
 
 				update_type();
 				update_sampler();
@@ -113,6 +95,8 @@ namespace Shady
 			});
 
 			_shader_area.show();
+
+			_shader_area.compile_default_shader_no_thread();
 		}
 
 		private void update_sampler()
@@ -152,33 +136,7 @@ namespace Shady
 
 		private void update_shader()
 		{
-			if (_channel_input.resource == null)
-			{
-				print("BUT WHY???\n\n\n\n");
-				return;
-			}
-
-			if (_channel_input.type == Shader.InputType.TEXTURE)
-			{
-				Shader.Renderpass texture_renderpass = new Shader.Renderpass();
-				texture_renderpass.type = Shader.RenderpassType.IMAGE;
-
-				try
-				{
-					texture_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
-				}
-				catch (Error e)
-				{
-					print("Couldn't load texture channel default shader\n");
-				}
-
-				texture_renderpass.inputs.append_val(_channel_input);
-
-				Shader texture_shader = new Shader();
-				texture_shader.renderpasses.append_val(texture_renderpass);
-
-				_shader_area.compile_no_thread(texture_shader);
-			}
+			_shader_area.compile_shader_input_no_thread(_channel_input);
 		}
 
 		[GtkCallback]

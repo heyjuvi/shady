@@ -70,21 +70,23 @@ namespace Shady
 			TEXTURE_PIXBUFS = new Gdk.Pixbuf[TEXTURE_IDS.length];
 			TEXTURES = new Shader.Input[TEXTURE_IDS.length];
 
-			for(int i=0; i<TEXTURE_IDS.length; i++)
+			for (int i = 0; i < TEXTURE_IDS.length; i++)
 			{
 				Shader.Input texture = load_texture(TEXTURE_IDS[i]);
 				texture.resource_index = i;
 				TEXTURES[i] = texture;
 
-				try{
+				try
+				{
 					TEXTURE_PIXBUFS[i] = new Gdk.Pixbuf.from_resource(texture.resource);
 				}
-				catch(Error e){
+				catch (Error e)
+				{
 					print(@"Couldn't load texture $(TEXTURE_IDS[i])\n");
 				}
 			}
 
-			3DTEXTURE_BUFFERS = new Voxmap[3DTEXTURE_IDS.length];
+			/*3DTEXTURE_BUFFERS = new Voxmap[3DTEXTURE_IDS.length];
 			3DTEXTURES = new Shader.Input[3DTEXTURE_IDS.length];
 
 			for (int i = 0; i < 3DTEXTURE_IDS.length; i++)
@@ -95,7 +97,7 @@ namespace Shady
 
 				try
 				{
-					uint8[] data = resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data();
+					uint8[] data = resources_lookup_data(3dtexture.resource, 0).get_data();
 
 					3DTEXTURE_BUFFERS[i].width = (int) data[4:8];
 					3DTEXTURE_BUFFERS[i].height = (int) data[8:12];
@@ -122,14 +124,14 @@ namespace Shady
 				{
 					for (int j = 0; j < 6;j++)
 					{
-						CUBEMAP_PIXBUFS_ARRAY[i,j] = new Gdk.Pixbuf.from_resource(cubemap.resource.replace("$j",@"$j"));
+						CUBEMAP_PIXBUFS_ARRAY[i, j] = new Gdk.Pixbuf.from_resource(cubemap.resource.replace("$j", @"$j"));
 					}
 				}
 				catch (Error e)
 				{
 					print(@"Couldn't load cubemap $(CUBEMAP_IDS[i])\n");
 				}
-			}
+			}*/
 		}
 
 		public int texture_index_from_string(string index)

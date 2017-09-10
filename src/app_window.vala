@@ -160,26 +160,19 @@ namespace Shady
 		{
 			Object(application: app);
 
-			try{
+			try
+			{
 				_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
-				_buffer_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/buffer_default.glsl", 0).get_data());
 			}
-			catch(Error e){
-				print("Couldn't load default code\n");
+			catch (Error e)
+			{
+				print("Couldn't load default shader!\n");
 			}
 
-			_curr_shader = new Shader();
-
-			Shader.Renderpass renderpass = new Shader.Renderpass();
-
-			renderpass.name = "Image";
-			renderpass.code = _default_code;
-			renderpass.type = Shader.RenderpassType.IMAGE;
-
-			_curr_shader.renderpasses.append_val(renderpass);
-
-			_shader_area = new ShaderArea(_curr_shader);
+			_shader_area = new ShaderArea();
 			_shader_area.set_size_request(500, 600);
+
+			_curr_shader = _shader_area.get_default_shader();
 
 			_foreground_box = new Box(Orientation.VERTICAL, 0);
 
@@ -306,7 +299,6 @@ namespace Shady
 
 			//show_all();
 			_shader_overlay.show_all();
-			_shader_area.show_all();
 			_foreground_box.show_all();
 
 			_editor_box.show_all();
@@ -316,6 +308,8 @@ namespace Shady
 
 			_channels_revealer.show_all();
 			_channels_box.show_all();
+
+			_shader_area.show();
 
 			// test
 			ShaderChannel channel0 = new ShaderChannel();
@@ -598,7 +592,8 @@ namespace Shady
 								current_error = error;
 							}
 
-							try{
+							try
+							{
 								int prefix_length = ((string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data())).split("\n").length;
 
 								string[] line_and_row = position.split("(", 2);
@@ -623,7 +618,8 @@ namespace Shady
 								last_line = line;
 								last_row = row;
 							}
-							catch(Error e){
+							catch(Error e)
+							{
 								print("Couldn't load shader prefix\n");
 							}
 						}
@@ -634,7 +630,7 @@ namespace Shady
 				}
 			});
 
-			_shader_area.compile(_curr_shader);
+			_shader_area.compile_default_shader();
 		}
 
 		public void reset_time()

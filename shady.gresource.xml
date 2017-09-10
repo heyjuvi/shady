@@ -8,8 +8,8 @@
 		<file preprocess="xml-stripblanks">ui/shader-channel.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-channel-type-popover.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-channel-soundcloud-popover.ui</file>
-		<file preprocess="xml-stripblanks">ui/shader-channel-texture-popover.ui</file>
-		<file preprocess="xml-stripblanks">ui/shader-channel-texture-item.ui</file>
+		<file preprocess="xml-stripblanks">ui/shader-channel-input-popover.ui</file>
+		<file preprocess="xml-stripblanks">ui/shader-channel-input-item.ui</file>
 		<file preprocess="xml-stripblanks">ui/notebook-tab-label.ui</file>
 		<file preprocess="xml-stripblanks">ui/notebook-action-widget.ui</file>
 		<file preprocess="xml-stripblanks">ui/shadertoy-search-dialog.ui</file>
