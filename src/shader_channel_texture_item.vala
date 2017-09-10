@@ -70,10 +70,10 @@ namespace Shady
 
 		public ShaderChannelTextureItem.from_texture(Shader.Input texture)
 		{
-			int texture_width = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].width;
-			int texture_height = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].height;
+			int texture_width = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource_index].width;
+			int texture_height = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource_index].height;
 
-			int texture_channels = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].n_channels;
+			int texture_channels = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource_index].n_channels;
 
 			chn_name = texture.name;
 			author = "shadertoy";
@@ -84,7 +84,7 @@ namespace Shady
 
 			int new_width = 180;
 
-			Gdk.Pixbuf tmp_pixbuf = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource].copy();
+			Gdk.Pixbuf tmp_pixbuf = ShadertoyResourceManager.TEXTURE_PIXBUFS[texture.resource_index].copy();
 
 			int new_height = (int) (new_width * ((float) tmp_pixbuf.height / (float) tmp_pixbuf.width));
 			int dest_height = (new_height < 120 ? new_height : 120);

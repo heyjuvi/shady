@@ -12,9 +12,9 @@ namespace Shady
 
 		public ShaderChannelTexturePopover()
 		{
-			foreach (string texture_id in ShadertoyResourceManager.TEXTURE_IDS)
+			for(int i=0; i<ShadertoyResourceManager.TEXTURE_IDS.length; i++)
 			{
-				texture_box.add(new ShaderChannelTextureItem.from_texture(ShadertoyResourceManager.TEXTURES[texture_id]));
+				texture_box.add(new ShaderChannelTextureItem.from_texture(ShadertoyResourceManager.TEXTURES[i]));
 			}
 
 			texture_box.focus.connect(() =>

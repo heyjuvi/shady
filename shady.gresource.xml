@@ -78,6 +78,48 @@
 		<file>data/shadertoy_presets/textures/stars.json</file>
 		<file>data/shadertoy_presets/textures/wood.jpg</file>
 		<file>data/shadertoy_presets/textures/wood.json</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters0.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters1.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters2.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters3.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters4.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters5.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery0.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery1.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery2.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery3.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery4.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery5.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/forest0.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest1.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest2.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest3.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest4.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest5.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest_blurred0.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest_blurred1.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest_blurred2.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest_blurred3.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest_blurred4.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest_blurred5.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters_blurred0.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters_blurred1.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters_blurred2.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters_blurred3.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters_blurred4.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters_blurred5.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery_blurred0.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery_blurred1.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery_blurred2.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery_blurred3.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery_blurred4.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery_blurred5.png</file>
+		<file>data/shadertoy_presets/cubemaps/forest_blurred.json</file>
+		<file>data/shadertoy_presets/cubemaps/forest.json</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters_blurred.json</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters.json</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery_blurred.json</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery.json</file>
 
 		<!-- shadertoy videos -->
 		<!--<file>data/shadertoy_presets/videos/1961_commercial.ogv</file>

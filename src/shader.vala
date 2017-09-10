@@ -11,6 +11,7 @@ namespace Shady
 			SOUNDCLOUD,
 			BUFFER,
 			TEXTURE,
+			3DTEXTURE,
 			CUBEMAP,
 			VIDEO,
 			MUSIC,
@@ -46,6 +47,10 @@ namespace Shady
 				{
 					return TEXTURE;
 				}
+				else if (type == "3dtexture")
+				{
+					return 3DTEXTURE;
+				}
 				else if (type == "cubemap")
 				{
 					return CUBEMAP;
@@ -70,8 +75,9 @@ namespace Shady
 			public InputType type;
 			public Sampler sampler = new Sampler();
 			public string hash;
-			public string resource;
 			public string name;
+			public string resource;
+			public int resource_index;
 		}
 
 		public class Output
