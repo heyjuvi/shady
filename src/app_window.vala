@@ -631,7 +631,6 @@ namespace Shady
 			});
 
 			_shader_area.compile(_curr_shader);
-			_shader_area.compile(_curr_shader);
 		}
 
 		public void reset_time()

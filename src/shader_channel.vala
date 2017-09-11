@@ -95,6 +95,17 @@ namespace Shady
 				channel_input_changed(_channel_input);
 			});
 
+			_cubemap_popover.input_selected.connect((input) =>
+			{
+				_channel_input = input;
+
+				update_type();
+				update_sampler();
+				update_shader();
+
+				channel_input_changed(_channel_input);
+			});
+
 			_shader_area.show();
 
 			_shader_area.initialized.connect(() =>
