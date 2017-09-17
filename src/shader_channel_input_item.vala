@@ -104,6 +104,8 @@ namespace Shady
 
 			this.input = input;
 
+			input.channel = 0;
+
 			_shader_area.show();
 
 			_shader_area.initialized.connect(() =>
