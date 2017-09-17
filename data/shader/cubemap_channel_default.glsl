@@ -10,10 +10,8 @@ vec2 rot2D(vec2 p, float angle)
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
 	vec2 uv = (fragCoord.xy - iResolution.xy * .5) / iResolution.y;
-	vec2  m = (iMouse.xy / iResolution.xy) * 2. - 1.;
 
 	vec3 dir = vec3(uv, 1.);
-	dir.yz = rot2D(dir.yz,  90. * m.y);
 	dir.xz = rot2D(dir.xz, 10. * iTime);
 
 	fragColor = texture(iChannel0, dir);

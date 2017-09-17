@@ -23,6 +23,7 @@ namespace Shady
 
 			public GLuint[] tex_ids;
 			public GLuint[] sampler_ids;
+			public GLuint[] tex_targets;
 			public int[] tex_channels;
 
 			public GLuint tex_id_out;
@@ -51,6 +52,7 @@ namespace Shady
 			public Shader.InputType type;
 			public int index;
 			public GLuint[] tex_ids;
+			public GLuint target;
 			public int width;
 			public int height;
 			public int depth;
@@ -372,6 +374,7 @@ namespace Shady
 			}
 
 			renderpass.type = Shader.RenderpassType.IMAGE;
+			renderpass.name = "Image";
 
 			default_shader.renderpasses.append_val(renderpass);
 
@@ -475,6 +478,9 @@ namespace Shady
 				_image_prop1.tex_ids = new uint[num_samplers];
 				_image_prop2.tex_ids = new uint[num_samplers];
 
+				_image_prop1.tex_targets = new uint[num_samplers];
+				_image_prop2.tex_targets = new uint[num_samplers];
+
 				_image_prop1.tex_widths = {0,0,0,0};
 				_image_prop2.tex_widths = {0,0,0,0};
 
@@ -490,8 +496,10 @@ namespace Shady
 
 					init_sampler(image_inputs.index(i), _image_prop1.sampler_ids[i]);
 
-					GLuint[] tex_ids = query_texture(image_inputs.index(i), out width, out height, out depth);
+					GLuint tex_target;
+					GLuint[] tex_ids = query_texture(image_inputs.index(i), out width, out height, out depth, out tex_target);
 					_image_prop1.tex_ids[i] = tex_ids[0];
+					_image_prop1.tex_targets[i] = tex_target;
 
 					channel = image_inputs.index(i).channel;
 					_image_prop1.tex_channels[i] = channel;
@@ -504,8 +512,9 @@ namespace Shady
 
 					init_sampler(image_inputs.index(i), _image_prop2.sampler_ids[i]);
 
-					tex_ids = query_texture(image_inputs.index(i), out width, out height, out depth);
+					tex_ids = query_texture(image_inputs.index(i), out width, out height, out depth, out tex_target);
 					_image_prop2.tex_ids[i] = tex_ids[0];
+					_image_prop2.tex_targets[i] = tex_target;
 
 					channel = image_inputs.index(i).channel;
 					_image_prop2.tex_channels[i] = channel;
@@ -579,6 +588,7 @@ namespace Shady
 
 						_buffer_props1[i].tex_channels = new int[num_samplers];
 						_buffer_props1[i].tex_ids = new uint[num_samplers];
+						_buffer_props1[i].tex_targets = new uint[num_samplers];
 
 						for(int j=0;j<num_samplers;j++)
 						{
@@ -586,7 +596,9 @@ namespace Shady
 
 							init_sampler(buffer_inputs[i].index(j), _buffer_props1[i].sampler_ids[j]);
 
-							GLuint[] tex_ids = query_texture(buffer_inputs[i].index(j), out width, out height, out depth);
+							GLuint tex_target;
+							GLuint[] tex_ids = query_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
+							_buffer_props1[i].tex_targets[j] = tex_target;
 							_buffer_props1[i].tex_ids[j] = tex_ids[0];
 
 							channel = buffer_inputs[i].index(j).channel;
@@ -619,6 +631,7 @@ namespace Shady
 
 						_buffer_props2[i].tex_channels = new int[num_samplers];
 						_buffer_props2[i].tex_ids = new uint[num_samplers];
+						_buffer_props2[i].tex_targets = new uint[num_samplers];
 
 						for(int j=0;j<num_samplers;j++)
 						{
@@ -626,7 +639,9 @@ namespace Shady
 
 							init_sampler(buffer_inputs[i].index(j), _buffer_props2[i].sampler_ids[j]);
 
-							GLuint[] tex_ids = query_texture(buffer_inputs[i].index(j), out width, out height, out depth);
+							GLuint tex_target;
+							GLuint[] tex_ids = query_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
+							_buffer_props2[i].tex_targets[j] = tex_target;
 							_buffer_props2[i].tex_ids[j] = tex_ids[0];
 
 							channel = buffer_inputs[i].index(j).channel;
@@ -647,8 +662,6 @@ namespace Shady
 				string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
 
 				string image_channel_prefix = "";
-
-				print(@"length:$(image_inputs.length)\n");
 
 				for(int i=0;i<image_inputs.length;i++)
 				{
@@ -962,12 +975,13 @@ namespace Shady
 			initialized();
 		}
 
-		private GLuint[] query_texture(Shader.Input input, out int width, out int height, out int depth)
+		private GLuint[] query_texture(Shader.Input input, out int width, out int height, out int depth, out uint target)
 		{
 
 			width = 0;
 			height = 0;
 			depth = 0;
+			target = -1;
 
 			int i;
 			for(i=0;i<_texture_buffer.length;i++)
@@ -977,19 +991,20 @@ namespace Shady
 					width = _texture_buffer[i].width;
 					height = _texture_buffer[i].height;
 					depth = _texture_buffer[i].depth;
+					target = _texture_buffer[i].target;
 					return _texture_buffer[i].tex_ids;
 				}
 			}
 
 			if(i == _texture_buffer.length)
 			{
-				print("Creating texture\n");
-				GLuint[] tex_ids = init_input_texture(input, out width, out height, out depth);
+				GLuint[] tex_ids = init_input_texture(input, out width, out height, out depth, out target);
 				TextureBufferUnit tex_unit = TextureBufferUnit()
 				{
 					width = width,
 					height = height,
 					depth = depth,
+					target = target,
 					tex_ids = tex_ids,
 					type = input.type,
 					index = i
@@ -1001,19 +1016,18 @@ namespace Shady
 			return {};
 		}
 
-		private GLuint[] init_input_texture(Shader.Input input, out int width, out int height, out int depth)
+		private GLuint[] init_input_texture(Shader.Input input, out int width, out int height, out int depth, out uint target)
 		{
 			width=0;
 			height=0;
 			depth=0;
 
-			int target = -1;
+			target = -1;
 
 			GLuint[] tex_ids = {};
 
 			if(input.type == Shader.InputType.TEXTURE)
 			{
-				print("Texture\n");
 				target = GL_TEXTURE_2D;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
@@ -1038,7 +1052,6 @@ namespace Shady
 			}
 			else if(input.type == Shader.InputType.3DTEXTURE)
 			{
-				print("3DTexture\n");
 				target = GL_TEXTURE_3D;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
@@ -1065,7 +1078,6 @@ namespace Shady
 			}
 			else if(input.type == Shader.InputType.CUBEMAP)
 			{
-				print("Cubemap\n");
 				target = GL_TEXTURE_CUBE_MAP;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
@@ -1102,7 +1114,6 @@ namespace Shady
 			}
 			else if(input.type == Shader.InputType.BUFFER)
 			{
-				print("Buffer\n");
 				target = GL_TEXTURE_2D;
 				tex_ids = {0, 0};
 				glGenTextures(2,tex_ids);
@@ -1271,7 +1282,7 @@ namespace Shady
 				if(buf_prop.channel_locs[i] > 0)
 				{
 					glActiveTexture(GL_TEXTURE0 + buf_prop.tex_channels[i]);
-					glBindTexture(GL_TEXTURE_2D, buf_prop.tex_ids[i]);
+					glBindTexture(buf_prop.tex_targets[i], buf_prop.tex_ids[i]);
 					glBindSampler(buf_prop.tex_channels[i], buf_prop.sampler_ids[i]);
 					glUniform1i(buf_prop.channel_locs[i], (GLint)buf_prop.tex_channels[i]);
 				}
