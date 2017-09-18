@@ -51,6 +51,7 @@ namespace Shady
 		{
 			public Shader.InputType type;
 			public int index;
+			public bool v_flip;
 			public GLuint[] tex_ids;
 			public GLuint target;
 			public int width;
@@ -986,7 +987,9 @@ namespace Shady
 			int i;
 			for(i=0;i<_texture_buffer.length;i++)
 			{
-				if(input.type == _texture_buffer[i].type && _texture_buffer[i].index == input.resource_index)
+				if(input.type == _texture_buffer[i].type &&
+				   _texture_buffer[i].index == input.resource_index &&
+				   _texture_buffer[i].v_flip == input.sampler.v_flip)
 				{
 					width = _texture_buffer[i].width;
 					height = _texture_buffer[i].height;
@@ -1007,6 +1010,7 @@ namespace Shady
 					target = target,
 					tex_ids = tex_ids,
 					type = input.type,
+					v_flip = input.sampler.v_flip,
 					index = i
 				};
 
@@ -1034,6 +1038,12 @@ namespace Shady
 				glBindTexture(target, tex_ids[0]);
 
 				Gdk.Pixbuf buf = ShadertoyResourceManager.TEXTURE_PIXBUFS[input.resource_index];
+
+				if(input.sampler.v_flip)
+				{
+					buf = buf.flip(false);
+				}
+
 				width = buf.get_width();
 				height = buf.get_height();
 
@@ -1047,7 +1057,8 @@ namespace Shady
 					format = GL_RGBA;
 				}
 
-				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+
 				glGenerateMipmap(target);
 			}
 			else if(input.type == Shader.InputType.3DTEXTURE)
@@ -1084,6 +1095,12 @@ namespace Shady
 				glBindTexture(target, tex_ids[0]);
 
 				Gdk.Pixbuf buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,0];
+
+				if(input.sampler.v_flip)
+				{
+					buf = buf.flip(false);
+				}
+
 				width = buf.get_width();
 				height = buf.get_height();
 
@@ -1099,16 +1116,46 @@ namespace Shady
 
 				glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,1];
+
+				if(input.sampler.v_flip)
+				{
+					buf = buf.flip(false);
+				}
+
 				glTexImage2D( GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,2];
 
+				if(input.sampler.v_flip)
+				{
+					buf = buf.flip(false);
+				}
+
+
 				glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,3];
+
+				if(input.sampler.v_flip)
+				{
+					buf = buf.flip(false);
+				}
+
 				glTexImage2D( GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,4];
 
+				if(input.sampler.v_flip)
+				{
+					buf = buf.flip(false);
+				}
+
+
 				glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,5];
+
+				if(input.sampler.v_flip)
+				{
+					buf = buf.flip(false);
+				}
+
 				glTexImage2D( GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				glGenerateMipmap(target);
 			}
