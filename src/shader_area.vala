@@ -26,7 +26,11 @@ namespace Shady
 			public GLuint[] tex_targets;
 			public int[] tex_channels;
 
-			public GLuint tex_id_out;
+			public GLuint tex_id_out_front;
+			public GLuint tex_id_out_back;
+
+			public int[,] tex_out_refs;
+			public int[] tex_out_refs_img;
 
 			public int[] tex_widths;
 			public int[] tex_heights;
@@ -52,6 +56,7 @@ namespace Shady
 			public Shader.InputType type;
 			public int index;
 			public bool v_flip;
+			public int input_id;
 			public GLuint[] tex_ids;
 			public GLuint target;
 			public int width;
@@ -60,6 +65,7 @@ namespace Shady
 		}
 
 		TextureBufferUnit[] _texture_buffer = {};
+		TextureBufferUnit[] _buffer_buffer = {};
 
 		/* Properties */
 		private bool _paused = false;
@@ -222,14 +228,12 @@ namespace Shady
 
 				if(_buffer_mutex.trylock())
 				{
-					/*
 					while(!_buffer_rendered)
 					{
 						print("waiting now\n");
 						_render_cond.wait(_buffer_mutex);
 						print("not waiting anymore\n");
 					}
-					*/
 
 					Cairo.ImageSurface image = new Cairo.ImageSurface.for_data(_buffer, Cairo.Format.RGB24, _width, _height, _stride);
 
@@ -279,6 +283,19 @@ namespace Shady
 				_height = allocation.height;
 				_stride = Cairo.Format.RGB24.stride_for_width(_width);
 
+				for(int i=0;i<_buffer_buffer.length;i++)
+				{
+					_buffer_buffer[i].width=_width;
+					_buffer_buffer[i].height=_height;
+					
+					_gl_context.thread_context();
+					for(int j=0;j<2;j++)
+					{
+						glBindTexture(GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j]);
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+					}
+				}
+
 				_buffer = new uchar[_stride*_height];
 				_buffer_rendered = false;
 				_old_buffer_rendered = false;
@@ -296,8 +313,8 @@ namespace Shady
 
 				_render_switch_cond.signal();
 
-				//_render_thread1.join();
-				//_render_thread2.join();
+				_render_thread1.join();
+				_render_thread2.join();
 				_compile_mutex.lock();
 				_compile_mutex.unlock();
 			});
@@ -451,14 +468,12 @@ namespace Shady
 			{
 				if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
 				{
-					//stdout.printf("IMAGE, i:%d\n",i);
 					image_source = new_shader.renderpasses.index(i).code;
 					image_inputs = new_shader.renderpasses.index(i).inputs;
 					image_index = i;
 				}
 				else if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
 				{
-					//stdout.printf("BUFFER, i:%d\n",i);
 					buffer_count++;
 				}
 			}
@@ -498,7 +513,7 @@ namespace Shady
 					init_sampler(image_inputs.index(i), _image_prop1.sampler_ids[i]);
 
 					GLuint tex_target;
-					GLuint[] tex_ids = query_texture(image_inputs.index(i), out width, out height, out depth, out tex_target);
+					GLuint[] tex_ids = query_input_texture(image_inputs.index(i), out width, out height, out depth, out tex_target);
 					_image_prop1.tex_ids[i] = tex_ids[0];
 					_image_prop1.tex_targets[i] = tex_target;
 
@@ -513,7 +528,7 @@ namespace Shady
 
 					init_sampler(image_inputs.index(i), _image_prop2.sampler_ids[i]);
 
-					tex_ids = query_texture(image_inputs.index(i), out width, out height, out depth, out tex_target);
+					tex_ids = query_input_texture(image_inputs.index(i), out width, out height, out depth, out tex_target);
 					_image_prop2.tex_ids[i] = tex_ids[0];
 					_image_prop2.tex_targets[i] = tex_target;
 
@@ -526,7 +541,6 @@ namespace Shady
 						_image_prop2.tex_depths[channel] = depth;
 					}
 				}
-
 			}
 			else
 			{
@@ -537,6 +551,7 @@ namespace Shady
 			string[] buffer_sources = new string[buffer_count];
 			int[] buffer_indices = new int[buffer_count];
 			Array<Shader.Input>[] buffer_inputs = new Array<Shader.Input>[buffer_count];
+			Shader.Output[] buffer_outputs = new Shader.Output[buffer_count];
 
 			if(buffer_count>0)
 			{
@@ -564,6 +579,7 @@ namespace Shady
 						buffer_indices[buffer_index] = i;
 						buffer_sources[buffer_index] = new_shader.renderpasses.index(i).code;
 						buffer_inputs[buffer_index] = new_shader.renderpasses.index(i).inputs;
+						buffer_outputs[buffer_index] = new_shader.renderpasses.index(i).outputs.index(0);
 						buffer_index++;
 					}
 				}
@@ -573,12 +589,22 @@ namespace Shady
 					if(!_program_switch)
 					{
 						_buffer_props1[i].fb = fbs[i];
-						_buffer_props1[i].tex_id_out = _image_prop1.tex_ids[0];
+
+						GLuint[] output_tex_ids = query_output_texture(buffer_outputs[i]);
+						_buffer_props1[i].tex_id_out_front = output_tex_ids[0];
+						_buffer_props1[i].tex_id_out_back = output_tex_ids[1];
+
+						glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbs[i]);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output_tex_ids[1], 0);
+
+						glClearColor(0,0,0,1);
+						glClear(GL_COLOR_BUFFER_BIT);
+
 						_buffer_props1[i].program = glCreateProgram();
 						glAttachShader(_buffer_props1[i].program, _gl_context.vertex_shader);
 						glAttachShader(_buffer_props1[i].program, _fragment_shader);
 
-						int num_samplers = (int)buffer_inputs.length;
+						int num_samplers = (int)buffer_inputs[i].length;
 
 						_buffer_props1[i].sampler_ids = new GLuint[num_samplers];
 						glGenSamplers(num_samplers, _buffer_props1[i].sampler_ids);
@@ -598,7 +624,7 @@ namespace Shady
 							init_sampler(buffer_inputs[i].index(j), _buffer_props1[i].sampler_ids[j]);
 
 							GLuint tex_target;
-							GLuint[] tex_ids = query_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
+							GLuint[] tex_ids = query_input_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
 							_buffer_props1[i].tex_targets[j] = tex_target;
 							_buffer_props1[i].tex_ids[j] = tex_ids[0];
 
@@ -616,12 +642,16 @@ namespace Shady
 					else
 					{
 						_buffer_props2[i].fb = fbs[i];
-						_buffer_props2[i].tex_id_out = _image_prop1.tex_ids[0];
+
+						GLuint[] output_tex_ids = query_output_texture(buffer_outputs[i]);
+						_buffer_props2[i].tex_id_out_front = output_tex_ids[0];
+						_buffer_props2[i].tex_id_out_back = output_tex_ids[1];
+
 						_buffer_props2[i].program = glCreateProgram();
 						glAttachShader(_buffer_props2[i].program, _gl_context.vertex_shader);
 						glAttachShader(_buffer_props2[i].program, _fragment_shader);
 
-						int num_samplers = (int)buffer_inputs.length;
+						int num_samplers = (int)buffer_inputs[i].length;
 
 						_buffer_props2[i].sampler_ids = new GLuint[num_samplers];
 						glGenSamplers(num_samplers, _buffer_props2[i].sampler_ids);
@@ -641,7 +671,7 @@ namespace Shady
 							init_sampler(buffer_inputs[i].index(j), _buffer_props2[i].sampler_ids[j]);
 
 							GLuint tex_target;
-							GLuint[] tex_ids = query_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
+							GLuint[] tex_ids = query_input_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
 							_buffer_props2[i].tex_targets[j] = tex_target;
 							_buffer_props2[i].tex_ids[j] = tex_ids[0];
 
@@ -652,6 +682,84 @@ namespace Shady
 								_buffer_props2[i].tex_widths[channel] = width;
 								_buffer_props2[i].tex_heights[channel] = height;
 								_buffer_props2[i].tex_depths[channel] = depth;
+							}
+						}
+					}
+				}
+
+				for(int i=0;i<buffer_count;i++)
+				{
+					if(!_program_switch)
+					{
+						int num_refs = 0;
+						for(int j=0;j<buffer_count;j++)
+						{
+							for(int k=0;k<_buffer_props1[j].tex_ids.length;k++)
+							{
+								if(_buffer_props1[j].tex_ids[k] == _buffer_props1[i].tex_id_out_front)
+								{
+									num_refs++;
+								}
+							}
+						}
+
+						_buffer_props1[i].tex_out_refs = new int[num_refs,2];
+						int ref_index=0;
+						for(int j=0;j<buffer_count;j++)
+						{
+							for(int k=0;k<_buffer_props1[j].tex_ids.length;k++)
+							{
+								if(_buffer_props1[j].tex_ids[k] == _buffer_props1[i].tex_id_out_front)
+								{
+									_buffer_props1[i].tex_out_refs[ref_index,0] = j;
+									_buffer_props1[i].tex_out_refs[ref_index,1] = k;
+								}
+							}
+						}
+
+						_buffer_props1[i].tex_out_refs_img = {};
+						for(int j=0;j<_image_prop1.tex_ids.length;j++)
+						{
+							if(_image_prop1.tex_ids[j] == _buffer_props1[i].tex_id_out_front)
+							{
+								_buffer_props1[i].tex_out_refs_img += j;
+							}
+						}
+					}
+					else
+					{
+						int num_refs = 0;
+						for(int j=0;j<buffer_count;j++)
+						{
+							for(int k=0;k<_buffer_props2[j].tex_ids.length;k++)
+							{
+								if(_buffer_props2[j].tex_ids[k] == _buffer_props2[i].tex_id_out_front)
+								{
+									num_refs++;
+								}
+							}
+						}
+
+						_buffer_props2[i].tex_out_refs = new int[num_refs,2];
+						int ref_index=0;
+						for(int j=0;j<buffer_count;j++)
+						{
+							for(int k=0;k<_buffer_props2[j].tex_ids.length;k++)
+							{
+								if(_buffer_props2[j].tex_ids[k] == _buffer_props2[i].tex_id_out_front)
+								{
+									_buffer_props2[i].tex_out_refs[ref_index,0] = j;
+									_buffer_props2[i].tex_out_refs[ref_index,1] = k;
+								}
+							}
+						}
+
+						_buffer_props2[i].tex_out_refs_img = {};
+						for(int j=0;j<_image_prop2.tex_ids.length;j++)
+						{
+							if(_image_prop2.tex_ids[j] == _buffer_props2[i].tex_id_out_front)
+							{
+								_buffer_props2[i].tex_out_refs_img += j;
 							}
 						}
 					}
@@ -719,11 +827,21 @@ namespace Shady
 					if(!_program_switch)
 					{
 						compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props1[i], ref _buffer_prog1_mutexes[i]);
-						_buffer_props1_mutex.unlock();
 					}
 					else
 					{
 						compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props2[i], ref _buffer_prog2_mutexes[i]);
+					}
+				}
+
+				if(buffer_count>0)
+				{
+					if(!_program_switch)
+					{
+						_buffer_props1_mutex.unlock();
+					}
+					else
+					{
 						_buffer_props2_mutex.unlock();
 					}
 				}
@@ -976,7 +1094,7 @@ namespace Shady
 			initialized();
 		}
 
-		private GLuint[] query_texture(Shader.Input input, out int width, out int height, out int depth, out uint target)
+		private GLuint[] query_input_texture(Shader.Input input, out int width, out int height, out int depth, out uint target)
 		{
 
 			width = 0;
@@ -985,22 +1103,100 @@ namespace Shady
 			target = -1;
 
 			int i;
-			for(i=0;i<_texture_buffer.length;i++)
+
+			if(input.type == Shader.InputType.BUFFER)
 			{
-				if(input.type == _texture_buffer[i].type &&
-				   _texture_buffer[i].index == input.resource_index &&
-				   _texture_buffer[i].v_flip == input.sampler.v_flip)
+				for(i=0;i<_buffer_buffer.length;i++)
 				{
-					width = _texture_buffer[i].width;
-					height = _texture_buffer[i].height;
-					depth = _texture_buffer[i].depth;
-					target = _texture_buffer[i].target;
-					return _texture_buffer[i].tex_ids;
+				    if(_buffer_buffer[i].type == Shader.InputType.BUFFER && _buffer_buffer[i].input_id == input.id)
+					{
+						width = _buffer_buffer[i].width;
+						height = _buffer_buffer[i].height;
+						depth = _buffer_buffer[i].depth;
+						target = _buffer_buffer[i].target;
+						return _buffer_buffer[i].tex_ids;
+					}
+				}
+				if(i == _buffer_buffer.length)
+				{
+					GLuint[] tex_ids = init_input_texture(input, out width, out height, out depth, out target);
+					TextureBufferUnit tex_unit = TextureBufferUnit()
+					{
+						width = width,
+						height = height,
+						depth = depth,
+						target = target,
+						input_id = input.id,
+						tex_ids = tex_ids,
+						type = input.type,
+						v_flip = input.sampler.v_flip,
+						index = i
+					};
+
+					_buffer_buffer += tex_unit;
+					return tex_ids;
+				}
+			}
+			else
+			{
+				for(i=0;i<_texture_buffer.length;i++)
+				{
+					if(input.type == _texture_buffer[i].type &&
+					   _texture_buffer[i].index == input.resource_index &&
+					   _texture_buffer[i].v_flip == input.sampler.v_flip)
+					{
+						width = _texture_buffer[i].width;
+						height = _texture_buffer[i].height;
+						depth = _texture_buffer[i].depth;
+						target = _texture_buffer[i].target;
+						return _texture_buffer[i].tex_ids;
+					}
+				}
+
+				if(i == _texture_buffer.length)
+				{
+					GLuint[] tex_ids = init_input_texture(input, out width, out height, out depth, out target);
+					TextureBufferUnit tex_unit = TextureBufferUnit()
+					{
+						width = width,
+						height = height,
+						depth = depth,
+						target = target,
+						input_id = input.id,
+						tex_ids = tex_ids,
+						type = input.type,
+						v_flip = input.sampler.v_flip,
+						index = i
+					};
+
+					_texture_buffer += tex_unit;
+					return tex_ids;
+				}
+			}
+			return {};
+		}
+
+		private GLuint[] query_output_texture(Shader.Output output)
+		{
+			int i;
+			for(i=0;i<_buffer_buffer.length;i++)
+			{
+				if(_buffer_buffer[i].type == Shader.InputType.BUFFER &&
+				   _buffer_buffer[i].input_id == output.id)
+				{
+					return _buffer_buffer[i].tex_ids;
 				}
 			}
 
-			if(i == _texture_buffer.length)
+			if(i == _buffer_buffer.length)
 			{
+				Shader.Input input = new Shader.Input();
+				input.id = output.id;
+				input.type = Shader.InputType.BUFFER;
+
+				int width, height, depth;
+				uint target;
+
 				GLuint[] tex_ids = init_input_texture(input, out width, out height, out depth, out target);
 				TextureBufferUnit tex_unit = TextureBufferUnit()
 				{
@@ -1008,13 +1204,14 @@ namespace Shady
 					height = height,
 					depth = depth,
 					target = target,
+					input_id = input.id,
 					tex_ids = tex_ids,
 					type = input.type,
 					v_flip = input.sampler.v_flip,
 					index = i
 				};
 
-				_texture_buffer += tex_unit;
+				_buffer_buffer += tex_unit;
 				return tex_ids;
 			}
 			return {};
@@ -1084,7 +1281,7 @@ namespace Shady
 					format = GL_RGBA;
 				}
 
-				glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA, width, height, depth, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])voxmap.voxels);
+				glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, width, height, depth, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])voxmap.voxels);
 				glGenerateMipmap(target);
 			}
 			else if(input.type == Shader.InputType.CUBEMAP)
@@ -1114,7 +1311,7 @@ namespace Shady
 					format = GL_RGBA;
 				}
 
-				glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,1];
 
 				if(input.sampler.v_flip)
@@ -1122,7 +1319,7 @@ namespace Shady
 					buf = buf.flip(false);
 				}
 
-				glTexImage2D( GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,2];
 
 				if(input.sampler.v_flip)
@@ -1131,7 +1328,7 @@ namespace Shady
 				}
 
 
-				glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,3];
 
 				if(input.sampler.v_flip)
@@ -1139,7 +1336,7 @@ namespace Shady
 					buf = buf.flip(false);
 				}
 
-				glTexImage2D( GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,4];
 
 				if(input.sampler.v_flip)
@@ -1148,7 +1345,7 @@ namespace Shady
 				}
 
 
-				glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,5];
 
 				if(input.sampler.v_flip)
@@ -1156,7 +1353,7 @@ namespace Shady
 					buf = buf.flip(false);
 				}
 
-				glTexImage2D( GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
 				glGenerateMipmap(target);
 			}
 			else if(input.type == Shader.InputType.BUFFER)
@@ -1225,8 +1422,6 @@ namespace Shady
 				_delta = 0.0f;
 			}
 
-			//stdout.printf("%f\n",time);
-
 			_curr_date = new DateTime.now_local();
 
 			_curr_date.get_ymd(out _year, out _month, out _day);
@@ -1248,15 +1443,35 @@ namespace Shady
 
 				update_uniform_values();
 
-				if(buf_prop_mutex.trylock()){
-					for(int i=0; i<buf_props.length; i++){
+				if(buf_prop_mutex.trylock())
+				{
+					for(int i=0; i<buf_props.length; i++)
+					{
 						render_gl(buf_props[i], buf_prog_mutexes[i]);
-
-						uint tmp = buf_props[i].tex_id_out;
-						buf_props[i].tex_id_out = buf_props[i].tex_id_out;
-						buf_props[i].tex_id_out = tmp;
 					}
+
+					for(int i=0; i<buf_props.length; i++)
+					{
+						uint tmp = buf_props[i].tex_id_out_back;
+						buf_props[i].tex_id_out_back = buf_props[i].tex_id_out_front;
+						buf_props[i].tex_id_out_front = tmp;
+						for(int j=0; j<buf_props[i].tex_out_refs.length[0]; j++)
+						{
+							buf_props[buf_props[i].tex_out_refs[j,0]].tex_ids[buf_props[i].tex_out_refs[j,1]] = tmp;
+						}
+
+						for(int j=0; j<buf_props[i].tex_out_refs_img.length; j++)
+						{
+							img_prop.tex_ids[buf_props[i].tex_out_refs_img[j]] = tmp;
+						}
+					}
+
 					buf_prop_mutex.unlock();
+				}
+
+				int error = (int)glGetError();
+				if(error!=0){
+					print(@"gl error:$(error)\n");
 				}
 
 				int64 time_delta = render_gl(img_prop, img_prog_mutex);
@@ -1290,9 +1505,9 @@ namespace Shady
 
 		private int64 render_gl(BufferProperties buf_prop, Mutex prog_mutex)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, buf_prop.fb);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, buf_prop.fb);
 			if(buf_prop.fb!=0){
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buf_prop.tex_id_out, 0);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buf_prop.tex_id_out_back, 0);
 			}
 
 			glViewport(0, 0, _width, _height);
@@ -1326,7 +1541,7 @@ namespace Shady
 
 			for(int i=0;i<buf_prop.tex_ids.length && i<buf_prop.channel_locs.length;i++)
 			{
-				if(buf_prop.channel_locs[i] > 0)
+				if(buf_prop.channel_locs[i] >= 0)
 				{
 					glActiveTexture(GL_TEXTURE0 + buf_prop.tex_channels[i]);
 					glBindTexture(buf_prop.tex_targets[i], buf_prop.tex_ids[i]);

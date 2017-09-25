@@ -10179,7 +10179,7 @@ namespace GL {
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glDeleteSync")]
 	public static void glDeleteSync (GL.GLsync sync);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glDeleteTextures")]
-	public static void glDeleteTextures (GL.GLsizei n, [CCode (array_length = false)] GL.GLuint[]? textures);
+	public static void glDeleteTextures (GL.GLsizei n, [CCode (array_length = false)] GL.GLuint[] textures);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glDeleteTexturesEXT")]
 	public static void glDeleteTexturesEXT (GL.GLsizei n, [CCode (array_length = false)] GL.GLuint[]? textures);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glDeleteTransformFeedbacks")]

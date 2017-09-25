@@ -163,6 +163,7 @@ namespace Shady
 			try
 			{
 				_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
+				_buffer_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/buffer_default.glsl", 0).get_data());
 			}
 			catch (Error e)
 			{
