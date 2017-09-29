@@ -9,7 +9,7 @@ namespace Shady
 		COMPILATION
 	}
 
-	public class ShaderArea : EventBox
+	public class ShaderArea : GLArea
 	{
 		public signal void initialized();
 
@@ -20,6 +20,9 @@ namespace Shady
 		{
 			public GLuint program;
 			public GLuint fb;
+			public GLuint vao;
+
+			public Gdk.GLContext context;
 
 			public GLuint[] tex_ids;
 			public GLuint[] sampler_ids;
@@ -111,7 +114,8 @@ namespace Shady
 		private Mutex[] _buffer_prog2_mutexes;
 
 		/* Objects */
-		private GlContext _gl_context;
+		private Gdk.GLContext _render_context1;
+		private Gdk.GLContext _render_context2;
 
 		/* Constants */
 		private const double _time_slider_factor = 2.0;
@@ -119,8 +123,10 @@ namespace Shady
 		/* OpenGL ids */
 		private const string _channel_string = "iChannel";
 
+		private GLuint _vertex_shader;
 		private GLuint _fragment_shader;
-		private GLuint[] _vao = { 1337 };
+
+		private GLuint _resize_fb;
 
 		/* Time variables */
 		private DateTime _curr_date;
@@ -156,34 +162,17 @@ namespace Shady
 
 		private int _width = 0;
 		private int _height = 0;
-		private int _stride = 0;
-
-		private uchar[] _buffer;
-		private uchar[] _old_buffer;
-
-		/* Threads and sync variables */
-		private Mutex _buffer_mutex = Mutex();
-		private Mutex _old_buffer_mutex = Mutex();
-		private Mutex _size_mutex = Mutex();
 
 		private bool _render_switch = true;
-		private bool _program_switch = true;
 
-		private Mutex _render_switch_mutex1 = Mutex();
-		private Mutex _render_switch_mutex2 = Mutex();
 		private Cond _render_switch_cond = Cond();
+		private Mutex _render_switch_mutex = Mutex();
 
-		private Cond _draw_cond = Cond();
-		private Cond _render_cond = Cond();
-
-		private bool _buffer_drawn = false;
-		private bool _buffer_rendered = false;
-		private bool _old_buffer_rendered = false;
+		private Mutex _size_mutex = Mutex();
 
 		private Thread<int> _render_thread1;
 		private Thread<int> _render_thread2;
-		private bool _render_thread1_running = true;
-		private bool _render_thread2_running = true;
+		private bool _render_threads_running = true;
 
 		private Mutex _compile_mutex = Mutex();
 
@@ -226,73 +215,47 @@ namespace Shady
 				return false;
 			});
 
-			draw.connect((cairo_context) =>
+			create_context.connect(() =>
 			{
-
-				if(_buffer_mutex.trylock())
+				try
 				{
-					while(!_buffer_rendered)
-					{
-						print("waiting now\n");
-						_render_cond.wait(_buffer_mutex);
-						print("not waiting anymore\n");
-					}
-
-					Cairo.ImageSurface image = new Cairo.ImageSurface.for_data(_buffer, Cairo.Format.RGB24, _width, _height, _stride);
-
-					cairo_context.translate(_width*0, _height);
-					cairo_context.scale(1,-1);
-
-					cairo_context.set_source_surface(image, 0, 0);
-
-					cairo_context.paint();
-
-					_buffer_drawn = true;
-					_draw_cond.signal();
-					_buffer_mutex.unlock();
+					_render_context1 = get_window().create_gl_context();
+					_render_context2 = get_window().create_gl_context();
+					return get_window().create_gl_context();
 				}
-				else
+				catch(Error e)
 				{
-					_old_buffer_mutex.lock();
-
-					while(!_old_buffer_rendered)
-					{
-						_render_cond.wait(_old_buffer_mutex);
-					}
-
-					Cairo.ImageSurface image = new Cairo.ImageSurface.for_data(_old_buffer, Cairo.Format.RGB24, _width, _height, _stride);
-					cairo_context.translate(_width*0, _height);
-					cairo_context.scale(1,-1);
-
-					cairo_context.set_source_surface(image, 0, 0);
-
-					cairo_context.paint();
-
-					_old_buffer_mutex.unlock();
+					print("Couldn't create gl context\n");
+					return (Gdk.GLContext)null;
 				}
-
-
-				queue_draw();
-
-				return true;
 			});
 
-			size_allocate.connect((allocation) =>
+			render.connect(() =>
 			{
 				_size_mutex.lock();
-				_buffer_mutex.lock();
-				_old_buffer_mutex.lock();
-				_width = allocation.width;
-				_height = allocation.height;
-				_stride = Cairo.Format.RGB24.stride_for_width(_width);
+				render_gl(_target_prop, _target_prog_mutex);
+				_size_mutex.unlock();
+				queue_draw();
+				return false;
+			});
 
-				_gl_context.thread_context();
+			resize.connect((width, height) =>
+			{
+				_width = width;
+				_height = height;
+
+				make_current();
+
+				_size_mutex.lock();
 
 				glBindTexture(GL_TEXTURE_2D, _image_prop1.tex_id_out_back);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
 
-				glBindTexture(GL_TEXTURE_2D, _image_prop2.tex_id_out_back);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _image_prop1.tex_id_out_back, 0);
+
+				glClearColor(0,0,0,1);
+				glClear(GL_COLOR_BUFFER_BIT);
 
 				for(int i=0;i<_buffer_buffer.length;i++)
 				{
@@ -303,23 +266,27 @@ namespace Shady
 					{
 						glBindTexture(GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j]);
 						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+						glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j], 0);
+
+						glClearColor(0,0,0,1);
+						glClear(GL_COLOR_BUFFER_BIT);
 					}
 				}
 
-				_buffer = new uchar[_stride*_height];
-				_buffer_rendered = false;
-				_old_buffer_rendered = false;
-				_old_buffer_mutex.unlock();
-				_buffer_mutex.unlock();
+				if(!_initialized)
+				{
+					_initialized = true;
+					initialized();
+				}
+
 				_size_mutex.unlock();
-				_buffer_drawn = true;
-				_draw_cond.signal();
 			});
 
 			unrealize.connect(() =>
 			{
-				_render_thread1_running = false;
-				_render_thread2_running = false;
+				_render_threads_running = false;
 
 				_render_switch_cond.signal();
 
@@ -353,7 +320,7 @@ namespace Shady
 					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/cubemap_channel_default.glsl", 0).get_data());
 				}
 			}
-			catch (Error e)
+			catch(Error e)
 			{
 				print("Couldn't load default shader for input type!\n");
 				return null;
@@ -395,7 +362,7 @@ namespace Shady
 				string default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
 				renderpass.code = default_code;
 			}
-			catch (Error e)
+			catch(Error e)
 			{
 				print("Couldn't load default shader!\n");
 				return null;
@@ -429,22 +396,36 @@ namespace Shady
 			}
 		}
 
-		public void compile(Shader new_shader)
+		public Thread<int> compile(Shader new_shader)
 		{
-			new Thread<int>("compile_thread", () =>
+			return new Thread<int>("compile_thread", () =>
 			{
 
 				if(_compile_mutex.trylock())
 				{
-					_gl_context.thread_context();
+					try
+					{
+						Gdk.GLContext thread_context = get_window().create_gl_context();
+						thread_context.make_current();
 
-					compile_blocking(new_shader);
+						if(_render_switch)
+						{
+							compile_blocking(new_shader, ref _image_prop1, ref _image_prog1_mutex, ref _buffer_props1, ref _buffer_props1_mutex, ref _buffer_prog1_mutexes);
+						}
+						else
+						{
+							compile_blocking(new_shader, ref _image_prop2, ref _image_prog2_mutex, ref _buffer_props2, ref _buffer_props2_mutex, ref _buffer_prog2_mutexes);
+						}
 
-					_gl_context.free_context();
-					_compile_mutex.unlock();
+						Gdk.GLContext.clear_current();
+						_compile_mutex.unlock();
 
-					_render_switch = !_render_switch;
-					_render_switch_cond.signal();
+						_render_switch_cond.signal();
+					}
+					catch(Error e)
+					{
+						print("Couldn't create gl context!\n");
+					}
 				}
 
 				return 0;
@@ -455,19 +436,33 @@ namespace Shady
 		{
 			if(_compile_mutex.trylock())
 			{
-				_gl_context.thread_context();
+				try
+				{
+					Gdk.GLContext thread_context = get_window().create_gl_context();
+					thread_context.make_current();
 
-				compile_blocking(new_shader);
+					if(_render_switch)
+					{
+						compile_blocking(new_shader, ref _image_prop1, ref _image_prog1_mutex, ref _buffer_props1, ref _buffer_props1_mutex, ref _buffer_prog1_mutexes);
+					}
+					else
+					{
+						compile_blocking(new_shader, ref _image_prop2, ref _image_prog2_mutex, ref _buffer_props2, ref _buffer_props2_mutex, ref _buffer_prog2_mutexes);
+					}
 
-				_gl_context.free_context();
-				_compile_mutex.unlock();
+					Gdk.GLContext.clear_current();
+					_compile_mutex.unlock();
 
-				_render_switch = !_render_switch;
-				_render_switch_cond.signal();
+					_render_switch_cond.signal();
+				}
+				catch(Error e)
+				{
+					print("Couldn't create gl context!\n");
+				}
 			}
 		}
 
-		private void compile_blocking(Shader new_shader)
+		private void compile_blocking(Shader new_shader, ref BufferProperties image_prop, ref Mutex image_prog_mutex, ref BufferProperties[] buffer_props, ref Mutex buffer_props_mutex, ref Mutex[] buffer_prog_mutexes)
 		{
 			string image_source = "";
 			int image_index = -1;
@@ -492,105 +487,41 @@ namespace Shady
 			{
 				int num_samplers = (int)image_inputs.length;
 
-				_image_prop1.sampler_ids = new GLuint[num_samplers];
-				glGenSamplers(num_samplers, _image_prop1.sampler_ids);
+				image_prop.sampler_ids = new GLuint[num_samplers];
+				glGenSamplers(num_samplers, image_prop.sampler_ids);
 
-				_image_prop2.sampler_ids = new GLuint[num_samplers];
-				glGenSamplers(num_samplers, _image_prop2.sampler_ids);
-
-				_image_prop1.tex_channels = new int[num_samplers];
-				_image_prop2.tex_channels = new int[num_samplers];
-
-				_image_prop1.tex_ids = new uint[num_samplers];
-				_image_prop2.tex_ids = new uint[num_samplers];
-
-				_image_prop1.tex_targets = new uint[num_samplers];
-				_image_prop2.tex_targets = new uint[num_samplers];
-
-				_image_prop1.tex_widths = {0,0,0,0};
-				_image_prop2.tex_widths = {0,0,0,0};
-
-				_image_prop1.tex_heights = {0,0,0,0};
-				_image_prop2.tex_heights = {0,0,0,0};
-
-				_image_prop1.tex_depths = {0,0,0,0};
-				_image_prop2.tex_depths = {0,0,0,0};
-
-				GLuint[] fb_arr = {0};
-				glGenFramebuffers(1, fb_arr);
-
-				_image_prop1.fb = fb_arr[0];
-				_image_prop2.fb = fb_arr[0];
-
-				//_image_prop1.fb = 0;
-				//_image_prop2.fb = 0;
-
-				GLuint[] tex_arr = {0};
-				glGenTextures(1, tex_arr);
-
-				_image_prop1.tex_id_out_back = tex_arr[0];
-				_image_prop2.tex_id_out_back = tex_arr[0];
-
-				glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-				glBindTexture(GL_TEXTURE_2D, tex_arr[1]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+				image_prop.tex_channels = new int[num_samplers];
+				image_prop.tex_ids = new uint[num_samplers];
+				image_prop.tex_targets = new uint[num_samplers];
+				image_prop.tex_widths = {0,0,0,0};
+				image_prop.tex_heights = {0,0,0,0};
+				image_prop.tex_depths = {0,0,0,0};
 
 				for(int i=0;i<image_inputs.length;i++)
 				{
 					int width, height, depth, channel;
 
-					init_sampler(image_inputs.index(i), _image_prop1.sampler_ids[i]);
+					init_sampler(image_inputs.index(i), image_prop.sampler_ids[i]);
 
 					GLuint tex_target;
 					GLuint[] tex_ids = query_input_texture(image_inputs.index(i), out width, out height, out depth, out tex_target);
-					_image_prop1.tex_ids[i] = tex_ids[0];
-					_image_prop1.tex_targets[i] = tex_target;
+					image_prop.tex_ids[i] = tex_ids[0];
+					image_prop.tex_targets[i] = tex_target;
 
 					channel = image_inputs.index(i).channel;
-					_image_prop1.tex_channels[i] = channel;
+					image_prop.tex_channels[i] = channel;
 
 					if(channel>=0 && channel<4){
-						_image_prop1.tex_widths[channel] = width;
-						_image_prop1.tex_heights[channel] = height;
-						_image_prop1.tex_depths[channel] = depth;
-					}
-
-					init_sampler(image_inputs.index(i), _image_prop2.sampler_ids[i]);
-
-					tex_ids = query_input_texture(image_inputs.index(i), out width, out height, out depth, out tex_target);
-					_image_prop2.tex_ids[i] = tex_ids[0];
-					_image_prop2.tex_targets[i] = tex_target;
-
-					channel = image_inputs.index(i).channel;
-					_image_prop2.tex_channels[i] = channel;
-
-					if(channel>=0 && channel<4){
-						_image_prop2.tex_widths[channel] = width;
-						_image_prop2.tex_heights[channel] = height;
-						_image_prop2.tex_depths[channel] = depth;
+						image_prop.tex_widths[channel] = width;
+						image_prop.tex_heights[channel] = height;
+						image_prop.tex_depths[channel] = depth;
 					}
 				}
 
-				_target_prop.sampler_ids = new GLuint[1];
-				glGenSamplers(1, _target_prop.sampler_ids);
-				Shader.Input target_input = new Shader.Input();
-				target_input.sampler = new Shader.Sampler();
-				target_input.sampler.filter = Shader.FilterMode.LINEAR;
-				target_input.sampler.wrap = Shader.WrapMode.REPEAT;
-				init_sampler(target_input, _target_prop.sampler_ids[0]);
-				_target_prop.tex_widths = new int[4];
-				_target_prop.tex_heights = new int[4];
-				_target_prop.tex_depths = new int[4];
-				_target_prop.tex_channels = {0};
-				_target_prop.tex_ids = {_image_prop1.tex_id_out_back};
-				_target_prop.tex_targets = {GL_TEXTURE_2D};
-				_target_prop.fb = 0;
 			}
 			else
 			{
-				print("No image _buffer found!\n");
+				print("No image buffer found!\n");
 				return;
 			}
 
@@ -601,18 +532,9 @@ namespace Shady
 
 			if(buffer_count>0)
 			{
-				if(!_program_switch)
-				{
-					_buffer_props1_mutex.lock();
-					_buffer_props1 = new BufferProperties[buffer_count];
-					_buffer_prog1_mutexes = new Mutex[buffer_count];
-				}
-				else
-				{
-					_buffer_props2_mutex.lock();
-					_buffer_props2 = new BufferProperties[buffer_count];
-					_buffer_prog2_mutexes = new Mutex[buffer_count];
-				}
+				buffer_props_mutex.lock();
+				buffer_props = new BufferProperties[buffer_count];
+				buffer_prog_mutexes = new Mutex[buffer_count];
 
 				GLuint[] fbs = new GLuint[buffer_count];
 				glGenFramebuffers(buffer_count, fbs);
@@ -632,196 +554,100 @@ namespace Shady
 
 				for(int i=0; i<buffer_count; i++)
 				{
-					if(!_program_switch)
+					buffer_props[i].fb = fbs[i];
+
+					GLuint[] output_tex_ids = query_output_texture(buffer_outputs[i]);
+					buffer_props[i].tex_id_out_front = output_tex_ids[0];
+					buffer_props[i].tex_id_out_back = output_tex_ids[1];
+
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbs[i]);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output_tex_ids[1], 0);
+
+					glClearColor(0,0,0,1);
+					glClear(GL_COLOR_BUFFER_BIT);
+
+					buffer_props[i].program = glCreateProgram();
+					glAttachShader(buffer_props[i].program, _vertex_shader);
+					glAttachShader(buffer_props[i].program, _fragment_shader);
+
+					int num_samplers = (int)buffer_inputs[i].length;
+
+					buffer_props[i].sampler_ids = new GLuint[num_samplers];
+					glGenSamplers(num_samplers, buffer_props[i].sampler_ids);
+
+					buffer_props[i].tex_widths = {0,0,0,0};
+					buffer_props[i].tex_heights = {0,0,0,0};
+					buffer_props[i].tex_depths = {0,0,0,0};
+
+					buffer_props[i].tex_channels = new int[num_samplers];
+					buffer_props[i].tex_ids = new uint[num_samplers];
+					buffer_props[i].tex_targets = new uint[num_samplers];
+
+					for(int j=0;j<num_samplers;j++)
 					{
-						_buffer_props1[i].fb = fbs[i];
+						int width, height, depth, channel;
 
-						GLuint[] output_tex_ids = query_output_texture(buffer_outputs[i]);
-						_buffer_props1[i].tex_id_out_front = output_tex_ids[0];
-						_buffer_props1[i].tex_id_out_back = output_tex_ids[1];
+						init_sampler(buffer_inputs[i].index(j), _buffer_props1[i].sampler_ids[j]);
 
-						glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbs[i]);
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output_tex_ids[1], 0);
+						GLuint tex_target;
+						GLuint[] tex_ids = query_input_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
+						buffer_props[i].tex_targets[j] = tex_target;
+						buffer_props[i].tex_ids[j] = tex_ids[0];
 
-						glClearColor(0,0,0,1);
-						glClear(GL_COLOR_BUFFER_BIT);
+						channel = buffer_inputs[i].index(j).channel;
+						buffer_props[i].tex_channels[j] = channel;
 
-						_buffer_props1[i].program = glCreateProgram();
-						glAttachShader(_buffer_props1[i].program, _gl_context.vertex_shader);
-						glAttachShader(_buffer_props1[i].program, _fragment_shader);
-
-						int num_samplers = (int)buffer_inputs[i].length;
-
-						_buffer_props1[i].sampler_ids = new GLuint[num_samplers];
-						glGenSamplers(num_samplers, _buffer_props1[i].sampler_ids);
-
-						_buffer_props1[i].tex_widths = {0,0,0,0};
-						_buffer_props1[i].tex_heights = {0,0,0,0};
-						_buffer_props1[i].tex_depths = {0,0,0,0};
-
-						_buffer_props1[i].tex_channels = new int[num_samplers];
-						_buffer_props1[i].tex_ids = new uint[num_samplers];
-						_buffer_props1[i].tex_targets = new uint[num_samplers];
-
-						for(int j=0;j<num_samplers;j++)
-						{
-							int width, height, depth, channel;
-
-							init_sampler(buffer_inputs[i].index(j), _buffer_props1[i].sampler_ids[j]);
-
-							GLuint tex_target;
-							GLuint[] tex_ids = query_input_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
-							_buffer_props1[i].tex_targets[j] = tex_target;
-							_buffer_props1[i].tex_ids[j] = tex_ids[0];
-
-							channel = buffer_inputs[i].index(j).channel;
-							_buffer_props1[i].tex_channels[j] = channel;
-
-							if(channel>=0 && channel<4){
-								_buffer_props1[i].tex_widths[channel] = width;
-								_buffer_props1[i].tex_heights[channel] = height;
-								_buffer_props1[i].tex_depths[channel] = depth;
-							}
-						}
-
-					}
-					else
-					{
-						_buffer_props2[i].fb = fbs[i];
-
-						GLuint[] output_tex_ids = query_output_texture(buffer_outputs[i]);
-						_buffer_props2[i].tex_id_out_front = output_tex_ids[0];
-						_buffer_props2[i].tex_id_out_back = output_tex_ids[1];
-
-						_buffer_props2[i].program = glCreateProgram();
-						glAttachShader(_buffer_props2[i].program, _gl_context.vertex_shader);
-						glAttachShader(_buffer_props2[i].program, _fragment_shader);
-
-						int num_samplers = (int)buffer_inputs[i].length;
-
-						_buffer_props2[i].sampler_ids = new GLuint[num_samplers];
-						glGenSamplers(num_samplers, _buffer_props2[i].sampler_ids);
-
-						_buffer_props2[i].tex_widths = {0,0,0,0};
-						_buffer_props2[i].tex_heights = {0,0,0,0};
-						_buffer_props2[i].tex_depths = {0,0,0,0};
-
-						_buffer_props2[i].tex_channels = new int[num_samplers];
-						_buffer_props2[i].tex_ids = new uint[num_samplers];
-						_buffer_props2[i].tex_targets = new uint[num_samplers];
-
-						for(int j=0;j<num_samplers;j++)
-						{
-							int width, height, depth, channel;
-
-							init_sampler(buffer_inputs[i].index(j), _buffer_props2[i].sampler_ids[j]);
-
-							GLuint tex_target;
-							GLuint[] tex_ids = query_input_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
-							_buffer_props2[i].tex_targets[j] = tex_target;
-							_buffer_props2[i].tex_ids[j] = tex_ids[0];
-
-							channel = buffer_inputs[i].index(j).channel;
-							_buffer_props2[i].tex_channels[j] = channel;
-
-							if(channel>=0 && channel<4){
-								_buffer_props2[i].tex_widths[channel] = width;
-								_buffer_props2[i].tex_heights[channel] = height;
-								_buffer_props2[i].tex_depths[channel] = depth;
-							}
+						if(channel>=0 && channel<4){
+							buffer_props[i].tex_widths[channel] = width;
+							buffer_props[i].tex_heights[channel] = height;
+							buffer_props[i].tex_depths[channel] = depth;
 						}
 					}
 				}
 
 				for(int i=0;i<buffer_count;i++)
 				{
-					if(!_program_switch)
+					int num_refs = 0;
+					for(int j=0;j<buffer_count;j++)
 					{
-						int num_refs = 0;
-						for(int j=0;j<buffer_count;j++)
+						for(int k=0;k<buffer_props[j].tex_ids.length;k++)
 						{
-							for(int k=0;k<_buffer_props1[j].tex_ids.length;k++)
+							if(buffer_props[j].tex_ids[k] == buffer_props[i].tex_id_out_front)
 							{
-								if(_buffer_props1[j].tex_ids[k] == _buffer_props1[i].tex_id_out_front)
-								{
-									num_refs++;
-								}
-							}
-						}
-
-						_buffer_props1[i].tex_out_refs = new int[num_refs,2];
-						int ref_index=0;
-						for(int j=0;j<buffer_count;j++)
-						{
-							for(int k=0;k<_buffer_props1[j].tex_ids.length;k++)
-							{
-								if(_buffer_props1[j].tex_ids[k] == _buffer_props1[i].tex_id_out_front)
-								{
-									_buffer_props1[i].tex_out_refs[ref_index,0] = j;
-									_buffer_props1[i].tex_out_refs[ref_index,1] = k;
-								}
-							}
-						}
-
-						_buffer_props1[i].tex_out_refs_img = {};
-						for(int j=0;j<_image_prop1.tex_ids.length;j++)
-						{
-							if(_image_prop1.tex_ids[j] == _buffer_props1[i].tex_id_out_front)
-							{
-								_buffer_props1[i].tex_out_refs_img += j;
+								num_refs++;
 							}
 						}
 					}
-					else
+
+					buffer_props[i].tex_out_refs = new int[num_refs,2];
+					int ref_index=0;
+					for(int j=0;j<buffer_count;j++)
 					{
-						int num_refs = 0;
-						for(int j=0;j<buffer_count;j++)
+						for(int k=0;k<buffer_props[j].tex_ids.length;k++)
 						{
-							for(int k=0;k<_buffer_props2[j].tex_ids.length;k++)
+							if(buffer_props[j].tex_ids[k] == buffer_props[i].tex_id_out_front)
 							{
-								if(_buffer_props2[j].tex_ids[k] == _buffer_props2[i].tex_id_out_front)
-								{
-									num_refs++;
-								}
+								buffer_props[i].tex_out_refs[ref_index,0] = j;
+								buffer_props[i].tex_out_refs[ref_index,1] = k;
 							}
 						}
+					}
 
-						_buffer_props2[i].tex_out_refs = new int[num_refs,2];
-						int ref_index=0;
-						for(int j=0;j<buffer_count;j++)
+					buffer_props[i].tex_out_refs_img = {};
+					for(int j=0;j<image_prop.tex_ids.length;j++)
+					{
+						if(image_prop.tex_ids[j] == buffer_props[i].tex_id_out_front)
 						{
-							for(int k=0;k<_buffer_props2[j].tex_ids.length;k++)
-							{
-								if(_buffer_props2[j].tex_ids[k] == _buffer_props2[i].tex_id_out_front)
-								{
-									_buffer_props2[i].tex_out_refs[ref_index,0] = j;
-									_buffer_props2[i].tex_out_refs[ref_index,1] = k;
-								}
-							}
-						}
-
-						_buffer_props2[i].tex_out_refs_img = {};
-						for(int j=0;j<_image_prop2.tex_ids.length;j++)
-						{
-							if(_image_prop2.tex_ids[j] == _buffer_props2[i].tex_id_out_front)
-							{
-								_buffer_props2[i].tex_out_refs_img += j;
-							}
+							buffer_props[i].tex_out_refs_img += j;
 						}
 					}
 				}
 			}
 
-			try{
+			try
+			{
 				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
 				string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
-
-				string target_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
-				string target_channel_prefix = "uniform sampler2D iChannel0;\n";
-
-				string full_target_source = shader_prefix + target_channel_prefix + target_source + shader_suffix;
-
-				compile_pass(-1, full_target_source, ref _target_prop, ref _target_prog_mutex);
 
 				string image_channel_prefix = "";
 
@@ -844,14 +670,7 @@ namespace Shady
 
 				string full_image_source = shader_prefix + image_channel_prefix + image_source + shader_suffix;
 
-				if(!_program_switch)
-				{
-					compile_pass(image_index, full_image_source, ref _image_prop1, ref _image_prog1_mutex);
-				}
-				else
-				{
-					compile_pass(image_index, full_image_source, ref _image_prop2, ref _image_prog2_mutex);
-				}
+				compile_pass(image_index, full_image_source, ref image_prop, ref image_prog_mutex);
 
 				for(int i=0;i<buffer_count;i++)
 				{
@@ -877,36 +696,21 @@ namespace Shady
 
 					string full_buffer_source = shader_prefix + buffer_channel_prefix + buffer_sources[i] + shader_suffix;
 
-					if(!_program_switch)
-					{
-						compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props1[i], ref _buffer_prog1_mutexes[i]);
-					}
-					else
-					{
-						compile_pass(buffer_indices[i], full_buffer_source, ref _buffer_props2[i], ref _buffer_prog2_mutexes[i]);
-					}
+					compile_pass(buffer_indices[i], full_buffer_source, ref buffer_props[i], ref buffer_prog_mutexes[i]);
 				}
 
 				if(buffer_count>0)
 				{
-					if(!_program_switch)
-					{
-						_buffer_props1_mutex.unlock();
-					}
-					else
-					{
-						_buffer_props2_mutex.unlock();
-					}
+						buffer_props_mutex.unlock();
 				}
 			}
-			catch(Error e){
+			catch(Error e)
+			{
 				print("Couldn't load shader prefix or suffix\n");
 			}
 
 			//prevent averaging in of old shader
 			fps = 0;
-
-			_program_switch = !_program_switch;
 
 		}
 
@@ -981,39 +785,20 @@ namespace Shady
 			compilation_finished();
 		}
 
-		private void render_thread_func(bool thread_switch, Mutex prog_mutex, Mutex render_switch_mutex, ref bool thread_running)
+		private void render_thread_func(bool thread_switch)
 		{
-			if(thread_switch)
+			while(_render_threads_running)
 			{
-				_gl_context.render_context1();
-			}
-			else
-			{
-				_gl_context.render_context2();
-			}
+				_render_switch_mutex.lock();
 
-			while(thread_running)
-			{
-
-				Idle.add(() =>
+				while(((thread_switch && !_render_switch) || (!thread_switch && _render_switch)) && _render_threads_running)
 				{
-					queue_draw();
-					return false;
+					_render_switch_cond.wait(_render_switch_mutex);
 
-				}, Priority.HIGH);
-
-				render_switch_mutex.lock();
-
-				while(((thread_switch && !_render_switch) || (!thread_switch && _render_switch)) && thread_running)
-				{
-					_render_switch_cond.wait(render_switch_mutex);
-
-					if(!thread_running)
+					if(!_render_threads_running)
 					{
 						continue;
 					}
-
-					prog_mutex.lock();
 
 					if(thread_switch)
 					{
@@ -1023,13 +808,11 @@ namespace Shady
 					{
 						dummy_render_gl(_image_prop1, _image_prog1_mutex);
 					}
-						prog_mutex.unlock();
-						_render_switch = !_render_switch;
-					}
+					_render_switch = !_render_switch;
+				}
 				
-				render_switch_mutex.unlock();
+				_render_switch_mutex.unlock();
 
-				prog_mutex.lock();
 				if(thread_switch)
 				{
 					render_image(_image_prop2, _image_prog2_mutex, _buffer_props2, _buffer_props2_mutex, _buffer_prog2_mutexes);
@@ -1038,39 +821,96 @@ namespace Shady
 				{
 					render_image(_image_prop1, _image_prog1_mutex, _buffer_props1, _buffer_props1_mutex, _buffer_prog1_mutexes);
 				}
-				prog_mutex.unlock();
 			}
 		}
 
 		private void init_gl(Shader default_shader)
 		{
-			_gl_context = new GlContext();
-			
-			_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+			make_current();
+
+			try
+			{
+				string vertex_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/vertex.glsl", 0).get_data());
+				string[] vertex_source_array = { vertex_source, null };
+
+				_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+				glShaderSource(_vertex_shader, 1, vertex_source_array, null);
+				glCompileShader(_vertex_shader);
+			}
+			catch(Error e)
+			{
+				print("Couldn't load vertex shader\n");
+			}
+
+			GLuint[] tex_arr = {0};
+			glGenTextures(1, tex_arr);
+			_image_prop1.tex_id_out_back = tex_arr[0];
+			_image_prop2.tex_id_out_back = tex_arr[0];
+
+			glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+			_target_prop.sampler_ids = new GLuint[1];
+			glGenSamplers(1, _target_prop.sampler_ids);
+			Shader.Input target_input = new Shader.Input();
+			target_input.sampler = new Shader.Sampler();
+			target_input.sampler.filter = Shader.FilterMode.LINEAR;
+			target_input.sampler.wrap = Shader.WrapMode.REPEAT;
+			init_sampler(target_input, _target_prop.sampler_ids[0]);
+			_target_prop.tex_widths = new int[4];
+			_target_prop.tex_heights = new int[4];
+			_target_prop.tex_depths = new int[4];
+			_target_prop.tex_channels = {0};
+			_target_prop.tex_ids = {_image_prop1.tex_id_out_back};
+			_target_prop.tex_targets = {GL_TEXTURE_2D};
+			_target_prop.fb = 0;
 
 			_target_prop.program = glCreateProgram();
+			_target_prop.context = get_context();
+
+			_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+
+			glAttachShader(_target_prop.program, _vertex_shader);
+			glAttachShader(_target_prop.program, _fragment_shader);
+
+			try
+			{
+				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
+				string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
+
+				string target_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
+
+				string target_channel_prefix = "uniform sampler2D iChannel0;\n";
+
+				string full_target_source = shader_prefix + target_channel_prefix + target_source + shader_suffix;
+
+				compile_pass(-1, full_target_source, ref _target_prop, ref _target_prog_mutex);
+			}
+			catch(Error e)
+			{
+				print("Couldn't load target shader sources\n");
+			}
 
 			_image_prop1.program = glCreateProgram();
 			_image_prop2.program = glCreateProgram();
 
-			glAttachShader(_target_prop.program, _gl_context.vertex_shader);
-			glAttachShader(_target_prop.program, _fragment_shader);
-
-			glAttachShader(_image_prop1.program, _gl_context.vertex_shader);
+			glAttachShader(_image_prop1.program, _vertex_shader);
 			glAttachShader(_image_prop1.program, _fragment_shader);
 
-			glAttachShader(_image_prop2.program, _gl_context.vertex_shader);
+			glAttachShader(_image_prop2.program, _vertex_shader);
 			glAttachShader(_image_prop2.program, _fragment_shader);
 
-			compile_blocking(default_shader);
-			compile_blocking(default_shader);
+			compile(default_shader).join();
+			_render_switch = !_render_switch;
+			compile(default_shader).join();
 
-			_gl_context.render_context1();
+			GLuint[] vao_arr = {0};
 
-			glGenVertexArrays(1, _vao);
-			glBindVertexArray(_vao[0]);
+			glGenVertexArrays(1, vao_arr);
+			glBindVertexArray(vao_arr[0]);
+			_target_prop.vao = vao_arr[0];
 
-			GLuint[] vbo = { 1337 };
+			GLuint[] vbo = {0};
 			glGenBuffers(1, vbo);
 
 			GLfloat[] vertices = {  1,  1,
@@ -1082,67 +922,76 @@ namespace Shady
 			glBufferData(GL_ARRAY_BUFFER, vertices.length * sizeof (GLfloat), (GLvoid[]) vertices, GL_STATIC_DRAW);
 
 			GLuint attrib0 = glGetAttribLocation(_target_prop.program, "v");
-			GLuint attrib1 = glGetAttribLocation(_image_prop1.program, "v");
-			GLuint attrib2 = glGetAttribLocation(_image_prop2.program, "v");
 
 			glEnableVertexAttribArray(attrib0);
 			glVertexAttribPointer(attrib0, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
 
-			glEnableVertexAttribArray(attrib1);
-			glVertexAttribPointer(attrib1, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
-
-			glEnableVertexAttribArray(attrib2);
-			glVertexAttribPointer(attrib2, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
-
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
 
-			glDeleteBuffers(1, vbo);
+			GLuint[] fb_arr = {0};
 
-			_gl_context.render_context2();
+			glGenFramebuffers(1, fb_arr);
+			_resize_fb = fb_arr[0];
 
-			glGenVertexArrays(1, _vao);
-			glBindVertexArray(_vao[0]);
+			_render_context1.make_current();
+			_image_prop1.context = _render_context1;
 
-			glGenBuffers(1, vbo);
+			glGenFramebuffers(1, fb_arr);
+			_image_prop1.fb = fb_arr[0];
+
+			glGenVertexArrays(1, vao_arr);
+			glBindVertexArray(vao_arr[0]);
+			_image_prop1.vao = vao_arr[0];
 
 			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-			glBufferData(GL_ARRAY_BUFFER, vertices.length * sizeof (GLfloat), (GLvoid[]) vertices, GL_STATIC_DRAW);
 
-			glEnableVertexAttribArray(attrib0);
-			glVertexAttribPointer(attrib0, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
+			GLuint attrib1 = glGetAttribLocation(_image_prop1.program, "v");
 
 			glEnableVertexAttribArray(attrib1);
 			glVertexAttribPointer(attrib1, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			_render_context2.make_current();
+			_image_prop2.context = _render_context2;
+
+			_image_prop2.fb = fb_arr[0];
+
+			glGenVertexArrays(1, vao_arr);
+			glBindVertexArray(vao_arr[0]);
+			_image_prop2.vao = vao_arr[0];
+
+			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
+			GLuint attrib2 = glGetAttribLocation(_image_prop2.program, "v");
 
 			glEnableVertexAttribArray(attrib2);
 			glVertexAttribPointer(attrib2, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
-
-			glDeleteBuffers(1, vbo);
 
 			_start_time = get_monotonic_time();
 
-			_initialized = true;
+			Gdk.GLContext.clear_current();
 
-			_gl_context.unbind_context();
-
-			try{
+			try
+			{
 				_render_thread1 = new Thread<int>.try("_render_thread1", () =>
 				{
-					render_thread_func(true, _image_prog2_mutex, _render_switch_mutex1, ref _render_thread1_running);
+					render_thread_func(true);
 					return 0;
 				});
 
 				_render_thread2 = new Thread<int>.try("_render_thread2", () =>
 				{
-					render_thread_func(false, _image_prog1_mutex, _render_switch_mutex2, ref _render_thread2_running);
+					render_thread_func(false);
 					return 0;
 				});
 			}
-			catch(Error e){
+			catch(Error e)
+			{
 				print("Couldn't start render threads\n");
 			}
 
@@ -1152,12 +1001,6 @@ namespace Shady
 			//add_events(EventMask.ALL_EVENTS_MASK);
 			//events = 0;
 
-			int error = (int)glGetError();
-			if(error!=0){
-				print(@"init gl error:$(error)\n");
-			}
-
-			initialized();
 		}
 
 		private GLuint[] query_input_texture(Shader.Input input, out int width, out int height, out int depth, out uint target)
@@ -1500,13 +1343,9 @@ namespace Shady
 		{
 			if (_initialized)
 			{
+				int64 time_before = get_monotonic_time();
+
 				_size_mutex.lock();
-
-				while(!_buffer_drawn)
-				{
-					_draw_cond.wait(_size_mutex);
-				}
-
 				update_uniform_values();
 
 				if(buf_prop_mutex.trylock())
@@ -1535,12 +1374,9 @@ namespace Shady
 					buf_prop_mutex.unlock();
 				}
 
-				int error = (int)glGetError();
-				if(error!=0){
-					print(@"draw gl error:$(error)\n");
-				}
-
 				int64 time_delta = render_gl(img_prop, img_prog_mutex);
+
+				_size_mutex.unlock();
 
 				// compute moving average
 				if (fps != 0)
@@ -1552,90 +1388,86 @@ namespace Shady
 					fps = 1000000.0f / time_delta;
 				}
 
-				render_target();
+				int64 time_after = get_monotonic_time();
 
+				if(time_after - time_before < 16000)
+				{
+					Thread.usleep( (ulong) (16000 - (time_after - time_before)) );
+				}
 			}
-		}
-
-		private void render_target()
-		{
-			render_gl(_target_prop, _target_prog_mutex);
-
-			_old_buffer_mutex.lock();
-			_old_buffer_rendered = _buffer_rendered;
-			_old_buffer = _buffer;
-			_old_buffer_mutex.unlock();
-			_buffer_mutex.lock();
-			glReadPixels(0,0,_width,_height,GL_BGRA,GL_UNSIGNED_BYTE, (GLvoid[])_buffer);
-
-			_buffer_rendered = true;
-			_render_cond.signal();
-
-			_buffer_mutex.unlock();
-
-			_size_mutex.unlock();
-
 		}
 
 		private int64 render_gl(BufferProperties buf_prop, Mutex prog_mutex)
 		{
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, buf_prop.fb);
+			buf_prop.context.make_current();
+
 			if(buf_prop.fb!=0){
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, buf_prop.fb);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buf_prop.tex_id_out_back, 0);
 			}
 
 			glViewport(0, 0, _width, _height);
 
-			glUseProgram(buf_prop.program);
+			int64 time_after = 0, time_before = 0;
 
-			//#TODO: synchronize locations with compiling
-
-			glUniform4f(buf_prop.date_loc, _year, _month, _day, _seconds);
-			glUniform1f(buf_prop.time_loc, (float)time);
-			glUniform1f(buf_prop.delta_loc, (float)_delta);
-			//#TODO: implement proper frame counter
-			glUniform1i(buf_prop.frame_loc, (int)(time*60));
-			glUniform1f(buf_prop.fps_loc, (float)fps);
-			glUniform3f(buf_prop.res_loc, _width, _height, 0);
-			float[] channel_res = {(float)buf_prop.tex_widths[0],(float)buf_prop.tex_heights[0],(float)buf_prop.tex_depths[0],
-			                       (float)buf_prop.tex_widths[1],(float)buf_prop.tex_heights[1],(float)buf_prop.tex_depths[1],
-			                       (float)buf_prop.tex_widths[2],(float)buf_prop.tex_heights[2],(float)buf_prop.tex_depths[2],
-			                       (float)buf_prop.tex_widths[3],(float)buf_prop.tex_heights[3],(float)buf_prop.tex_depths[3]};
-			glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
-			glUniform1f(buf_prop.samplerate_loc, _samplerate);
-
-			if (_button_pressed)
+			if(prog_mutex.trylock())
 			{
-				glUniform4f(buf_prop.mouse_loc, (float) _mouse_x, (float) _mouse_y, (float) _button_pressed_x, (float) _button_pressed_y);
-			}
-			else
-			{
-				glUniform4f(buf_prop.mouse_loc, (float) _button_released_x, (float) _button_released_y, -(float) _button_pressed_x, -(float) _button_pressed_y);
-			}
+				glUseProgram(buf_prop.program);
 
-			for(int i=0;i<buf_prop.tex_ids.length && i<buf_prop.channel_locs.length;i++)
-			{
-				if(buf_prop.channel_locs[i] >= 0)
+				//#TODO: synchronize locations with compiling
+
+				glUniform4f(buf_prop.date_loc, _year, _month, _day, _seconds);
+				glUniform1f(buf_prop.time_loc, (float)time);
+				glUniform1f(buf_prop.delta_loc, (float)_delta);
+				//#TODO: implement proper frame counter
+				glUniform1i(buf_prop.frame_loc, (int)(time*60));
+				glUniform1f(buf_prop.fps_loc, (float)fps);
+				glUniform3f(buf_prop.res_loc, _width, _height, 0);
+				float[] channel_res = {(float)buf_prop.tex_widths[0],(float)buf_prop.tex_heights[0],(float)buf_prop.tex_depths[0],
+									   (float)buf_prop.tex_widths[1],(float)buf_prop.tex_heights[1],(float)buf_prop.tex_depths[1],
+									   (float)buf_prop.tex_widths[2],(float)buf_prop.tex_heights[2],(float)buf_prop.tex_depths[2],
+									   (float)buf_prop.tex_widths[3],(float)buf_prop.tex_heights[3],(float)buf_prop.tex_depths[3]};
+				glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
+				glUniform1f(buf_prop.samplerate_loc, _samplerate);
+
+				if (_button_pressed)
 				{
-					glActiveTexture(GL_TEXTURE0 + buf_prop.tex_channels[i]);
-					glBindTexture(buf_prop.tex_targets[i], buf_prop.tex_ids[i]);
-					glBindSampler(buf_prop.tex_channels[i], buf_prop.sampler_ids[i]);
-					glUniform1i(buf_prop.channel_locs[i], (GLint)buf_prop.tex_channels[i]);
+					glUniform4f(buf_prop.mouse_loc, (float) _mouse_x, (float) _mouse_y, (float) _button_pressed_x, (float) _button_pressed_y);
 				}
+				else
+				{
+					glUniform4f(buf_prop.mouse_loc, (float) _button_released_x, (float) _button_released_y, -(float) _button_pressed_x, -(float) _button_pressed_y);
+				}
+
+				for(int i=0;i<buf_prop.tex_ids.length && i<buf_prop.channel_locs.length;i++)
+				{
+					if(buf_prop.channel_locs[i] >= 0)
+					{
+						glActiveTexture(GL_TEXTURE0 + buf_prop.tex_channels[i]);
+						glBindTexture(buf_prop.tex_targets[i], buf_prop.tex_ids[i]);
+						glBindSampler(buf_prop.tex_channels[i], buf_prop.sampler_ids[i]);
+						glUniform1i(buf_prop.channel_locs[i], (GLint)buf_prop.tex_channels[i]);
+					}
+				}
+
+				glBindVertexArray(buf_prop.vao);
+
+				glFinish();
+
+				time_before = get_monotonic_time();
+
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+				glFlush();
+				glFinish();
+
+				time_after = get_monotonic_time();
+
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+				glFinish();
+
+				prog_mutex.unlock();
 			}
-
-			glBindVertexArray(_vao[0]);
-
-			glFinish();
-
-			int64 time_before = get_monotonic_time();
-
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-			glFlush();
-			glFinish();
-
-			int64 time_after = get_monotonic_time();
 
 			return time_after - time_before;
 		}
@@ -1644,31 +1476,38 @@ namespace Shady
 		{
 			if (_initialized)
 			{
+				buf_prop.context.make_current();
+
 				glViewport(0, 0, _width, _height);
 
-				glUseProgram(buf_prop.program);
+				if(prog_mutex.trylock())
+				{
+					glUseProgram(buf_prop.program);
 
-				glUniform4f(buf_prop.date_loc, 0.0f, 0.0f, 0.0f, 0.0f);
-				glUniform1f(buf_prop.time_loc, 0.0f);
-				glUniform1f(buf_prop.delta_loc, 0.0f);
-				glUniform1i(buf_prop.frame_loc, 0);
-				glUniform1f(buf_prop.fps_loc, 0.0f);
-				glUniform3f(buf_prop.res_loc, _width, _height, 0);
-				float[] channel_res = new float[12];
-				glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
-				glUniform1f(buf_prop.samplerate_loc, 0.0f);
+					glUniform4f(buf_prop.date_loc, 0.0f, 0.0f, 0.0f, 0.0f);
+					glUniform1f(buf_prop.time_loc, 0.0f);
+					glUniform1f(buf_prop.delta_loc, 0.0f);
+					glUniform1i(buf_prop.frame_loc, 0);
+					glUniform1f(buf_prop.fps_loc, 0.0f);
+					glUniform3f(buf_prop.res_loc, _width, _height, 0);
+					float[] channel_res = new float[12];
+					glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
+					glUniform1f(buf_prop.samplerate_loc, 0.0f);
 
-				glUniform4f(buf_prop.mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
+					glUniform4f(buf_prop.mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
 
-				glBindVertexArray(_vao[0]);
+					glBindVertexArray(buf_prop.vao);
 
-				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-				glFlush();
-				glFinish();
+					glFlush();
+					glFinish();
 
-				uchar[] dummy_buffer = new uchar[_width*_height*4];
-				glReadPixels(0,0,_width,_height,GL_BGRA,GL_UNSIGNED_BYTE, (GLvoid[])dummy_buffer);
+					prog_mutex.unlock();
+				}
+
+				//uchar[] dummy_buffer = new uchar[_width*_height*4];
+				//glReadPixels(0,0,_width,_height,GL_BGRA,GL_UNSIGNED_BYTE, (GLvoid[])dummy_buffer);
 			}
 		}
 	}

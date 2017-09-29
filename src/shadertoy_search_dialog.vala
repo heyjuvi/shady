@@ -284,7 +284,8 @@ namespace Shady
 				shader_box.remove(widget);
 			});
 
-			try{
+			try
+			{
 				new Thread<int>.try("search_thread", () =>
 				{
 					loading_label.set_text("Loading shaders...");
@@ -327,7 +328,8 @@ namespace Shady
 					return 0;
 				});
 			}
-			catch(Error e){
+			catch(Error e)
+			{
 				print("Couldn't start shader loading thread\n");
 			}
 		}

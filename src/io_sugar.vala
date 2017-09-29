@@ -2,7 +2,8 @@ namespace Shady
 {
 	public static string read_file_as_string(File file)
 	{
-		try{
+		try
+		{
 			DataInputStream dis = new DataInputStream(file.read());
 
 			string file_string = "";
@@ -14,7 +15,8 @@ namespace Shady
 
 			return file_string[0:file_string.length - 1];
 		}
-		catch(Error e){
+		catch(Error e)
+		{
 			print(@"Couldn't load $(file.get_path())\n");
 			return "";
 		}

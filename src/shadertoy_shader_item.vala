@@ -74,11 +74,13 @@ namespace Shady
 			Shader load_shader = new Shader();
 			Shader.Renderpass renderpass = new Shader.Renderpass();
 
-			try{
+			try
+			{
 				string load_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/load.glsl", 0).get_data());
 				renderpass.code = load_code;
 			}
-			catch(Error e){
+			catch(Error e)
+			{
 				print("Couldn't load loading shader\n");
 			}
 			renderpass.type = Shader.RenderpassType.IMAGE;
