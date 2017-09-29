@@ -90,6 +90,16 @@ namespace Shady
 		}
 
 		[GtkCallback]
+		public void 3dtexture_radio_button_toggled(Gtk.ToggleButton button)
+		{
+			if (button.active)
+			{
+				channel_type_changed(Shader.InputType.3DTEXTURE);
+				popdown();
+			}
+		}
+
+		[GtkCallback]
 		public void video_radio_button_toggled(Gtk.ToggleButton button)
 		{
 			if (button.active)

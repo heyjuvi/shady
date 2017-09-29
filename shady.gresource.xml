@@ -30,6 +30,7 @@
 		<file>data/shader/prefix.glsl</file>
 		<file>data/shader/default.glsl</file>
 		<file>data/shader/texture_channel_default.glsl</file>
+		<file>data/shader/3dtexture_channel_default.glsl</file>
 		<file>data/shader/cubemap_channel_default.glsl</file>
 		<file>data/shader/buffer_default.glsl</file>
 		<file>data/shader/load.glsl</file>
@@ -79,6 +80,10 @@
 		<file>data/shadertoy_presets/textures/stars.json</file>
 		<file>data/shadertoy_presets/textures/wood.jpg</file>
 		<file>data/shadertoy_presets/textures/wood.json</file>
+		<file>data/shadertoy_presets/3dtextures/gray_noise3d.bin</file>
+		<file>data/shadertoy_presets/3dtextures/gray_noise3d.json</file>
+		<file>data/shadertoy_presets/3dtextures/rgba_noise3d.bin</file>
+		<file>data/shadertoy_presets/3dtextures/rgba_noise3d.json</file>
 		<file>data/shadertoy_presets/cubemaps/st_peters0.jpg</file>
 		<file>data/shadertoy_presets/cubemaps/st_peters1.jpg</file>
 		<file>data/shadertoy_presets/cubemaps/st_peters2.jpg</file>

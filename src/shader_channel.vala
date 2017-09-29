@@ -55,7 +55,7 @@ namespace Shady
 		private Gtk.Label name_label;
 
 		[GtkChild]
-		private Gtk.MenuButton value_button;
+		private Gtk.Button value_button;
 
 		[GtkChild]
 		private Gtk.Box shader_container;
@@ -72,9 +72,12 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Switch v_flip_switch;
 
-		private ShaderChannelSoundcloudPopover _soundcloud_popover = new ShaderChannelSoundcloudPopover();
-		private ShaderChannelInputPopover _texture_popover = new ShaderChannelInputPopover(Shader.InputType.TEXTURE);
-		private ShaderChannelInputPopover _cubemap_popover = new ShaderChannelInputPopover(Shader.InputType.CUBEMAP);
+		private ShaderChannelSoundcloudPopover _soundcloud_popover;
+		private ShaderChannelInputPopover _texture_popover;
+		private ShaderChannelInputPopover _cubemap_popover;
+		private ShaderChannelInputPopover _3dtexture_popover;
+
+		private Gtk.Popover _current_popover;
 
 		private ShaderArea _shader_area;
 
@@ -83,6 +86,13 @@ namespace Shady
 			_shader_area = new ShaderArea();
 
 			shader_container.pack_start(_shader_area, true, true);
+
+			_soundcloud_popover = new ShaderChannelSoundcloudPopover(value_button);
+			_texture_popover = new ShaderChannelInputPopover(Shader.InputType.TEXTURE, value_button);
+			_cubemap_popover = new ShaderChannelInputPopover(Shader.InputType.CUBEMAP, value_button);
+			_3dtexture_popover = new ShaderChannelInputPopover(Shader.InputType.3DTEXTURE, value_button);
+
+			_current_popover = _texture_popover;
 
 			_texture_popover.input_selected.connect((input) =>
 			{
@@ -96,6 +106,17 @@ namespace Shady
 			});
 
 			_cubemap_popover.input_selected.connect((input) =>
+			{
+				_channel_input = input;
+
+				update_type();
+				update_sampler();
+				update_shader();
+
+				channel_input_changed(_channel_input);
+			});
+
+			_3dtexture_popover.input_selected.connect((input) =>
 			{
 				_channel_input = input;
 
@@ -126,6 +147,7 @@ namespace Shady
 			if (_channel_input.type == Shader.InputType.SOUNDCLOUD ||
 			    _channel_input.type == Shader.InputType.BUFFER ||
 			    _channel_input.type == Shader.InputType.TEXTURE ||
+			    _channel_input.type == Shader.InputType.3DTEXTURE ||
 			    _channel_input.type == Shader.InputType.CUBEMAP ||
 			    _channel_input.type == Shader.InputType.VIDEO ||
 			    _channel_input.type == Shader.InputType.MUSIC)
@@ -135,17 +157,22 @@ namespace Shady
 				if (_channel_input.type == Shader.InputType.SOUNDCLOUD)
 				{
 					_soundcloud_popover.hide();
-					value_button.popover = _soundcloud_popover;
+					_current_popover = _soundcloud_popover;
 				}
 				else if (_channel_input.type == Shader.InputType.TEXTURE)
 				{
 					_texture_popover.hide();
-					value_button.popover = _texture_popover;
+					_current_popover = _texture_popover;
 				}
 				else if (_channel_input.type == Shader.InputType.CUBEMAP)
 				{
 					_cubemap_popover.hide();
-					value_button.popover = _cubemap_popover;
+					_current_popover = _cubemap_popover;
+				}
+				else if (_channel_input.type == Shader.InputType.3DTEXTURE)
+				{
+					_3dtexture_popover.hide();
+					_current_popover = _3dtexture_popover;
 				}
 			}
 			else
@@ -169,6 +196,12 @@ namespace Shady
 
 			channel_type_changed(_channel_input.type);
 			channel_input_changed(_channel_input);
+		}
+
+		[GtkCallback]
+		private void value_button_clicked()
+		{
+			_current_popover.popup();
 		}
 
 		[GtkCallback]

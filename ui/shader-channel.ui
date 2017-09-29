@@ -49,11 +49,11 @@
 						</child>
 
 						<child>
-							<object class="GtkMenuButton" id="value_button">
+							<object class="GtkButton" id="value_button">
 								<property name="visible">False</property>
 								<property name="can_focus">False</property>
-								<property name="use-popover">True</property>
-								<property name="direction">up</property>
+
+								<signal name="clicked" handler="value_button_clicked" />
 
 								<style>
 									<class name="flat" />

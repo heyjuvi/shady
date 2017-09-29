@@ -101,6 +101,19 @@ namespace Shady
 				resolution = @"$(cubemap_width)x$(cubemap_height)";
 				channels = cubemap_channels;
 			}
+			else if (input.type == Shader.InputType.3DTEXTURE)
+			{
+				int 3dtexture_width = ShadertoyResourceManager.3DTEXTURE_VOXMAPS[input.resource_index].width;
+				int 3dtexture_height = ShadertoyResourceManager.3DTEXTURE_VOXMAPS[input.resource_index].height;
+				int 3dtexture_depth = ShadertoyResourceManager.3DTEXTURE_VOXMAPS[input.resource_index].depth;
+
+				int 3dtexture_channels = ShadertoyResourceManager.3DTEXTURE_VOXMAPS[input.resource_index].n_channels;
+
+				chn_name = input.name;
+				author = "shadertoy";
+				resolution = @"$(3dtexture_width)x$(3dtexture_height)x$(3dtexture_depth)";
+				channels = 3dtexture_channels;
+			}
 
 			this.input = input;
 

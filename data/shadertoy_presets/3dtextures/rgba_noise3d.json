@@ -1,6 +1,6 @@
 {
 	"ctype": "3dtexture",
 	"hash": "aea6b99da1d53055107966b59ac5444fc8bc7b3ce2d0bbb6a4a3cbae1d97f3aa",
-	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/rgba_noise3d.bin",
+	"resource": "/org/hasi/shady/data/shadertoy_presets/3dtextures/rgba_noise3d.bin",
 	"name": "RGBA Noise 3D"
 }

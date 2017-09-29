@@ -181,6 +181,8 @@ namespace Shady
 			realize.connect(() =>
 			{
 				init_gl(get_default_shader());
+
+				print("REALIZE: " + get_window().get_type().name() + "\n\n\n");
 			});
 
 			button_press_event.connect((widget, event) =>
@@ -286,6 +288,8 @@ namespace Shady
 
 			unrealize.connect(() =>
 			{
+				print("UNREALIZE: " + get_window().get_type().name() + "\n\n\n");
+
 				_render_threads_running = false;
 
 				_render_switch_cond.signal();
@@ -318,6 +322,10 @@ namespace Shady
 				else if (input.type == Shader.InputType.CUBEMAP)
 				{
 					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/cubemap_channel_default.glsl", 0).get_data());
+				}
+				else if (input.type == Shader.InputType.3DTEXTURE)
+				{
+					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/3dtexture_channel_default.glsl", 0).get_data());
 				}
 			}
 			catch(Error e)
@@ -400,8 +408,7 @@ namespace Shady
 		{
 			return new Thread<int>("compile_thread", () =>
 			{
-
-				if(_compile_mutex.trylock())
+				if (_compile_mutex.trylock())
 				{
 					try
 					{
@@ -1174,18 +1181,18 @@ namespace Shady
 				glGenTextures(1,tex_ids);
 				glBindTexture(target, tex_ids[0]);
 
-				ShadertoyResourceManager.Voxmap voxmap = ShadertoyResourceManager.3DTEXTURE_BUFFERS[input.resource_index];
+				ShadertoyResourceManager.Voxmap voxmap = ShadertoyResourceManager.3DTEXTURE_VOXMAPS[input.resource_index];
 
 				width = voxmap.width;
 				height = voxmap.height;
 				depth = voxmap.depth;
 
 				int format=-1;
-				if(voxmap.channels == 3)
+				if (voxmap.n_channels == 3)
 				{
 					format = GL_RGB;
 				}
-				else if(voxmap.channels == 4)
+				else if (voxmap.n_channels == 4)
 				{
 					format = GL_RGBA;
 				}

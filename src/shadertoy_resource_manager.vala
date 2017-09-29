@@ -52,14 +52,14 @@ namespace Shady
 			public int width;
 			public int height;
 			public int depth;
-			public int channels;
+			public int n_channels;
 			public uint8[] voxels;
 		}
 
 		public static Gdk.Pixbuf[] TEXTURE_PIXBUFS;
 		public static Shader.Input[] TEXTURES;
 
-		public static Voxmap[] 3DTEXTURE_BUFFERS;
+		public static Voxmap[] 3DTEXTURE_VOXMAPS;
 		public static Shader.Input[] 3DTEXTURES;
 
 		public static Gdk.Pixbuf[,] CUBEMAP_PIXBUFS_ARRAY;
@@ -72,7 +72,7 @@ namespace Shady
 
 			for (int i = 0; i < TEXTURE_IDS.length; i++)
 			{
-				Shader.Input texture = load_texture(TEXTURE_IDS[i]);
+				Shader.Input? texture = load_texture(TEXTURE_IDS[i]);
 				texture.resource_index = i;
 				TEXTURES[i] = texture;
 
@@ -82,41 +82,48 @@ namespace Shady
 				}
 				catch (Error e)
 				{
-					print(@"Couldn't load texture $(TEXTURE_IDS[i])\n");
+					print(@"Couldn't load texture: $(e.message)\n");
 				}
 			}
 
-			/*3DTEXTURE_BUFFERS = new Voxmap[3DTEXTURE_IDS.length];
+			3DTEXTURE_VOXMAPS = new Voxmap[3DTEXTURE_IDS.length];
 			3DTEXTURES = new Shader.Input[3DTEXTURE_IDS.length];
 
 			for (int i = 0; i < 3DTEXTURE_IDS.length; i++)
 			{
-				Shader.Input 3dtexture = load_3dtexture(3DTEXTURE_IDS[i]);
+				string _3dtexture_id = 3DTEXTURE_IDS[i];
+				Shader.Input? 3dtexture = load_3dtexture(3DTEXTURE_IDS[i]);
 				3dtexture.resource_index = i;
 				3DTEXTURES[i] = 3dtexture;
 
 				try
 				{
+					3DTEXTURE_VOXMAPS[i] = new Voxmap();
 					uint8[] data = resources_lookup_data(3dtexture.resource, 0).get_data();
 
-					3DTEXTURE_BUFFERS[i].width = (int) data[4:8];
-					3DTEXTURE_BUFFERS[i].height = (int) data[8:12];
-					3DTEXTURE_BUFFERS[i].depth = (int) data[12:16];
-					3DTEXTURE_BUFFERS[i].channels = (int) data[16:20];
-					3DTEXTURE_BUFFERS[i].voxels = data[20:-0];
+					3DTEXTURE_VOXMAPS[i].width = bytes_to_int(data[4:8]);
+					print("a\n");
+					3DTEXTURE_VOXMAPS[i].height = bytes_to_int(data[8:12]);
+					print("b\n");
+					3DTEXTURE_VOXMAPS[i].depth = bytes_to_int(data[12:16]);
+					print("c\n");
+					3DTEXTURE_VOXMAPS[i].n_channels = bytes_to_int(data[16:20]);
+					print("d\n");
+					3DTEXTURE_VOXMAPS[i].voxels = data[20:data.length];
+					print("e\n");
 				}
 				catch (Error e)
 				{
-					print(@"Couldn't load 3dtexture $(3DTEXTURE_IDS[i])\n");
+					print(@"Couldn't load 3dtexture: $(e.message)\n");
 				}
-			}*/
+			}
 
 			CUBEMAP_PIXBUFS_ARRAY = new Gdk.Pixbuf[CUBEMAP_IDS.length, 6];
 			CUBEMAPS = new Shader.Input[CUBEMAP_IDS.length];
 
 			for (int i = 0; i < CUBEMAP_IDS.length; i++)
 			{
-				Shader.Input cubemap = load_cubemap(CUBEMAP_IDS[i]);
+				Shader.Input? cubemap = load_cubemap(CUBEMAP_IDS[i]);
 				cubemap.resource_index = i;
 				CUBEMAPS[i] = cubemap;
 
@@ -129,9 +136,14 @@ namespace Shady
 				}
 				catch (Error e)
 				{
-					print(@"Couldn't load cubemap $(CUBEMAP_IDS[i])\n");
+					print(@"Couldn't load cubemap: $(e.message)\n");
 				}
 			}
+		}
+
+		private static int bytes_to_int(uint8[] bytes)
+		{
+			return bytes[3] << 24 | bytes[2] << 16 | bytes[1] << 8 | bytes[0];
 		}
 
 		public int texture_index_from_string(string index)
@@ -139,13 +151,13 @@ namespace Shady
 			int i;
 			for (i = 0; i < TEXTURE_IDS.length; i++)
 			{
-				if(TEXTURE_IDS[i] == index)
+				if (TEXTURE_IDS[i] == index)
 				{
 					break;
 				}
 			}
 
-			if(i==TEXTURE_IDS.length)
+			if (i == TEXTURE_IDS.length)
 			{
 				print("Texture index not found");
 			}
@@ -164,7 +176,7 @@ namespace Shady
 				}
 			}
 
-			if(i == 3DTEXTURE_IDS.length)
+			if (i == 3DTEXTURE_IDS.length)
 			{
 				print("3dtexture index not found");
 			}
@@ -218,9 +230,9 @@ namespace Shady
 			}
 		}
 
-		public static Shader.Input? load_3dtexture(string texture_id)
+		public static Shader.Input? load_3dtexture(string _3dtexture_id)
 		{
-			File 3dtexture_json_file = File.new_for_uri(@"resource://$(3DTEXTURE_PREFIX)/$(texture_id).json");
+			File 3dtexture_json_file = File.new_for_uri(@"resource://$(3DTEXTURE_PREFIX)/$(_3dtexture_id).json");
 
 			try
 			{
@@ -239,7 +251,7 @@ namespace Shady
 			}
 			catch (Error e)
 			{
-				print(@"Could not load 3dtexture $(texture_id): $(e.message)\n");
+				print(@"Could not load 3dtexture $(_3dtexture_id): $(e.message)\n");
 
 				return null;
 			}

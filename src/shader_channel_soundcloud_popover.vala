@@ -8,8 +8,9 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Entry soundcloud_entry;
 
-		public ShaderChannelSoundcloudPopover()
+		public ShaderChannelSoundcloudPopover(Gtk.Widget relative_to)
 		{
+			Object(relative_to: relative_to);
 		}
 
 		[GtkCallback]

@@ -10,20 +10,29 @@ namespace Shady
 
 		private ShaderChannelInputItem _last_selected = null;
 
-		public ShaderChannelInputPopover(Shader.InputType input_type)
+		public ShaderChannelInputPopover(Shader.InputType input_type, Gtk.Widget relative_to)
 		{
+			Object(relative_to: relative_to);
+
 			if (input_type == Shader.InputType.TEXTURE)
 			{
-				for (int i = 0; i < ShadertoyResourceManager.TEXTURE_IDS.length; i++)
+				for (int i = 0; i < ShadertoyResourceManager.TEXTURES.length; i++)
 				{
 					input_box.add(new ShaderChannelInputItem.from_input(ShadertoyResourceManager.TEXTURES[i]));
 				}
 			}
 			else if (input_type == Shader.InputType.CUBEMAP)
 			{
-				for (int i = 0; i < ShadertoyResourceManager.CUBEMAP_IDS.length; i++)
+				for (int i = 0; i < ShadertoyResourceManager.CUBEMAPS.length; i++)
 				{
 					input_box.add(new ShaderChannelInputItem.from_input(ShadertoyResourceManager.CUBEMAPS[i]));
+				}
+			}
+			else if (input_type == Shader.InputType.3DTEXTURE)
+			{
+				for (int i = 0; i < ShadertoyResourceManager.3DTEXTURES.length; i++)
+				{
+					input_box.add(new ShaderChannelInputItem.from_input(ShadertoyResourceManager.3DTEXTURES[i]));
 				}
 			}
 
@@ -42,11 +51,11 @@ namespace Shady
 			{
 				ShaderChannelInputItem selected_input_item = input_box.get_selected_children().nth_data(0) as ShaderChannelInputItem;
 				input_selected(selected_input_item.input);
-				selected_input_item.recompile();
 
 				_last_selected = selected_input_item;
 
-				popdown();
+				print(@"The window is $((int) get_window())\n\n");
+				//popdown();
 			}
 		}
 	}

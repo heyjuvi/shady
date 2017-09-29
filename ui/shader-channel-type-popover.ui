@@ -142,6 +142,22 @@
 				</child>
 
 				<child>
+					<object class="GtkRadioButton" id="3dtexture_radio_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="group">none_radio_button</property>
+						<property name="label">3D texture</property>
+
+						<signal name="toggled" handler="3dtexture_radio_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">8</property>
+					</packing>
+				</child>
+
+				<child>
 					<object class="GtkRadioButton" id="video_radio_button">
 						<property name="visible">True</property>
 						<property name="can_focus">True</property>
@@ -153,7 +169,7 @@
 					<packing>
 						<property name="expand">False</property>
 						<property name="fill">True</property>
-						<property name="position">8</property>
+						<property name="position">9</property>
 					</packing>
 				</child>
 
@@ -169,7 +185,7 @@
 					<packing>
 						<property name="expand">False</property>
 						<property name="fill">True</property>
-						<property name="position">9</property>
+						<property name="position">10</property>
 					</packing>
 				</child>
 			</object>
