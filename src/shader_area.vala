@@ -594,7 +594,7 @@ namespace Shady
 					{
 						int width, height, depth, channel;
 
-						init_sampler(buffer_inputs[i].index(j), _buffer_props1[i].sampler_ids[j]);
+						init_sampler(buffer_inputs[i].index(j), buffer_props[i].sampler_ids[j]);
 
 						GLuint tex_target;
 						GLuint[] tex_ids = query_input_texture(buffer_inputs[i].index(j), out width, out height, out depth, out tex_target);
@@ -1287,6 +1287,19 @@ namespace Shady
 					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
 				}
 			}
+			else
+			{
+				target = GL_TEXTURE_2D;
+				tex_ids = {0};
+				glGenTextures(1,tex_ids);
+
+				width = _width;
+				height = _height;
+
+				glBindTexture(target, tex_ids[0]);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+			}
+
 			return tex_ids;
 		}
 
