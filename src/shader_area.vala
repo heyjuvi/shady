@@ -166,7 +166,8 @@ namespace Shady
 		private bool _render_switch = true;
 
 		private Cond _render_switch_cond = Cond();
-		private Mutex _render_switch_mutex = Mutex();
+		private Mutex _render_switch_mutex1 = Mutex();
+		private Mutex _render_switch_mutex2 = Mutex();
 
 		private Mutex _size_mutex = Mutex();
 
@@ -792,15 +793,15 @@ namespace Shady
 			compilation_finished();
 		}
 
-		private void render_thread_func(bool thread_switch)
+		private void render_thread_func(bool thread_switch, Mutex render_switch_mutex)
 		{
 			while(_render_threads_running)
 			{
-				_render_switch_mutex.lock();
+				render_switch_mutex.lock();
 
 				while(((thread_switch && !_render_switch) || (!thread_switch && _render_switch)) && _render_threads_running)
 				{
-					_render_switch_cond.wait(_render_switch_mutex);
+					_render_switch_cond.wait(render_switch_mutex);
 
 					if(!_render_threads_running)
 					{
@@ -815,10 +816,11 @@ namespace Shady
 					{
 						dummy_render_gl(_image_prop1, _image_prog1_mutex);
 					}
+
 					_render_switch = !_render_switch;
 				}
 				
-				_render_switch_mutex.unlock();
+				render_switch_mutex.unlock();
 
 				if(thread_switch)
 				{
@@ -987,13 +989,13 @@ namespace Shady
 			{
 				_render_thread1 = new Thread<int>.try("_render_thread1", () =>
 				{
-					render_thread_func(true);
+					render_thread_func(true, _render_switch_mutex1);
 					return 0;
 				});
 
 				_render_thread2 = new Thread<int>.try("_render_thread2", () =>
 				{
-					render_thread_func(false);
+					render_thread_func(false, _render_switch_mutex2);
 					return 0;
 				});
 			}
@@ -1525,9 +1527,6 @@ namespace Shady
 
 					prog_mutex.unlock();
 				}
-
-				//uchar[] dummy_buffer = new uchar[_width*_height*4];
-				//glReadPixels(0,0,_width,_height,GL_BGRA,GL_UNSIGNED_BYTE, (GLvoid[])dummy_buffer);
 			}
 		}
 	}
