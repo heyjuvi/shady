@@ -13,6 +13,8 @@ namespace Shady
 	{
 		public signal void initialized();
 
+		public signal void switch_render_thread();
+
 		public signal void compilation_finished();
 		public signal void pass_compilation_terminated(int pass_index, ShaderError? e);
 
@@ -96,22 +98,12 @@ namespace Shady
 
 		/* Buffer properties structs*/
 		private BufferProperties _target_prop = BufferProperties();
-		private Mutex _target_prog_mutex = Mutex();
 
 		private BufferProperties _image_prop1 = BufferProperties();
 		private BufferProperties _image_prop2 = BufferProperties();
 
-		private Mutex _image_prog1_mutex = Mutex();
-		private Mutex _image_prog2_mutex = Mutex();
-
 		private BufferProperties[] _buffer_props1 = {};
 		private BufferProperties[] _buffer_props2 = {};
-
-		private Mutex _buffer_props1_mutex = Mutex();
-		private Mutex _buffer_props2_mutex = Mutex();
-
-		private Mutex[] _buffer_prog1_mutexes;
-		private Mutex[] _buffer_prog2_mutexes;
 
 		/* Objects */
 		private Gdk.GLContext _render_context1;
@@ -236,7 +228,7 @@ namespace Shady
 			render.connect(() =>
 			{
 				_size_mutex.lock();
-				render_gl(_target_prop, _target_prog_mutex);
+				render_gl(_target_prop);
 				_size_mutex.unlock();
 				queue_draw();
 				return false;
@@ -357,7 +349,7 @@ namespace Shady
 
 			if (input_shader != null)
 			{
-				compile_no_thread(input_shader);
+				compile(input_shader).join();
 			}
 		}
 
@@ -401,7 +393,7 @@ namespace Shady
 
 			if (input_shader != null)
 			{
-				compile_no_thread(input_shader);
+				compile(input_shader).join();
 			}
 		}
 
@@ -418,11 +410,11 @@ namespace Shady
 
 						if(_render_switch)
 						{
-							compile_blocking(new_shader, ref _image_prop1, ref _image_prog1_mutex, ref _buffer_props1, ref _buffer_props1_mutex, ref _buffer_prog1_mutexes);
+							compile_blocking(new_shader, ref _image_prop1, ref _buffer_props1);
 						}
 						else
 						{
-							compile_blocking(new_shader, ref _image_prop2, ref _image_prog2_mutex, ref _buffer_props2, ref _buffer_props2_mutex, ref _buffer_prog2_mutexes);
+							compile_blocking(new_shader, ref _image_prop2, ref _buffer_props2);
 						}
 
 						Gdk.GLContext.clear_current();
@@ -440,37 +432,7 @@ namespace Shady
 			});
 		}
 
-		public void compile_no_thread(Shader new_shader)
-		{
-			if(_compile_mutex.trylock())
-			{
-				try
-				{
-					Gdk.GLContext thread_context = get_window().create_gl_context();
-					thread_context.make_current();
-
-					if(_render_switch)
-					{
-						compile_blocking(new_shader, ref _image_prop1, ref _image_prog1_mutex, ref _buffer_props1, ref _buffer_props1_mutex, ref _buffer_prog1_mutexes);
-					}
-					else
-					{
-						compile_blocking(new_shader, ref _image_prop2, ref _image_prog2_mutex, ref _buffer_props2, ref _buffer_props2_mutex, ref _buffer_prog2_mutexes);
-					}
-
-					Gdk.GLContext.clear_current();
-					_compile_mutex.unlock();
-
-					_render_switch_cond.signal();
-				}
-				catch(Error e)
-				{
-					print("Couldn't create gl context!\n");
-				}
-			}
-		}
-
-		private void compile_blocking(Shader new_shader, ref BufferProperties image_prop, ref Mutex image_prog_mutex, ref BufferProperties[] buffer_props, ref Mutex buffer_props_mutex, ref Mutex[] buffer_prog_mutexes)
+		private void compile_blocking(Shader new_shader, ref BufferProperties image_prop, ref BufferProperties[] buffer_props)
 		{
 			string image_source = "";
 			int image_index = -1;
@@ -540,9 +502,7 @@ namespace Shady
 
 			if(buffer_count>0)
 			{
-				buffer_props_mutex.lock();
 				buffer_props = new BufferProperties[buffer_count];
-				buffer_prog_mutexes = new Mutex[buffer_count];
 
 				GLuint[] fbs = new GLuint[buffer_count];
 				glGenFramebuffers(buffer_count, fbs);
@@ -678,7 +638,7 @@ namespace Shady
 
 				string full_image_source = shader_prefix + image_channel_prefix + image_source + shader_suffix;
 
-				compile_pass(image_index, full_image_source, ref image_prop, ref image_prog_mutex);
+				compile_pass(image_index, full_image_source, ref image_prop);
 
 				for(int i=0;i<buffer_count;i++)
 				{
@@ -704,12 +664,7 @@ namespace Shady
 
 					string full_buffer_source = shader_prefix + buffer_channel_prefix + buffer_sources[i] + shader_suffix;
 
-					compile_pass(buffer_indices[i], full_buffer_source, ref buffer_props[i], ref buffer_prog_mutexes[i]);
-				}
-
-				if(buffer_count>0)
-				{
-						buffer_props_mutex.unlock();
+					compile_pass(buffer_indices[i], full_buffer_source, ref buffer_props[i]);
 				}
 			}
 			catch(Error e)
@@ -728,7 +683,7 @@ namespace Shady
 			_pause_time = _curr_time;
 		}
 
-		private void compile_pass(int pass_index, string shader_source, ref BufferProperties buf_prop, ref Mutex prog_mutex)
+		private void compile_pass(int pass_index, string shader_source, ref BufferProperties buf_prop)
 		{
 			string[] source_array = { shader_source, null };
 
@@ -763,8 +718,6 @@ namespace Shady
 				return;
 			}
 
-			prog_mutex.lock();
-
 			glLinkProgram(buf_prop.program);
 
 			buf_prop.res_loc = glGetUniformLocation(buf_prop.program, "iResolution");
@@ -788,48 +741,31 @@ namespace Shady
 
 			pass_compilation_terminated(pass_index, null);
 
-			prog_mutex.unlock();
-
 			compilation_finished();
 		}
 
-		private void render_thread_func(bool thread_switch, Mutex render_switch_mutex)
+		private void render_thread_func(bool thread_switch, Mutex render_switch_mutex, BufferProperties img_prop, BufferProperties[] buf_props)
 		{
 			while(_render_threads_running)
 			{
-				render_switch_mutex.lock();
 
 				while(((thread_switch && !_render_switch) || (!thread_switch && _render_switch)) && _render_threads_running)
 				{
+					render_switch_mutex.lock();
 					_render_switch_cond.wait(render_switch_mutex);
+					render_switch_mutex.unlock();
 
 					if(!_render_threads_running)
 					{
 						continue;
 					}
 
-					if(thread_switch)
-					{
-						dummy_render_gl(_image_prop2, _image_prog2_mutex);
-					}
-					else
-					{
-						dummy_render_gl(_image_prop1, _image_prog1_mutex);
-					}
+					dummy_render_gl(img_prop);
 
 					_render_switch = !_render_switch;
 				}
-				
-				render_switch_mutex.unlock();
 
-				if(thread_switch)
-				{
-					render_image(_image_prop2, _image_prog2_mutex, _buffer_props2, _buffer_props2_mutex, _buffer_prog2_mutexes);
-				}
-				else
-				{
-					render_image(_image_prop1, _image_prog1_mutex, _buffer_props1, _buffer_props1_mutex, _buffer_prog1_mutexes);
-				}
+				render_image(img_prop, buf_props);
 			}
 		}
 
@@ -893,7 +829,7 @@ namespace Shady
 
 				string full_target_source = shader_prefix + target_channel_prefix + target_source + shader_suffix;
 
-				compile_pass(-1, full_target_source, ref _target_prop, ref _target_prog_mutex);
+				compile_pass(-1, full_target_source, ref _target_prop);
 			}
 			catch(Error e)
 			{
@@ -965,6 +901,7 @@ namespace Shady
 			_render_context2.make_current();
 			_image_prop2.context = _render_context2;
 
+			glGenFramebuffers(1, fb_arr);
 			_image_prop2.fb = fb_arr[0];
 
 			glGenVertexArrays(1, vao_arr);
@@ -989,13 +926,13 @@ namespace Shady
 			{
 				_render_thread1 = new Thread<int>.try("_render_thread1", () =>
 				{
-					render_thread_func(true, _render_switch_mutex1);
+					render_thread_func(false, _render_switch_mutex1, _image_prop1, _buffer_props1);
 					return 0;
 				});
 
 				_render_thread2 = new Thread<int>.try("_render_thread2", () =>
 				{
-					render_thread_func(false, _render_switch_mutex2);
+					render_thread_func(true, _render_switch_mutex2, _image_prop2, _buffer_props2);
 					return 0;
 				});
 			}
@@ -1007,9 +944,6 @@ namespace Shady
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |
 					   EventMask.POINTER_MOTION_MASK);
-			//add_events(EventMask.ALL_EVENTS_MASK);
-			//events = 0;
-
 		}
 
 		private GLuint[] query_input_texture(Shader.Input input, out int width, out int height, out int depth, out uint target)
@@ -1361,7 +1295,7 @@ namespace Shady
 
 		}
 
-		private void render_image(BufferProperties img_prop, Mutex img_prog_mutex, BufferProperties[] buf_props, Mutex buf_prop_mutex, Mutex[] buf_prog_mutexes)
+		private void render_image(BufferProperties img_prop, BufferProperties[] buf_props)
 		{
 			if (_initialized)
 			{
@@ -1370,33 +1304,28 @@ namespace Shady
 				_size_mutex.lock();
 				update_uniform_values();
 
-				if(buf_prop_mutex.trylock())
+				for(int i=0; i<buf_props.length; i++)
 				{
-					for(int i=0; i<buf_props.length; i++)
-					{
-						render_gl(buf_props[i], buf_prog_mutexes[i]);
-					}
-
-					for(int i=0; i<buf_props.length; i++)
-					{
-						uint tmp = buf_props[i].tex_id_out_back;
-						buf_props[i].tex_id_out_back = buf_props[i].tex_id_out_front;
-						buf_props[i].tex_id_out_front = tmp;
-						for(int j=0; j<buf_props[i].tex_out_refs.length[0]; j++)
-						{
-							buf_props[buf_props[i].tex_out_refs[j,0]].tex_ids[buf_props[i].tex_out_refs[j,1]] = tmp;
-						}
-
-						for(int j=0; j<buf_props[i].tex_out_refs_img.length; j++)
-						{
-							img_prop.tex_ids[buf_props[i].tex_out_refs_img[j]] = tmp;
-						}
-					}
-
-					buf_prop_mutex.unlock();
+					render_gl(buf_props[i]);
 				}
 
-				int64 time_delta = render_gl(img_prop, img_prog_mutex);
+				for(int i=0; i<buf_props.length; i++)
+				{
+					uint tmp = buf_props[i].tex_id_out_back;
+					buf_props[i].tex_id_out_back = buf_props[i].tex_id_out_front;
+					buf_props[i].tex_id_out_front = tmp;
+					for(int j=0; j<buf_props[i].tex_out_refs.length[0]; j++)
+					{
+						buf_props[buf_props[i].tex_out_refs[j,0]].tex_ids[buf_props[i].tex_out_refs[j,1]] = tmp;
+					}
+
+					for(int j=0; j<buf_props[i].tex_out_refs_img.length; j++)
+					{
+						img_prop.tex_ids[buf_props[i].tex_out_refs_img[j]] = tmp;
+					}
+				}
+
+				int64 time_delta = render_gl(img_prop);
 
 				_size_mutex.unlock();
 
@@ -1419,7 +1348,7 @@ namespace Shady
 			}
 		}
 
-		private int64 render_gl(BufferProperties buf_prop, Mutex prog_mutex)
+		private int64 render_gl(BufferProperties buf_prop)
 		{
 			buf_prop.context.make_current();
 
@@ -1432,69 +1361,64 @@ namespace Shady
 
 			int64 time_after = 0, time_before = 0;
 
-			if(prog_mutex.trylock())
+			glUseProgram(buf_prop.program);
+
+			//#TODO: synchronize locations with compiling
+
+			glUniform4f(buf_prop.date_loc, _year, _month, _day, _seconds);
+			glUniform1f(buf_prop.time_loc, (float)time);
+			glUniform1f(buf_prop.delta_loc, (float)_delta);
+			//#TODO: implement proper frame counter
+			glUniform1i(buf_prop.frame_loc, (int)(time*60));
+			glUniform1f(buf_prop.fps_loc, (float)fps);
+			glUniform3f(buf_prop.res_loc, _width, _height, 0);
+			float[] channel_res = {(float)buf_prop.tex_widths[0],(float)buf_prop.tex_heights[0],(float)buf_prop.tex_depths[0],
+								   (float)buf_prop.tex_widths[1],(float)buf_prop.tex_heights[1],(float)buf_prop.tex_depths[1],
+								   (float)buf_prop.tex_widths[2],(float)buf_prop.tex_heights[2],(float)buf_prop.tex_depths[2],
+								   (float)buf_prop.tex_widths[3],(float)buf_prop.tex_heights[3],(float)buf_prop.tex_depths[3]};
+			glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
+			glUniform1f(buf_prop.samplerate_loc, _samplerate);
+
+			if (_button_pressed)
 			{
-				glUseProgram(buf_prop.program);
-
-				//#TODO: synchronize locations with compiling
-
-				glUniform4f(buf_prop.date_loc, _year, _month, _day, _seconds);
-				glUniform1f(buf_prop.time_loc, (float)time);
-				glUniform1f(buf_prop.delta_loc, (float)_delta);
-				//#TODO: implement proper frame counter
-				glUniform1i(buf_prop.frame_loc, (int)(time*60));
-				glUniform1f(buf_prop.fps_loc, (float)fps);
-				glUniform3f(buf_prop.res_loc, _width, _height, 0);
-				float[] channel_res = {(float)buf_prop.tex_widths[0],(float)buf_prop.tex_heights[0],(float)buf_prop.tex_depths[0],
-									   (float)buf_prop.tex_widths[1],(float)buf_prop.tex_heights[1],(float)buf_prop.tex_depths[1],
-									   (float)buf_prop.tex_widths[2],(float)buf_prop.tex_heights[2],(float)buf_prop.tex_depths[2],
-									   (float)buf_prop.tex_widths[3],(float)buf_prop.tex_heights[3],(float)buf_prop.tex_depths[3]};
-				glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
-				glUniform1f(buf_prop.samplerate_loc, _samplerate);
-
-				if (_button_pressed)
-				{
-					glUniform4f(buf_prop.mouse_loc, (float) _mouse_x, (float) _mouse_y, (float) _button_pressed_x, (float) _button_pressed_y);
-				}
-				else
-				{
-					glUniform4f(buf_prop.mouse_loc, (float) _button_released_x, (float) _button_released_y, -(float) _button_pressed_x, -(float) _button_pressed_y);
-				}
-
-				for(int i=0;i<buf_prop.tex_ids.length && i<buf_prop.channel_locs.length;i++)
-				{
-					if(buf_prop.channel_locs[i] >= 0)
-					{
-						glActiveTexture(GL_TEXTURE0 + buf_prop.tex_channels[i]);
-						glBindTexture(buf_prop.tex_targets[i], buf_prop.tex_ids[i]);
-						glBindSampler(buf_prop.tex_channels[i], buf_prop.sampler_ids[i]);
-						glUniform1i(buf_prop.channel_locs[i], (GLint)buf_prop.tex_channels[i]);
-					}
-				}
-
-				glBindVertexArray(buf_prop.vao);
-
-				glFinish();
-
-				time_before = get_monotonic_time();
-
-				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-				glFlush();
-				glFinish();
-
-				time_after = get_monotonic_time();
-
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-				glFinish();
-
-				prog_mutex.unlock();
+				glUniform4f(buf_prop.mouse_loc, (float) _mouse_x, (float) _mouse_y, (float) _button_pressed_x, (float) _button_pressed_y);
 			}
+			else
+			{
+				glUniform4f(buf_prop.mouse_loc, (float) _button_released_x, (float) _button_released_y, -(float) _button_pressed_x, -(float) _button_pressed_y);
+			}
+
+			for(int i=0;i<buf_prop.tex_ids.length && i<buf_prop.channel_locs.length;i++)
+			{
+				if(buf_prop.channel_locs[i] >= 0)
+				{
+					glActiveTexture(GL_TEXTURE0 + buf_prop.tex_channels[i]);
+					glBindTexture(buf_prop.tex_targets[i], buf_prop.tex_ids[i]);
+					glBindSampler(buf_prop.tex_channels[i], buf_prop.sampler_ids[i]);
+					glUniform1i(buf_prop.channel_locs[i], (GLint)buf_prop.tex_channels[i]);
+				}
+			}
+
+			glBindVertexArray(buf_prop.vao);
+
+			glFinish();
+
+			time_before = get_monotonic_time();
+
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+			glFlush();
+			glFinish();
+
+			time_after = get_monotonic_time();
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			glFinish();
 
 			return time_after - time_before;
 		}
 
-		private void dummy_render_gl(BufferProperties buf_prop, Mutex prog_mutex)
+		private void dummy_render_gl(BufferProperties buf_prop)
 		{
 			if (_initialized)
 			{
@@ -1502,31 +1426,26 @@ namespace Shady
 
 				glViewport(0, 0, _width, _height);
 
-				if(prog_mutex.trylock())
-				{
-					glUseProgram(buf_prop.program);
+				glUseProgram(buf_prop.program);
 
-					glUniform4f(buf_prop.date_loc, 0.0f, 0.0f, 0.0f, 0.0f);
-					glUniform1f(buf_prop.time_loc, 0.0f);
-					glUniform1f(buf_prop.delta_loc, 0.0f);
-					glUniform1i(buf_prop.frame_loc, 0);
-					glUniform1f(buf_prop.fps_loc, 0.0f);
-					glUniform3f(buf_prop.res_loc, _width, _height, 0);
-					float[] channel_res = new float[12];
-					glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
-					glUniform1f(buf_prop.samplerate_loc, 0.0f);
+				glUniform4f(buf_prop.date_loc, 0.0f, 0.0f, 0.0f, 0.0f);
+				glUniform1f(buf_prop.time_loc, 0.0f);
+				glUniform1f(buf_prop.delta_loc, 0.0f);
+				glUniform1i(buf_prop.frame_loc, 0);
+				glUniform1f(buf_prop.fps_loc, 0.0f);
+				glUniform3f(buf_prop.res_loc, _width, _height, 0);
+				float[] channel_res = new float[12];
+				glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
+				glUniform1f(buf_prop.samplerate_loc, 0.0f);
 
-					glUniform4f(buf_prop.mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
+				glUniform4f(buf_prop.mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
 
-					glBindVertexArray(buf_prop.vao);
+				glBindVertexArray(buf_prop.vao);
 
-					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-					glFlush();
-					glFinish();
-
-					prog_mutex.unlock();
-				}
+				glFlush();
+				glFinish();
 			}
 		}
 	}
