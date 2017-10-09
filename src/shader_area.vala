@@ -13,8 +13,6 @@ namespace Shady
 	{
 		public signal void initialized();
 
-		public signal void switch_render_thread();
-
 		public signal void compilation_finished();
 		public signal void pass_compilation_terminated(int pass_index, ShaderError? e);
 
@@ -140,6 +138,8 @@ namespace Shady
 		/* Initialized */
 		private bool _initialized = false;
 
+		private bool _size_updated = false;
+
 		/* Mouse variables */
 		private bool _button_pressed;
 		private double _button_pressed_x;
@@ -236,39 +236,12 @@ namespace Shady
 
 			resize.connect((width, height) =>
 			{
+				_size_mutex.lock();
+
 				_width = width;
 				_height = height;
 
-				make_current();
-
-				_size_mutex.lock();
-
-				glBindTexture(GL_TEXTURE_2D, _image_prop1.tex_id_out_back);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _image_prop1.tex_id_out_back, 0);
-
-				glClearColor(0,0,0,1);
-				glClear(GL_COLOR_BUFFER_BIT);
-
-				for(int i=0;i<_buffer_buffer.length;i++)
-				{
-					_buffer_buffer[i].width=_width;
-					_buffer_buffer[i].height=_height;
-					
-					for(int j=0;j<2;j++)
-					{
-						glBindTexture(GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j]);
-						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-						glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j], 0);
-
-						glClearColor(0,0,0,1);
-						glClear(GL_COLOR_BUFFER_BIT);
-					}
-				}
+				_size_updated = true;
 
 				if(!_initialized)
 				{
@@ -924,13 +897,13 @@ namespace Shady
 
 			try
 			{
-				_render_thread1 = new Thread<int>.try("_render_thread1", () =>
+				_render_thread1 = new Thread<int>.try("Render Thread1", () =>
 				{
 					render_thread_func(false, _render_switch_mutex1, _image_prop1, _buffer_props1);
 					return 0;
 				});
 
-				_render_thread2 = new Thread<int>.try("_render_thread2", () =>
+				_render_thread2 = new Thread<int>.try("Render Thread2", () =>
 				{
 					render_thread_func(true, _render_switch_mutex2, _image_prop2, _buffer_props2);
 					return 0;
@@ -1302,6 +1275,37 @@ namespace Shady
 				int64 time_before = get_monotonic_time();
 
 				_size_mutex.lock();
+
+				if(_size_updated)
+				{
+					img_prop.context.make_current();
+					glBindTexture(GL_TEXTURE_2D, _image_prop1.tex_id_out_back);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _image_prop1.tex_id_out_back, 0);
+
+					for(int i=0;i<_buffer_buffer.length;i++)
+					{
+						_buffer_buffer[i].width=_width;
+						_buffer_buffer[i].height=_height;
+						
+						for(int j=0;j<2;j++)
+						{
+							glBindTexture(GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j]);
+							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+							glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
+							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j], 0);
+
+							glClearColor(0,0,0,1);
+							glClear(GL_COLOR_BUFFER_BIT);
+						}
+					}
+
+					_size_updated = false;
+				}
+
 				update_uniform_values();
 
 				for(int i=0; i<buf_props.length; i++)
