@@ -16,6 +16,10 @@
 				<property name="orientation">vertical</property>
 				<property name="width_request">180</property>
 
+				<style>
+					<class name="channel" />
+				</style>
+
 				<child>
 					<object class="GtkBox">
 						<property name="visible">True</property>

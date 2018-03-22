@@ -64,17 +64,26 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 }
 
 /* channels */
+@define-color darker_than_bg mix(@theme_bg_color, #000000, 0.5);
+
+.channel
+{
+	box-shadow: 0 0 5px #000000;
+	border: 0;
+	border-top-right-radius: 6pt;
+}
+
 .channel_header
 {
 	padding-left: 6pt;
-	background: #000000;
+	background: @darker_than_bg;
 	color: #FFFFFF;
 	border-top-right-radius: 6pt;
 }
 
 .channel_header button,.channel_header button:hover
 {
-	background: #000000;
+	background: @darker_than_bg;
 	color: #FFFFFF;
 	border: 0;
 	border-radius: 0;
@@ -84,7 +93,7 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 .channel_header button:active, .channel_header button:checked
 {
 	background: #FFFFFF;
-	color: #000000;
+	color: @darker_than_bg;
 	transition-duration: 0s;
 }
 
@@ -96,7 +105,7 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 .channel_settings
 {
 	padding: 6pt;
-	background: linear-gradient(to bottom, rgba(0,0,0,1) 0%,rgba(0,0,0,0.85) 65%,rgba(0,0,0,0.75) 100%);
+	background: linear-gradient(to bottom, alpha(@darker_than_bg, 1) 0%, alpha(@darker_than_bg, 0.85) 65%, alpha(@darker_than_bg ,0.75) 100%);
 	color: #FFFFFF;
 }
 
@@ -111,14 +120,14 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 	padding-bottom: 0;
 	border: 1px #FFFFFF solid;
 	border-radius: 0;
-	background: #000000;
+	background: @darker_than_bg;
 	color: #FFFFFF;
 }
 
 .channel_settings button:hover, .channel_settings button:active
 {
 	background: #FFFFFF;
-	color: #000000;
+	color: @darker_than_bg;
 }
 
 .channel_settings switch
@@ -128,7 +137,7 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 	outline: none;
 	border: 1px #FFFFFF solid;
 	border-radius: 0;
-	background: #000000;
+	background: @darker_than_bg;
 	color: #FFFFFF;
 }
 
@@ -136,7 +145,7 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 {
 	border: 1px #FFFFFF solid;
 	border-radius: 0;
-	background: #000000;
+	background: @darker_than_bg;
 }
 
 .channel_settings switch slider

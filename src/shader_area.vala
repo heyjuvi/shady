@@ -1190,6 +1190,10 @@ namespace Shady
 				int format=-1;
 				if (voxmap.n_channels == 3)
 				{
+					format = GL_RED;
+				}
+				else if (voxmap.n_channels == 3)
+				{
 					format = GL_RGB;
 				}
 				else if (voxmap.n_channels == 4)
