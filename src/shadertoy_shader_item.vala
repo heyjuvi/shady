@@ -64,7 +64,7 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Label views_label;
 
-		private ShaderArea _shader_area;
+		private ShaderManager _shader_manager;
 
 		public ShadertoyShaderItem()
 		{
@@ -87,11 +87,11 @@ namespace Shady
 
 			load_shader.renderpasses.append_val(renderpass);
 
-			_shader_area = new ShaderArea();
-			_shader_area.set_size_request(152, 140);
-			_shader_area.paused = true;
+			_shader_manager = new ShaderManager();
+			_shader_manager.set_size_request(152, 140);
+			_shader_manager.paused = true;
 
-			shader_container.pack_start(_shader_area, false, false);
+			shader_container.pack_start(_shader_manager, false, false);
 			/*Gtk.Button bla = new Gtk.Button();
 			bla.set_size_request(152, 140);
 			shader_container.pack_start(bla, false, false);*/
@@ -101,7 +101,7 @@ namespace Shady
 
 		public void compile() throws ShaderError
 		{
-			_shader_area.compile(shader);
+			_shader_manager.compile(shader);
 		}
 
 		[GtkCallback]
@@ -109,8 +109,8 @@ namespace Shady
 		{
 			if (event.detail != Gdk.NotifyType.INFERIOR)
 			{
-				_shader_area.reset_time();
-				_shader_area.paused = false;
+				_shader_manager.reset_time();
+				_shader_manager.paused = false;
 			}
 
 			return false;
@@ -121,8 +121,8 @@ namespace Shady
 		{
 			if (event.detail != Gdk.NotifyType.INFERIOR)
 			{
-				_shader_area.reset_time();
-				_shader_area.paused = true;
+				_shader_manager.reset_time();
+				_shader_manager.paused = true;
 			}
 
 			return false;

@@ -1,12 +1,10 @@
 issues:
-	- doesn't start sometimes
 	- moving cursor doesn't scroll
 	- mouse input not working
 	- add channel amount info to json files, since gdkpixpuf does not
 	  correctly recognise textures wtih one channel (it says the texture
 	  has three channels)
 	- make closing of search window more responsive
-	- doesn't start when window width too small
 
 feature requests:
 	- saving shaders
@@ -17,6 +15,8 @@ feature requests:
 	- texture support
 	- audio shader support
 	- glsl version switching
+	- common shader tab
+	- playlists
 	- multipass
 	- paste mouse coordinates in source code
 	- adjustable resolution
