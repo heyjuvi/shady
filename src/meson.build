@@ -26,6 +26,7 @@ app_sources = files(
   'shader.vala',
   'shadertoy_resource_manager.vala',
   'shader_area.vala',
+  'shader_manager.vala',
   'shader_source_buffer.vala',
   'shader_source_view.vala',
   'shader_channel.vala',

@@ -128,11 +128,6 @@ namespace Shady
 			});
 
 			_shader_area.show();
-
-			_shader_area.initialized.connect(() =>
-			{
-				_shader_area.compile_default_shader_no_thread();
-			});
 		}
 
 		private void update_sampler()

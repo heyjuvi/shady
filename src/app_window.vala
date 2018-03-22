@@ -134,7 +134,7 @@ namespace Shady
 		private Gtk.Paned main_paned;
 
 		private Overlay _shader_overlay;
-		private ShaderArea _shader_area;
+		private ShaderManager _shader_manager;
 		private Box _foreground_box;
 
 		private Gtk.Box _editor_box;
@@ -170,10 +170,10 @@ namespace Shady
 				print("Couldn't load default shader!\n");
 			}
 
-			_shader_area = new ShaderArea();
-			_shader_area.set_size_request(500, 600);
+			_shader_manager = new ShaderManager();
+			_shader_manager.set_size_request(500, 600);
 
-			_curr_shader = _shader_area.get_default_shader();
+			_curr_shader = _shader_manager.get_default_shader();
 
 			_foreground_box = new Box(Orientation.VERTICAL, 0);
 
@@ -184,7 +184,7 @@ namespace Shady
 			dummy.pack_end(new Box(Orientation.VERTICAL, 0), true, true);
 
 			_shader_overlay = new Overlay();
-			_shader_overlay.add(_shader_area);
+			_shader_overlay.add(_shader_manager);
 			_shader_overlay.add_overlay(dummy);
 
 			_editor_box = new Gtk.Box(Orientation.VERTICAL, 0);
@@ -310,7 +310,7 @@ namespace Shady
 			_channels_revealer.show_all();
 			_channels_box.show_all();
 
-			_shader_area.show();
+			_shader_manager.show();
 
 			// test
 			ShaderChannel channel0 = new ShaderChannel();
@@ -559,14 +559,14 @@ namespace Shady
 				}
 			}
 
-			_shader_area.compilation_finished.connect(() =>
+			_shader_manager.compilation_finished.connect(() =>
 			{
 				compile_button_stack.visible_child_name = "compile_image";
 			});
 
 			compile_button_stack.visible_child_name = "compile_spinner";
 
-			_shader_area.pass_compilation_terminated.connect((index, e) =>
+			_shader_manager.pass_compilation_terminated.connect((index, e) =>
 			{
 				if (e != null && e is ShaderError.COMPILATION)
 				{
@@ -631,17 +631,17 @@ namespace Shady
 				}
 			});
 
-			_shader_area.compile(_curr_shader);
+			_shader_manager.compile(_curr_shader);
 		}
 
 		public void reset_time()
 		{
-			_shader_area.reset_time();
+			_shader_manager.reset_time();
 		}
 
 		public void play()
 		{
-			_shader_area.paused = false;
+			_shader_manager.paused = false;
 
 			play_button_image.set_from_icon_name("media-playback-pause-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(false);
@@ -649,7 +649,7 @@ namespace Shady
 
 		public void pause()
 		{
-			_shader_area.paused = true;
+			_shader_manager.paused = true;
 
 			play_button_image.set_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(true);
@@ -659,7 +659,7 @@ namespace Shady
 		{
 			StringBuilder fps = new StringBuilder();
 
-			fps.printf("%5.2ffps", _shader_area.fps);
+			fps.printf("%5.2ffps", _shader_manager.fps);
 			fps_label.set_label(fps.str);
 
 			return false;
@@ -669,7 +669,7 @@ namespace Shady
 		{
 			StringBuilder time = new StringBuilder();
 
-			time.printf("%3.2fs", _shader_area.time);
+			time.printf("%3.2fs", _shader_manager.time);
 			time_label.set_label(time.str);
 
 			return false;
@@ -684,7 +684,7 @@ namespace Shady
 		[GtkCallback]
 		private void play_button_clicked()
 		{
-			if (_shader_area.paused)
+			if (_shader_manager.paused)
 			{
 				play();
 			}
@@ -697,7 +697,7 @@ namespace Shady
 		[GtkCallback]
 		private void rubber_band_scale_value_changed()
 		{
-			_shader_area.time_slider = rubber_band_scale.get_value();
+			_shader_manager.time_slider = rubber_band_scale.get_value();
 		}
 
 		[GtkCallback]
