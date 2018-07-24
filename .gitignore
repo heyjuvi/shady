@@ -21,3 +21,5 @@
 /INSTALL
 /Makefile
 /build
+/meson
+/install

@@ -16,6 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using Shady;
+using Shady.Core;
+using GL;
+
 int main(string[] args)
 {
 	X.init_threads();
