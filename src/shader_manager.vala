@@ -977,7 +977,6 @@ namespace Shady
 						return _texture_buffer[i].tex_ids;
 					}
 				}
-
 				if(i == _texture_buffer.length)
 				{
 					GLuint[] tex_ids = init_input_texture(input, out width, out height, out depth, out target);
@@ -1054,6 +1053,11 @@ namespace Shady
 
 			if(input.type == Shader.InputType.TEXTURE)
 			{
+				if(!(input.resource_index < ShadertoyResourceManager.TEXTURE_IDS.length))
+				{
+					input.resource_index = 0;
+				}
+
 				target = GL_TEXTURE_2D;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
@@ -1085,6 +1089,11 @@ namespace Shady
 			}
 			else if(input.type == Shader.InputType.3DTEXTURE)
 			{
+				if(!(input.resource_index < ShadertoyResourceManager.3DTEXTURE_IDS.length))
+				{
+					input.resource_index = 0;
+				}
+
 				target = GL_TEXTURE_3D;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
@@ -1111,6 +1120,11 @@ namespace Shady
 			}
 			else if(input.type == Shader.InputType.CUBEMAP)
 			{
+				if(!(input.resource_index < ShadertoyResourceManager.CUBEMAP_IDS.length))
+				{
+					input.resource_index = 0;
+				}
+
 				target = GL_TEXTURE_CUBE_MAP;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);

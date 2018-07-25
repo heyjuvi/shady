@@ -154,6 +154,7 @@ namespace Shady
 			render.connect(() =>
 			{
 				_size_mutex.lock();
+				update_uniform_values();
 				render_gl(_target_prop);
 				_size_mutex.unlock();
 				queue_draw();
@@ -249,21 +250,54 @@ namespace Shady
 
 		public void compile_shader_input(Shader.Input input)
 		{
-			int width, height, depth, channel;
-			GLuint tex_target;
+			if(input.resource!=null){
+				int width, height, depth, channel;
+				GLuint tex_target;
 
-			GLuint[] tex_ids = query_input_texture(input, out width, out height, out depth, out tex_target);
-			_target_prop.tex_ids[0] = tex_ids[0];
-			_target_prop.tex_targets[0] = tex_target;
+				GLuint[] tex_ids = query_input_texture(input, out width, out height, out depth, out tex_target);
 
-			channel = input.channel;
+				if(tex_ids != null && tex_ids.length > 0){
 
-			_target_prop.tex_channels[0] = channel;
+					Shader? input_shader = get_shader_from_input(input);
 
-			if(channel>=0 && channel<4){
-				_target_prop.tex_widths[channel] = width;
-				_target_prop.tex_heights[channel] = height;
-				_target_prop.tex_depths[channel] = depth;
+					string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
+					string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
+
+					string target_source = input_shader.renderpasses.index(0).code;
+
+					string target_channel_prefix = "";
+
+					if(input.type == Shader.InputType.TEXTURE)
+					{
+						target_channel_prefix += "uniform sampler2D iChannel0;\n";
+					}
+					else if(input.type == Shader.InputType.3DTEXTURE)
+					{
+						target_channel_prefix += "uniform sampler3D iChannel0;\n";
+					}
+					else if(input.type == Shader.InputType.CUBEMAP)
+					{
+						target_channel_prefix += "uniform samplerCube iChannel0;\n";
+					}
+
+					string full_target_source = shader_prefix + target_channel_prefix + target_source + shader_suffix;
+
+					compile_pass(-1, full_target_source, ref _target_prop);
+
+
+					_target_prop.tex_ids[0] = tex_ids[0];
+					_target_prop.tex_targets[0] = tex_target;
+
+					channel = input.channel;
+
+					_target_prop.tex_channels[0] = channel;
+
+					if(channel>=0 && channel<4){
+						_target_prop.tex_widths[channel] = width;
+						_target_prop.tex_heights[channel] = height;
+						_target_prop.tex_depths[channel] = depth;
+					}
+				}
 			}
 		}
 
@@ -485,6 +519,10 @@ namespace Shady
 
 			if(input.type == Shader.InputType.TEXTURE)
 			{
+				if(!(input.resource_index < ShadertoyResourceManager.TEXTURE_IDS.length))
+				{
+					input.resource_index = 0;
+				}
 				target = GL_TEXTURE_2D;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
@@ -516,6 +554,11 @@ namespace Shady
 			}
 			else if(input.type == Shader.InputType.3DTEXTURE)
 			{
+				if(!(input.resource_index < ShadertoyResourceManager.3DTEXTURE_IDS.length))
+				{
+					input.resource_index = 0;
+				}
+
 				target = GL_TEXTURE_3D;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
@@ -546,6 +589,11 @@ namespace Shady
 			}
 			else if(input.type == Shader.InputType.CUBEMAP)
 			{
+				if(!(input.resource_index < ShadertoyResourceManager.CUBEMAP_IDS.length))
+				{
+					input.resource_index = 0;
+				}
+
 				target = GL_TEXTURE_CUBE_MAP;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
@@ -645,6 +693,7 @@ namespace Shady
 			}
 
 			return tex_ids;
+
 		}
 
 		private void init_sampler(Shader.Input input, GLuint sampler_id)
