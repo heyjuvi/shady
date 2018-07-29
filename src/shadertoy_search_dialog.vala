@@ -328,7 +328,7 @@ namespace Shady
 					return 0;
 				});
 			}
-			catch(Error e)
+			catch (Error e)
 			{
 				print("Couldn't start shader loading thread\n");
 			}

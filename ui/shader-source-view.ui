@@ -3,11 +3,12 @@
 	<template class="ShadyShaderSourceView" parent="GtkSourceView">
 		<property name="visible">True</property>
 		<property name="can_focus">True</property>
-		<property name="show_line_numbers">True</property>
+		<property name="show_line_numbers">False</property>
 		<property name="show_line_marks">True</property>
 		<property name="tab_width">2</property>
 		<property name="indent_on_tab">True</property>
 		<property name="auto_indent">True</property>
+	  <!--<property name="wrap_mode">GTK_WRAP_WORD</property>-->
 		<property name="highlight_current_line">False</property>
 	</template>
 </interface>

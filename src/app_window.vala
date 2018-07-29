@@ -544,6 +544,8 @@ namespace Shady
 
 		public void compile()
 		{
+		    string image_source;
+
 			for (int i = 0; i < _curr_shader.renderpasses.length; i++)
 			{
 				if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
@@ -568,6 +570,16 @@ namespace Shady
 
 			_shader_manager.pass_compilation_terminated.connect((index, e) =>
 			{
+			    Core.GLSLCompiler glslang = new Core.GLSLCompiler();
+			    glslang.compile(Core.GLSLCompiler.Stage.FRAGMENT, _shader_manager.test_image_source, (spirv, errors, success) =>
+			    {
+			        print(@"SUCCSS: $success\n");
+			        foreach (var error in errors)
+			        {
+			            print(@"$error\n");
+			        }
+			    });
+
 				if (e != null && e is ShaderError.COMPILATION)
 				{
 					// append a line, so the loop below really adds all different

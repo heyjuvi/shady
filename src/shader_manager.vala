@@ -227,9 +227,12 @@ namespace Shady
 
 			render.connect(() =>
 			{
-				_size_mutex.lock();
-				render_gl(_target_prop);
-				_size_mutex.unlock();
+			    if (!_paused)
+			    {
+				    _size_mutex.lock();
+				    render_gl(_target_prop);
+				    _size_mutex.unlock();
+				}
 				queue_draw();
 				return false;
 			});
@@ -370,6 +373,7 @@ namespace Shady
 			}
 		}
 
+        public string test_image_source;
 		public Thread<int> compile(Shader new_shader)
 		{
 			return new Thread<int>("compile_thread", () =>
@@ -610,6 +614,7 @@ namespace Shady
 				}
 
 				string full_image_source = shader_prefix + image_channel_prefix + image_source + shader_suffix;
+				test_image_source = full_image_source;
 
 				compile_pass(image_index, full_image_source, ref image_prop);
 

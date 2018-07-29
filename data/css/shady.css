@@ -63,6 +63,23 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 	background: alpha(@theme_bg_color, 0.4);
 }
 
+label.line_error
+{
+  color: #FFFFFF;
+  font-weight: bold;
+  font-family: Monospace;
+  font-size: 9pt;
+  background: #FF0000;
+  border-radius: 3px;
+  box-shadow: 0 0 3px #000000;
+  border: 0;
+  margin: 3px;
+  padding-left: 6px;
+  padding-right: 6px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
 /* channels */
 @define-color darker_than_bg mix(@theme_bg_color, #000000, 0.5);
 
