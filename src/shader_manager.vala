@@ -1106,7 +1106,11 @@ namespace Shady
 				depth = voxmap.depth;
 
 				int format=-1;
-				if (voxmap.n_channels == 3)
+				if (voxmap.n_channels == 1)
+				{
+					format = GL_RED;
+				}
+				else if (voxmap.n_channels == 3)
 				{
 					format = GL_RGB;
 				}
@@ -1279,7 +1283,6 @@ namespace Shady
 			_curr_date.get_ymd(out _year, out _month, out _day);
 
 			_seconds = (float)((_curr_date.get_hour()*60+_curr_date.get_minute())*60)+(float)_curr_date.get_seconds();
-
 		}
 
 		private void render_image(BufferProperties img_prop, BufferProperties[] buf_props)

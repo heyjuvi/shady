@@ -251,6 +251,7 @@ namespace Shady
 		public void compile_shader_input(Shader.Input input)
 		{
 			if(input.resource!=null){
+				_target_prop.context.make_current();
 				int width, height, depth, channel;
 				GLuint tex_target;
 
@@ -283,7 +284,6 @@ namespace Shady
 					string full_target_source = shader_prefix + target_channel_prefix + target_source + shader_suffix;
 
 					compile_pass(-1, full_target_source, ref _target_prop);
-
 
 					_target_prop.tex_ids[0] = tex_ids[0];
 					_target_prop.tex_targets[0] = tex_target;
@@ -523,6 +523,7 @@ namespace Shady
 				{
 					input.resource_index = 0;
 				}
+
 				target = GL_TEXTURE_2D;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
@@ -571,7 +572,7 @@ namespace Shady
 				depth = voxmap.depth;
 
 				int format=-1;
-				if (voxmap.n_channels == 3)
+				if (voxmap.n_channels == 1)
 				{
 					format = GL_RED;
 				}
@@ -693,7 +694,6 @@ namespace Shady
 			}
 
 			return tex_ids;
-
 		}
 
 		private void init_sampler(Shader.Input input, GLuint sampler_id)
@@ -740,7 +740,6 @@ namespace Shady
 			_curr_date.get_ymd(out _year, out _month, out _day);
 
 			_seconds = (float)((_curr_date.get_hour()*60+_curr_date.get_minute())*60)+(float)_curr_date.get_seconds();
-
 		}
 
 		private int64 render_gl(BufferProperties buf_prop)
