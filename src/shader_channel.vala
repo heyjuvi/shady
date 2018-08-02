@@ -209,6 +209,7 @@ namespace Shady
 		private void filter_mode_combo_box_changed()
 		{
 			update_sampler();
+			update_shader();
 
 			channel_input_changed(_channel_input);
 		}
@@ -217,6 +218,7 @@ namespace Shady
 		private void wrap_mode_combo_box_changed()
 		{
 			update_sampler();
+			update_shader();
 
 			channel_input_changed(_channel_input);
 		}
@@ -225,6 +227,7 @@ namespace Shady
 		private void v_flip_switch_toggled()
 		{
 			update_sampler();
+			update_shader();
 
 			channel_input_changed(_channel_input);
 		}

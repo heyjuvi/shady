@@ -831,10 +831,9 @@ namespace Shady
 			GLuint[] vbo = {0};
 			glGenBuffers(1, vbo);
 
-			GLfloat[] vertices = {  1,  1,
-								   -1,  1,
-								   -1, -1,
-									1, -1 };
+			GLfloat[] vertices = { -1, -1,
+			                        3, -1,
+			                       -1,  3 };
 
 			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 			glBufferData(GL_ARRAY_BUFFER, vertices.length * sizeof (GLfloat), (GLvoid[]) vertices, GL_STATIC_DRAW);
@@ -990,7 +989,7 @@ namespace Shady
 						tex_ids = tex_ids,
 						type = input.type,
 						v_flip = input.sampler.v_flip,
-						index = i
+						index = input.resource_index
 					};
 
 					_texture_buffer += tex_unit;
@@ -1426,7 +1425,7 @@ namespace Shady
 
 			time_before = get_monotonic_time();
 
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
 
 			glFlush();
 			glFinish();
@@ -1463,7 +1462,7 @@ namespace Shady
 
 				glBindVertexArray(buf_prop.vao);
 
-				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
 
 				glFlush();
 				glFinish();
