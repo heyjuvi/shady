@@ -13,7 +13,7 @@ add_global_arguments('-std=c11', language : 'c')
 glib_dep = dependency('glib-2.0')
 gtk_dep = dependency('gtk+-3.0')
 gobject_dep = dependency('gobject-2.0')
-gtksourceview_dep = dependency('gtksourceview-3.0')
+gtksourceview_dep = dependency('gtksourceview-4')
 libsoup_dep = dependency('libsoup-2.4')
 json_glib_dep = dependency('json-glib-1.0')
 
@@ -37,6 +37,8 @@ app_sources = files(
   'shader_channel_input_item.vala',
   'notebook_tab_label.vala',
   'notebook_action_widget.vala',
+  'shader_editor.vala',
+  'shader_scene.vala',
   'shadertoy_search_dialog.vala',
   'shadertoy_shader_item.vala'
 )
