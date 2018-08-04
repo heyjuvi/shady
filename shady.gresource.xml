@@ -26,6 +26,9 @@
 		<file>data/images/likes.png</file>
 		<file>data/images/views.png</file>
 
+	  <!-- language specs -->
+	  <file>data/lang_specs/shadertoy_glsl.lang</file>
+
 		<!-- shaders -->
 		<file>data/shader/prefix.glsl</file>
 		<file>data/shader/default.glsl</file>

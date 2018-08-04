@@ -33,12 +33,42 @@ namespace Shady
 
 		private List<Gtk.Label> _error_labels = new List<Gtk.Label>();
 
+		construct
+		{
+		    File shadertoy_glsl_resource = File.new_for_uri("resource:///org/hasi/shady/data/lang_specs/shadertoy_glsl.lang");
+			File shadertoy_glsl_cache = File.new_for_path(Environment.get_home_dir());
+
+			shadertoy_glsl_cache = shadertoy_glsl_cache.get_child(".cache").get_child("shady");
+
+            if (!shadertoy_glsl_cache.query_exists())
+            {
+			    try
+			    {
+			        shadertoy_glsl_cache.make_directory_with_parents();
+			    }
+			    catch (Error e)
+			    {
+			        print(@"Error while creating ~/.cache/shady: $(e.message)");
+			    }
+			}
+
+			string shadertoy_glsl_search_path = shadertoy_glsl_cache.get_path();
+
+			shadertoy_glsl_cache = shadertoy_glsl_cache.get_child("shadertoy_glsl.lang");
+			shadertoy_glsl_resource.copy(shadertoy_glsl_cache, FileCopyFlags.OVERWRITE);
+
+			Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
+			string[] current_search_path = source_language_manager.search_path;
+			current_search_path += shadertoy_glsl_search_path;
+			source_language_manager.search_path = current_search_path;
+		}
+
 		public ShaderSourceBuffer(string buffer_name)
 		{
 			buf_name = buffer_name;
 
-			Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
-			Gtk.SourceLanguage source_language = source_language_manager.get_language("glsl");
+            Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
+			Gtk.SourceLanguage source_language = source_language_manager.get_language("shadertoy_glsl");
 
 			buffer = new Gtk.SourceBuffer.with_language(source_language);
 

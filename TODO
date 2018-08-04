@@ -1,5 +1,4 @@
 issues:
-	- moving cursor doesn't scroll
 	- mouse input not working
 	- add channel amount info to json files, since gdkpixpuf does not
 	  correctly recognise textures wtih one channel (it says the texture
@@ -21,7 +20,6 @@ feature requests:
 	- paste mouse coordinates in source code
 	- adjustable resolution
 	- watch file changes, load altered shader
-	- syntax highlighting must get better
 	- video and screenshot export
 	- export to small shaderstub for 4k demos
 	- vr support
