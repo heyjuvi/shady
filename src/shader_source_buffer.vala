@@ -27,9 +27,6 @@ namespace Shady
 			}
 		}
 
-		[GtkChild]
-		private Gtk.Viewport viewport;
-
 		private Gtk.SourceMarkAttributes _source_mark_attributes;
 
 		private Gtk.SourceTag _error_tag;
@@ -48,7 +45,7 @@ namespace Shady
 			view = new ShaderSourceView();
 			view.buffer = buffer;
 
-			viewport.add(view);
+			add(view);
 
 			Gdk.RGBA red = Gdk.RGBA();
 			red.parse("#FF0000");
