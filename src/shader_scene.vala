@@ -35,13 +35,11 @@ namespace Shady
 		public ShaderScene()
 		{
 		    _shader_manager = new ShaderManager();
-		    //_fullscreen_shader_manager = new ShaderManager();
+		    _fullscreen_shader_manager = new ShaderManager();
 
             _fullscreen_window = new Gtk.Window();
             _fullscreen_window.width_request = 320;
             _fullscreen_window.height_request = 240;
-
-            _fullscreen_window.add(_fullscreen_shader_manager);
 
             _fullscreen_window.delete_event.connect(() =>
             {
@@ -50,18 +48,16 @@ namespace Shady
 
             _fullscreen_window.key_press_event.connect((widget, event) =>
 			{
-			    bool is_fullscreen = (_fullscreen_window.get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
+			    //bool is_fullscreen = (_fullscreen_window.get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
 
-				if (is_fullscreen &&
-				    (event.keyval == Gdk.Key.F11 ||
-				     event.keyval == Gdk.Key.Escape))
+				if (event.keyval == Gdk.Key.F11 ||
+				    event.keyval == Gdk.Key.Escape)
 				{
 					leave_fullscreen();
 				}
 
 				return false;
 			});
-		    //_fullscreen_window.add(_shader_manager);
 
             // TODO: it must be possible to enforce the aspect ratio in a better way
 		    main_shader_container.size_allocate.connect((allocation) =>
@@ -91,9 +87,11 @@ namespace Shady
 			    return false;
 			});
 
-		    //_shader_manager.height_request = (int) (main_shader_container.width_request / 1.7777777777);
-		    main_shader_container.queue_resize();
 		    _shader_manager.show();
+
+		    _fullscreen_window.show_all();
+		    _fullscreen_window.add(_fullscreen_shader_manager);
+		    _fullscreen_window.hide();
 		}
 
 		public void compile(Shader shader)
