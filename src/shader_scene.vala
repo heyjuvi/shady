@@ -41,7 +41,6 @@ namespace Shady
             _fullscreen_window.width_request = 320;
             _fullscreen_window.height_request = 240;
 
-            _fullscreen_window.add(new Gtk.Button());
             _fullscreen_window.add(_fullscreen_shader_manager);
 
             _fullscreen_window.delete_event.connect(() =>

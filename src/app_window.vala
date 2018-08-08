@@ -302,13 +302,6 @@ namespace Shady
 			return false;
 		}
 
-		/*[GtkCallback]
-		private void fullscreen_button_clicked()
-		{
-			_editor.hide();
-			fullscreen();
-		}*/
-
 		[GtkCallback]
 		private void live_mode_button_toggled()
 		{
