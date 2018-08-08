@@ -1299,11 +1299,13 @@ namespace Shady
 			{
 				glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
 				glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_R, GL_REPEAT);
 			}
 			else if(input.sampler.wrap == Shader.WrapMode.CLAMP)
 			{
-				glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_CLAMP);
-				glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_CLAMP);
+				glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 			}
 		}
 

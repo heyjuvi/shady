@@ -135,9 +135,9 @@ namespace Shady
 
 		public class Sampler
 		{
-			public FilterMode filter;
-			public WrapMode wrap;
-			public bool v_flip;
+			public FilterMode filter = FilterMode.MIPMAP;
+			public WrapMode wrap = WrapMode.REPEAT;
+			public bool v_flip = false;
 		}
 
 		public enum RenderpassType
