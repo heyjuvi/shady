@@ -89,9 +89,8 @@ namespace Shady
 
 		    _shader_manager.show();
 
-		    _fullscreen_window.show_all();
+			_fullscreen_window.realize();
 		    _fullscreen_window.add(_fullscreen_shader_manager);
-		    _fullscreen_window.hide();
 		}
 
 		public void compile(Shader shader)
