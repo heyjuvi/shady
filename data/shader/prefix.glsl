@@ -19,3 +19,4 @@ uniform vec3 iChannelResolution[4];
 uniform vec4 iMouse;
 uniform vec4 iDate;
 uniform float iSampleRate;
+uniform vec2 SHADY_COORDINATE_OFFSET;

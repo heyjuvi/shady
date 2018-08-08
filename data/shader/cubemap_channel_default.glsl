@@ -1,8 +1,8 @@
 vec2 rot2D(vec2 p, float angle)
 {
 	angle = radians(angle);
-	float s = sin(angle);
-	float c = cos(angle);
+	float s = sin(mod(angle,2.*3.1416));
+	float c = cos(mod(angle,2.*3.1416));
 
 	return p * mat2(c,s,-s,c);
 }
