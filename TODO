@@ -6,6 +6,7 @@ issues:
 	- make closing of search window more responsive
 
 feature requests:
+	- one thread for all shader search items in a queue
 	- saving shaders
 	- hotkeys
 	- source code search
