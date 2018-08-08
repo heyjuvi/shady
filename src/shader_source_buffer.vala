@@ -140,7 +140,7 @@ namespace Shady
                         // it is not entirely clear, why there has to be this additional offset in the
                         // x compenent
 			            _error_tooltip_window.move(view_x + gutter_width, view_y + start_iter_y - 36);
-			            _error_tooltip_window.resize(view.get_allocated_width() - gutter_width - 2, 1);
+			            _error_tooltip_window.resize(view.get_allocated_width() - gutter_width, 1);
 
 		                _error_tooltip_label.set_text(_errors[iter.get_line() + 1]);
 		                _error_tooltip_window.show();

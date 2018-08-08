@@ -80,12 +80,12 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 {
   background: #FF0000;
   color: #FFFFFF;
-	border-radius: 3pt;
-	margin: 3pt;
+	/*border-radius: 3pt;*/
+	/*margin: 3pt;*/
 	padding: 3pt;
   font-family: Monospace;
   font-weight: bold;
-  box-shadow: 0 0 3px #000000;
+  /*box-shadow: 0 0 3px #000000;*/
 }
 
 /* scene */
