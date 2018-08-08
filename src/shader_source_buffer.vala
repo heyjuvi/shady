@@ -30,7 +30,6 @@ namespace Shady
 		private Gtk.SourceMarkAttributes _source_mark_attributes;
 
 		private Gtk.SourceTag _error_tag;
-		private List<Gtk.Label> _error_labels = new List<Gtk.Label>();
 		private HashTable<int, string> _errors = new HashTable<int, string>(direct_hash, direct_equal);
 
 		private Gtk.Window _error_tooltip_window;
@@ -101,55 +100,39 @@ namespace Shady
 
             view.events |= POINTER_MOTION_MASK | LEAVE_NOTIFY_MASK;
 
+            buffer.notify["cursor-position"].connect(() =>
+            {
+                Gtk.TextIter iter;
+
+                buffer.get_iter_at_offset(out iter, buffer.cursor_position);
+
+                if (iter.has_tag(_error_tag))
+                {
+                    show_error(iter.get_line());
+                }
+                else
+                {
+                    hide_error();
+                }
+            });
+
             view.motion_notify_event.connect((event_motion) =>
             {
                 Gtk.TextIter iter;
 
                 int mouse_x, mouse_y, trailing;
 
-		        view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out mouse_x, out mouse_y);
-		        view.get_iter_at_position(out iter, out trailing, mouse_x, mouse_y);
+	            view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out mouse_x, out mouse_y);
+	            view.get_iter_at_position(out iter, out trailing, mouse_x, mouse_y);
 
-                // might not be the main window
-		        Gtk.Widget toplevel = get_toplevel();
-
-		        if (toplevel.is_toplevel())
-		        {
-		            _error_tooltip_window.set_transient_for(toplevel as Gtk.Window);
-
-		            if (iter.has_tag(_error_tag))
-		            {
-		                Gtk.TextIter start_iter;
-		                int view_x, view_y;
-		                int start_iter_x, start_iter_y;
-		                Gdk.Rectangle start_iter_rectangle;
-
-		                view.translate_coordinates(toplevel, 0, 0, out view_x, out view_y);
-
-                        buffer.get_iter_at_line(out start_iter, iter.get_line());
-
-			            view.get_iter_location(start_iter, out start_iter_rectangle);
-			            view.buffer_to_window_coords(Gtk.TextWindowType.TEXT,
-			                                         start_iter_rectangle.x,
-			                                         start_iter_rectangle.y,
-			                                         out start_iter_x,
-			                                         out start_iter_y);
-
-			            int gutter_width = view.get_window(Gtk.TextWindowType.LEFT).get_width();
-
-                        // it is not entirely clear, why there has to be this additional offset in the
-                        // x compenent
-			            _error_tooltip_window.move(view_x + gutter_width, view_y + start_iter_y - 28);
-			            _error_tooltip_window.resize(view.get_allocated_width() - gutter_width, 1);
-
-		                _error_tooltip_label.set_text(_errors[iter.get_line() + 1]);
-		                _error_tooltip_window.show();
-		            }
-		            else
-		            {
-		                _error_tooltip_window.hide();
-		            }
-			    }
+                if (iter.has_tag(_error_tag))
+	            {
+	                //show_error();
+	            }
+	            else
+	            {
+	                //hide_error();
+	            }
 
                 return false;
             });
@@ -162,6 +145,49 @@ namespace Shady
             });
 		}
 
+		private void show_error(int line)
+		{
+            // might not be the main window
+	        Gtk.Widget toplevel = get_toplevel();
+
+	        if (toplevel.is_toplevel())
+	        {
+	            _error_tooltip_window.set_transient_for(toplevel as Gtk.Window);
+
+                Gtk.TextIter start_iter;
+                int view_x, view_y;
+                int start_iter_x, start_iter_y;
+                Gdk.Rectangle start_iter_rectangle;
+
+                view.translate_coordinates(toplevel, 0, 0, out view_x, out view_y);
+
+                buffer.get_iter_at_line(out start_iter, line);
+
+	            view.get_iter_location(start_iter, out start_iter_rectangle);
+	            view.buffer_to_window_coords(Gtk.TextWindowType.TEXT,
+	                                         start_iter_rectangle.x,
+	                                         start_iter_rectangle.y,
+	                                         out start_iter_x,
+	                                         out start_iter_y);
+
+	            int gutter_width = view.get_window(Gtk.TextWindowType.LEFT).get_width();
+
+                // it is not entirely clear, why there has to be this additional offset in the
+                // x compenent
+                _error_tooltip_label.set_text(_errors[line + 1]);
+
+                _error_tooltip_window.resize(view.get_allocated_width() - gutter_width, 1);
+                _error_tooltip_window.show();
+                _error_tooltip_window.move(view_x + gutter_width,
+	                                       view_y + start_iter_y - _error_tooltip_window.get_allocated_height());
+		    }
+		}
+
+		private void hide_error()
+		{
+		    _error_tooltip_window.hide();
+		}
+
 		public void clear_error_messages()
 		{
 			Gtk.TextIter start_iter, end_iter;
@@ -170,6 +196,8 @@ namespace Shady
 
 			buffer.remove_source_marks(start_iter, end_iter, "error");
 			buffer.remove_tag_by_name("glsl-error-tag", start_iter, end_iter);
+
+		    _errors.remove_all();
 		}
 
 		public void add_error_message(int line, string name, string message)
@@ -188,6 +216,14 @@ namespace Shady
 			Gtk.SourceMark new_source_mark = buffer.create_source_mark(name, "error", start_iter);
 
 			buffer.apply_tag(_error_tag, start_iter, end_iter);
+
+			Gtk.TextIter cursor_iter;
+            buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
+
+            if (cursor_iter.has_tag(_error_tag))
+            {
+                show_error(cursor_iter.get_line());
+            }
 
 			/*Gtk.Allocation allocation;
 			view.get_allocated_size(out allocation, null);
