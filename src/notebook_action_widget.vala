@@ -3,11 +3,14 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/notebook-action-widget.ui")]
 	public class NotebookActionWidget : Gtk.Box
 	{
-		[GtkChild]
-		public Gtk.Button new_buffer_button;
+	    public signal void new_buffer_clicked();
+	    public signal void show_channels_clicked();
 
 		[GtkChild]
-		public Gtk.Button show_channels_button;
+		private Gtk.Button new_buffer_button;
+
+		[GtkChild]
+		private Gtk.Button show_channels_button;
 
 		public NotebookActionWidget()
 		{
@@ -16,11 +19,13 @@ namespace Shady
 		[GtkCallback]
 		private void new_buffer_button_clicked()
 		{
+		    new_buffer_clicked();
 		}
 
 		[GtkCallback]
 		private void show_channels_button_clicked()
 		{
+		    show_channels_clicked();
 		}
 	}
 }

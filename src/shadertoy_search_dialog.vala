@@ -27,7 +27,15 @@ namespace Shady
 				shader = new Shader();
 
 				var shader_parser = new Json.Parser();
-				shader_parser.load_from_data((string) shader_message.response_body.flatten().data, -1);
+
+				string shader_data = (string) shader_message.response_body.flatten().data;
+				shader_data = shader_data.replace("\\n", "\n");
+				shader_data = shader_data.replace("\\t", "\t");
+				shader_data = shader_data.replace("\\/", "/");
+
+				shader_parser.load_from_data(shader_data, -1);
+
+				//print("NEW SHADER:\n " + shader_data + "\n\n\n");
 
 				var shader_root = shader_parser.get_root().get_object().get_object_member("Shader");
 				var info_node = shader_root.get_object_member("info");
@@ -66,8 +74,8 @@ namespace Shady
 					}
 
 					new_renderpass.code = renderpass_object.get_string_member("code");
-					new_renderpass.code = new_renderpass.code.replace("\\n", "\n");
-					new_renderpass.code = new_renderpass.code.replace("\\t", "\t");
+					//new_renderpass.code = new_renderpass.code.replace("\\n", "\n");
+					//new_renderpass.code = new_renderpass.code.replace("\\t", "\t");
 
 					var inputs_node = renderpass_object.get_array_member("inputs");
 					foreach (var input in inputs_node.get_elements())

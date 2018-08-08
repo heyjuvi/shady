@@ -24,7 +24,7 @@ namespace Shady
 				{
 					newest_app_window.destroy();
 				}
-				// for some reason the window is display below the
+				// for some reason the window is displayed below the
 				// previous one
 				var new_window = new AppWindow(this, app_preferences);
 				new_window.reset_time();
@@ -68,7 +68,9 @@ namespace Shady
 							// for some reason the window is display below the
 							// previous one
 							var new_window = new AppWindow(this, app_preferences);
-							new_window.set_buffer("Image", read_file_as_string(file));
+
+							// TODO: opening files must be solved with an appropriate file format
+							//new_window.set_buffer("Image", read_file_as_string(file));
 							new_window.reset_time();
 							new_window.compile();
 							new_window.play();
@@ -173,6 +175,8 @@ namespace Shady
 			new ShaderSourceView();
 			new ShaderChannelTypePopover();
 			new ShadertoyResourceManager();
+			new NotebookActionWidget();
+			//new ShaderChannel();
 
 			app_preferences = new AppPreferences();
 			newest_app_window = new AppWindow(this, app_preferences);

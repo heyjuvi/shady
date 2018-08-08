@@ -2,7 +2,7 @@ add_project_arguments([
     '--vapidir', join_paths(meson.current_source_dir(), 'vapi'),
     '--pkg', 'shady-gl',     # those are handled extra, because they
     '--pkg', 'shady-egl',    # are in the custom vapi directory of
-    '--pkg', 'shady-epoxy'   # the project
+    '--pkg', 'shady-epoxy'  # the project
 #    '--pkg', 'shady-glslang'
   ],
   language: 'vala'

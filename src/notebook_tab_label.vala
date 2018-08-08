@@ -1,4 +1,4 @@
-namespace Shady
+    namespace Shady
 {
 	[GtkTemplate (ui = "/org/hasi/shady/ui/notebook-tab-label.ui")]
 	public class NotebookTabLabel : Gtk.Box

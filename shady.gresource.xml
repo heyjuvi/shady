@@ -12,6 +12,8 @@
 		<file preprocess="xml-stripblanks">ui/shader-channel-input-item.ui</file>
 		<file preprocess="xml-stripblanks">ui/notebook-tab-label.ui</file>
 		<file preprocess="xml-stripblanks">ui/notebook-action-widget.ui</file>
+	  <file preprocess="xml-stripblanks">ui/shader-editor.ui</file>
+	  <file preprocess="xml-stripblanks">ui/shader-scene.ui</file>
 		<file preprocess="xml-stripblanks">ui/shadertoy-search-dialog.ui</file>
 		<file preprocess="xml-stripblanks">ui/shadertoy-shader-item.ui</file>
 		<file preprocess="xml-stripblanks">ui/app-preferences.ui</file>
@@ -23,6 +25,7 @@
 
 		<!-- images -->
 		<file>data/images/shady_logo_header_bar.svg</file>
+	  <file>data/images/paint.svg</file>
 		<file>data/images/likes.png</file>
 		<file>data/images/views.png</file>
 

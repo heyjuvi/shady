@@ -13,8 +13,8 @@
 		<property name="can_focus">False</property>
 		<property name="show_menubar">False</property>
 		<property name="title">Shady</property>
-		<property name="width_request">1320</property>
-		<property name="height_request">760</property>
+		<property name="width_request">1280</property>
+		<property name="height_request">720</property>
 
 		<signal name="destroy" handler="on_destroy" />
 
@@ -112,50 +112,8 @@
 				</child>
 
 				<child>
-					<object class="GtkLabel" id="fps_label">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
-						<property name="valign">center</property>
-
-						<style>
-							<class name="highlighted" />
-						</style>
-
-						<attributes>
-							<attribute name="font-desc" value="Monospace 9" />
-						</attributes>
-					</object>
-					<packing>
-						<property name="pack-type">end</property>
-						<property name="position">5</property>
-					</packing>
-				</child>
-
-				<child>
-					<object class="GtkLabel" id="time_label">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
-						<property name="valign">center</property>
-
-						<style>
-							<class name="highlighted" />
-						</style>
-
-						<attributes>
-							<attribute name="font-desc" value="Monospace 9" />
-						</attributes>
-					</object>
-					<packing>
-						<property name="pack-type">end</property>
-						<property name="position">4</property>
-					</packing>
-				</child>
-
-				<child>
 					<object class="GtkToggleButton" id="live_mode_button">
-						<property name="visible">True</property>
+						<property name="visible">False</property>
 						<property name="can_focus">True</property>
 						<property name="receives_default">False</property>
 						<property name="label">Live</property>
@@ -167,29 +125,6 @@
 						<property name="position">3</property>
 					</packing>
 				</child>
-
-				<child>
-					<object class="GtkButton" id="fullscreen_button">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
-
-						<signal name="clicked" handler="fullscreen_button_clicked" />
-
-						<child>
-							<object class="GtkImage">
-								<property name="visible">True</property>
-								<property name="can_focus">False</property>
-								<property name="icon_name">view-fullscreen-symbolic</property>
-							</object>
-						</child>
-					</object>
-					<packing>
-						<property name="pack-type">end</property>
-						<property name="position">2</property>
-					</packing>
-				</child>
-
 
 				<child>
 					<object class="GtkButton" id="compile_button">
@@ -265,6 +200,7 @@
 			<object class="GtkPaned" id="main_paned">
 				<property name="visible">True</property>
 				<property name="can_focus">False</property>
+			  <property name="position">748</property>
 			</object>
 		</child>
 	</template>

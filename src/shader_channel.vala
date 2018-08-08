@@ -178,6 +178,8 @@ namespace Shady
 
 		private void update_shader()
 		{
+		    print(_channel_input.resource + "\n");
+		    print(@"$(_channel_input.id)\n");
 			_shader_area.compile_shader_input(_channel_input);
 		}
 

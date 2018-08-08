@@ -326,7 +326,7 @@ namespace Shady
 			}
 		}
 
-		public Shader? get_default_shader()
+		public static Shader? get_default_shader()
 		{
 			Shader default_shader = new Shader();
 			Shader.Renderpass renderpass = new Shader.Renderpass();
@@ -687,6 +687,8 @@ namespace Shady
 				{
 					pass_compilation_terminated(pass_index, new ShaderError.COMPILATION("Something went substantially wrong..."));
 				}
+
+                compilation_finished();
 
 				return;
 			}

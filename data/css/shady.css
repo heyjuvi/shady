@@ -1,3 +1,6 @@
+@define-color darker_than_bg mix(@theme_bg_color, #000000, 0.5);
+@define-color darker_than_bg_highlight mix(@theme_bg_color, #000000, 0.65);
+
 /* general */
 .no_padding
 {
@@ -21,7 +24,7 @@
 
 .header_bar
 {
-	border: 0;
+	/*border: 0;*/
 }
 
 .header_bar .highlighted
@@ -32,6 +35,11 @@
 }
 
 /* editor */
+notebook
+{
+  border: 0;
+}
+
 notebook, notebook stack, notebook header, notebook header.top
 {
 	background: transparent;
@@ -63,9 +71,89 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 	background: alpha(@theme_bg_color, 0.4);
 }
 
-/* channels */
-@define-color darker_than_bg mix(@theme_bg_color, #000000, 0.5);
+.error_tooltip
+{
+  background: transparent;
+}
 
+.error_tooltip label
+{
+  background: #FF0000;
+  color: #FFFFFF;
+	border-radius: 3pt;
+	margin: 3pt;
+	padding: 3pt;
+  font-family: Monospace;
+  font-weight: bold;
+  box-shadow: 0 0 3px #000000;
+}
+
+/* scene */
+.scene
+{
+  background: url('resource:///org/hasi/shady/data/images/paint.svg');
+  background-position: bottom;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.main_shader_box
+{
+  margin: 15pt;
+  box-shadow: 0 0 15px #000000;
+  /* this is just needed to let the shadow know about the border radius */
+  border-bottom-left-radius: 6pt;
+  border-bottom-right-radius: 6pt;
+}
+
+.main_shader_container
+{
+}
+
+.main_shader_controls
+{
+  background: @darker_than_bg;
+	color: #FFFFFF;
+	border-bottom-left-radius: 6pt;
+  border-bottom-right-radius: 6pt;
+}
+
+.main_shader_controls .highlighted
+{
+	background: linear-gradient(transparent, @darker_than_bg_highlight);
+	padding: 3pt;
+	margin-left: 3pt;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+}
+
+.main_shader_controls .fps_label
+{
+  border-bottom-left-radius: 6pt;
+}
+
+.main_shader_controls button,.main_shader_controls button:hover
+{
+	background: @darker_than_bg;
+	color: #FFFFFF;
+	border: 0;
+	border-radius: 0;
+	transition-duration: 0s;
+}
+
+.main_shader_controls button:active, .main_shader_controls button:checkeds
+{
+	background: #FFFFFF;
+	color: @darker_than_bg;
+	transition-duration: 0s;
+}
+
+.main_shader_controls .fullscreen_button, .main_shader_controls .fullscreen_button:hover
+{
+	border-bottom-right-radius: 6pt;
+}
+
+/* channels */
 .channel
 {
 	box-shadow: 0 0 5px #000000;

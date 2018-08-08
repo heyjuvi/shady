@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<interface>
+	<template class="ShadyShaderEditor" parent="GtkBox">
+		<property name="visible">True</property>
+		<property name="can_focus">False</property>
+		<property name="orientation">vertical</property>
+		<property name="spacing">0</property>
+
+		<child>
+		  <object class="GtkNotebook" id="notebook">
+		    <property name="visible">True</property>
+        <property name="can_focus">True</property>
+		    <property name="tab_pos">bottom</property>
+
+		    <signal name="switch_page" handler="switch_buffer" />
+
+		    <child type="action-end">
+          <object class="ShadyNotebookActionWidget" id="action_widget">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+
+            <signal name="new_buffer_clicked" handler="add_renderpass" />
+            <signal name="show_channels_clicked" handler="toggle_channels" />
+          </object>
+          <packing>
+            <property name="tab_fill">False</property>
+          </packing>
+        </child>
+		  </object>
+		  <packing>
+				<property name="expand">True</property>
+				<property name="fill">True</property>
+				<property name="position">0</property>
+			</packing>
+	  </child>
+
+	  <child>
+		  <object class="GtkRevealer" id="channels_revealer">
+		    <property name="visible">True</property>
+        <property name="can_focus">True</property>
+		    <property name="transition_type">slide-up</property>
+
+		    <child>
+		      <object class="GtkBox" id="channels_box">
+		        <property name="visible">True</property>
+		        <property name="can_focus">False</property>
+		        <property name="orientation">horizontal</property>
+		        <property name="spacing">12</property>
+
+		        <style>
+		          <class name="channels_box_margin" />
+		        </style>
+		      </object>
+		    </child>
+		  </object>
+		  <packing>
+				<property name="expand">False</property>
+				<property name="fill">True</property>
+				<property name="position">1</property>
+			</packing>
+	  </child>
+	</template>
+</interface>

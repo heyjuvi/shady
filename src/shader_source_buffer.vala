@@ -30,8 +30,11 @@ namespace Shady
 		private Gtk.SourceMarkAttributes _source_mark_attributes;
 
 		private Gtk.SourceTag _error_tag;
-
 		private List<Gtk.Label> _error_labels = new List<Gtk.Label>();
+		private HashTable<int, string> _errors = new HashTable<int, string>(direct_hash, direct_equal);
+
+		private Gtk.Window _error_tooltip_window;
+		private Gtk.Label _error_tooltip_label;
 
 		construct
 		{
@@ -77,31 +80,86 @@ namespace Shady
 
 			add(view);
 
-			Gdk.RGBA red = Gdk.RGBA();
-			red.parse("#FF0000");
-
 			_source_mark_attributes = new Gtk.SourceMarkAttributes();
-			_source_mark_attributes.background = red;
 			_source_mark_attributes.icon_name = "dialog-error";
 
 			_error_tag = new Gtk.SourceTag("glsl-error-tag");
-			_error_tag.weight = Pango.Weight.BOLD;
-			_error_tag.weight_set = true;
-			_error_tag.foreground = "#FFFFFF";
-			_error_tag.foreground_set = true;
 
 			buffer.tag_table.add(_error_tag);
 
-			view.check_resize.connect(() =>
-			{
-				Gtk.Allocation allocation;
-				view.get_allocated_size(out allocation, null);
+			_error_tooltip_window = new Gtk.Window(Gtk.WindowType.POPUP);
+            _error_tooltip_window.window_position = Gtk.WindowPosition.NONE;
+            _error_tooltip_window.get_style_context().add_class("error_tooltip");
 
-				foreach (Gtk.Label label in _error_labels)
-				{
-					label.width_request = allocation.width;
-				}
-			});
+            view.set_tooltip_window(_error_tooltip_window);
+
+            _error_tooltip_label = new Gtk.Label("");
+            _error_tooltip_label.xalign = 0.0f;
+            _error_tooltip_label.show();
+
+            _error_tooltip_window.add(_error_tooltip_label);
+
+            view.events |= POINTER_MOTION_MASK | LEAVE_NOTIFY_MASK;
+
+            view.motion_notify_event.connect((event_motion) =>
+            {
+                Gtk.TextIter iter;
+
+                int mouse_x, mouse_y, trailing;
+
+		        view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out mouse_x, out mouse_y);
+		        view.get_iter_at_position(out iter, out trailing, mouse_x, mouse_y);
+
+                // might not be the main window
+		        Gtk.Widget toplevel = get_toplevel();
+
+		        if (toplevel.is_toplevel())
+		        {
+		            _error_tooltip_window.set_transient_for(toplevel as Gtk.Window);
+
+		            if (iter.has_tag(_error_tag))
+		            {
+		                Gtk.TextIter start_iter;
+		                int view_x, view_y;
+		                int start_iter_x, start_iter_y;
+		                Gdk.Rectangle start_iter_rectangle;
+
+		                view.translate_coordinates(toplevel, 0, 0, out view_x, out view_y);
+
+                        buffer.get_iter_at_line(out start_iter, iter.get_line());
+
+			            view.get_iter_location(start_iter, out start_iter_rectangle);
+			            view.buffer_to_window_coords(Gtk.TextWindowType.TEXT,
+			                                         start_iter_rectangle.x,
+			                                         start_iter_rectangle.y,
+			                                         out start_iter_x,
+			                                         out start_iter_y);
+
+			            int gutter_width = view.get_window(Gtk.TextWindowType.LEFT).get_width();
+
+                        // it is not entirely clear, why there has to be this additional offset in the
+                        // x compenent
+			            _error_tooltip_window.move(view_x + gutter_width, view_y + start_iter_y - 36);
+			            _error_tooltip_window.resize(view.get_allocated_width() - gutter_width - 2, 1);
+
+		                _error_tooltip_label.set_text(_errors[iter.get_line() + 1]);
+		                _error_tooltip_window.show();
+		            }
+		            else
+		            {
+		                _error_tooltip_window.hide();
+		            }
+			    }
+
+                return false;
+            });
+
+            view.leave_notify_event.connect((event_crossing) =>
+            {
+                _error_tooltip_window.hide();
+
+                return false;
+            });
 		}
 
 		public void clear_error_messages()
@@ -111,22 +169,23 @@ namespace Shady
 			buffer.get_bounds(out start_iter, out end_iter);
 
 			buffer.remove_source_marks(start_iter, end_iter, "error");
+			buffer.remove_tag_by_name("glsl-error-tag", start_iter, end_iter);
 		}
 
 		public void add_error_message(int line, string name, string message)
 		{
+		    if (!(line in _errors))
+		    {
+		        _errors.insert(line, message);
+		    }
+
 			Gtk.TextIter start_iter, end_iter;
 			buffer.get_iter_at_line(out start_iter, line - 1);
 			buffer.get_iter_at_line(out end_iter, line);
 
 			view.set_mark_attributes("error", _source_mark_attributes, 10);
 
-			//Gtk.SourceMark new_source_mark = buffer.create_source_mark(name, "error", start_iter);
-
-			_source_mark_attributes.query_tooltip_markup.connect((source_mark) =>
-			{
-				return message;
-			});
+			Gtk.SourceMark new_source_mark = buffer.create_source_mark(name, "error", start_iter);
 
 			buffer.apply_tag(_error_tag, start_iter, end_iter);
 

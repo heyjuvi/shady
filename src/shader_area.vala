@@ -317,9 +317,19 @@ namespace Shady
 			{
 				stdout.printf("compile error\n");
 				GLint log_size[] = {0};
+				print(@"glGetError: $(glGetError())\n");
+				print(@"glGetError: $(glGetError())\n");
+				print(@"glGetError: $(glGetError())\n");
+				print(@"glGetError: $(glGetError())\n");
+				print(@"glGetError: $(glGetError())\n");
 				glGetShaderiv(_fragment_shader, GL_INFO_LOG_LENGTH, log_size);
+				print(@"glGetError: $(glGetError())\n");
 				GLubyte[] log = new GLubyte[log_size[0]];
+				print(@"glGetError: $(glGetError())\n");
 				glGetShaderInfoLog(_fragment_shader, log_size[0], log_size, log);
+				print(@"glGetError: $(glGetError())\n");
+
+				print(@"glGetError: $(glGetError())\n");
 
 				if (log.length > 0)
 				{
