@@ -35,6 +35,11 @@ namespace Shady
 		private Gtk.Window _error_tooltip_window;
 		private Gtk.Label _error_tooltip_label;
 
+		private int _error_x;
+		private int _error_y;
+		private int _error_width;
+		private int _error_height;
+
 		construct
 		{
 		    File shadertoy_glsl_resource = File.new_for_uri("resource:///org/hasi/shady/data/lang_specs/shadertoy_glsl.lang");
@@ -80,7 +85,7 @@ namespace Shady
 			add(view);
 
 			_source_mark_attributes = new Gtk.SourceMarkAttributes();
-			_source_mark_attributes.icon_name = "process-stop-symbolic";
+			_source_mark_attributes.icon_name = "window-close-symbolic";
 
 			_error_tag = new Gtk.SourceTag("glsl-error-tag");
 
@@ -98,7 +103,8 @@ namespace Shady
 
             _error_tooltip_window.add(_error_tooltip_label);
 
-            view.events |= POINTER_MOTION_MASK | LEAVE_NOTIFY_MASK;
+            view.events |= POINTER_MOTION_MASK;
+            _error_tooltip_window.events |= ENTER_NOTIFY_MASK;
 
             buffer.notify["cursor-position"].connect(() =>
             {
@@ -118,31 +124,67 @@ namespace Shady
 
             view.motion_notify_event.connect((event_motion) =>
             {
-                Gtk.TextIter iter;
+                // might not be the main window
+	            Gtk.Widget toplevel = get_toplevel();
 
-                int mouse_x, mouse_y, trailing;
-
-	            view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out mouse_x, out mouse_y);
-	            view.get_iter_at_position(out iter, out trailing, mouse_x, mouse_y);
-
-                if (iter.has_tag(_error_tag))
+	            if (toplevel.is_toplevel())
 	            {
-	                //show_error();
-	            }
-	            else
-	            {
-	                //hide_error();
+	                Gtk.TextIter iter, cursor_iter;
+
+                    int mouse_x, mouse_y, trailing;
+                    int view_x, view_y;
+
+                    view.translate_coordinates(toplevel, 0, 0, out view_x, out view_y);
+                    //print(@"$view_x, $view_y\n");
+
+	                view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out mouse_x, out mouse_y);
+	                view.get_iter_at_position(out iter, out trailing, mouse_x, mouse_y);
+
+	                buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
+
+                    if (!over_error(mouse_x + view_x, mouse_y + view_y) && cursor_iter.has_tag(_error_tag))
+	                {
+	                    if (!_error_tooltip_window.visible)
+	                    {
+	                        show_error(cursor_iter.get_line());
+	                    }
+	                }
 	            }
 
                 return false;
             });
 
-            view.leave_notify_event.connect((event_crossing) =>
+            size_allocate.connect((allocation) =>
+            {
+                if (_error_tooltip_window.visible)
+                {
+                    Gtk.TextIter iter;
+
+                    buffer.get_iter_at_offset(out iter, buffer.cursor_position);
+
+                    show_error(iter.get_line());
+                }
+            });
+
+            _error_tooltip_window.enter_notify_event.connect((event_crossing) =>
             {
                 _error_tooltip_window.hide();
 
                 return false;
             });
+		}
+
+		private bool over_error(int x, int y)
+		{
+            if (x > _error_x &&
+                x < _error_x + _error_width &&
+                y > _error_y &&
+                y < _error_y + _error_height)
+            {
+                return true;
+            }
+
+		    return false;
 		}
 
 		private void show_error(int line)
@@ -180,6 +222,9 @@ namespace Shady
                 _error_tooltip_window.show();
                 _error_tooltip_window.move(view_x + gutter_width,
 	                                       view_y + start_iter_y - _error_tooltip_window.get_allocated_height());
+
+	            _error_tooltip_window.get_position(out _error_x, out _error_y);
+                _error_tooltip_window.get_size(out _error_width, out _error_height);
 		    }
 		}
 
