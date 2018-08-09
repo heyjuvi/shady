@@ -80,7 +80,7 @@ namespace Shady
 			add(view);
 
 			_source_mark_attributes = new Gtk.SourceMarkAttributes();
-			_source_mark_attributes.icon_name = "dialog-error";
+			_source_mark_attributes.icon_name = "process-stop-symbolic";
 
 			_error_tag = new Gtk.SourceTag("glsl-error-tag");
 
