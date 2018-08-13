@@ -294,13 +294,12 @@ namespace Shady
 
 			try
 			{
+				loading_label.set_text("Loading shaders...");
+				content_stack.visible_child_name = "spinner";
+				shadertoy_search_entry.sensitive = false;
+
 				new Thread<int>.try("search_thread", () =>
 				{
-					loading_label.set_text("Loading shaders...");
-
-					content_stack.visible_child_name = "spinner";
-					shadertoy_search_entry.sensitive = false;
-
 					uint64 num_shaders = search_shaders(search_string);
 
 					bool search_finished = false;
@@ -325,13 +324,21 @@ namespace Shady
 							search_finished = true;
 						}
 
-						loading_label.set_text(@"Loaded $count/$num_shaders shaders...");
+						Idle.add(() =>
+						{
+							loading_label.set_text(@"Loaded $count/$num_shaders shaders...");
+							return false;
+						});
 
 						Thread.usleep(100000);
 					}
 
-					content_stack.visible_child_name = "content";
-					shadertoy_search_entry.sensitive = true;
+					Idle.add(() =>
+					{
+						content_stack.visible_child_name = "content";
+						shadertoy_search_entry.sensitive = true;
+						return false;
+					});
 
 					return 0;
 				});

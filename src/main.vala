@@ -22,7 +22,5 @@ using GL;
 
 int main(string[] args)
 {
-	X.init_threads();
-
 	return new Shady.App().run(args);
 }
