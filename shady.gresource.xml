@@ -24,8 +24,8 @@
 		<file>data/css/shady.css</file>
 
 		<!-- images -->
-		<file>data/images/shady_logo_header_bar.svg</file>
-	  <file>data/images/paint.svg</file>
+		<file>data/images/shady_logo_header_bar.png</file>
+	  <file>data/images/paint.png</file>
 		<file>data/images/likes.png</file>
 		<file>data/images/views.png</file>
 
@@ -44,33 +44,35 @@
 		<file>data/shader/vertex.glsl</file>
 
 		<!-- shadertoy textures -->
-		<file>data/shadertoy_presets/textures/abstract_1.jpg</file>
+		<file>data/shadertoy_presets/textures/abstract_1.png</file>
 		<file>data/shadertoy_presets/textures/abstract_1.json</file>
-		<file>data/shadertoy_presets/textures/abstract_2.jpg</file>
+		<file>data/shadertoy_presets/textures/abstract_2.png</file>
 		<file>data/shadertoy_presets/textures/abstract_2.json</file>
-		<file>data/shadertoy_presets/textures/abstract_3.jpg</file>
+		<file>data/shadertoy_presets/textures/abstract_3.png</file>
 		<file>data/shadertoy_presets/textures/abstract_3.json</file>
 		<file>data/shadertoy_presets/textures/bayer.png</file>
 		<file>data/shadertoy_presets/textures/bayer.json</file>
+		<file>data/shadertoy_presets/textures/blue_noise.png</file>
+		<file>data/shadertoy_presets/textures/blue_noise.json</file>
 		<file>data/shadertoy_presets/textures/font_1.png</file>
 		<file>data/shadertoy_presets/textures/font_1.json</file>
 		<file>data/shadertoy_presets/textures/gray_noise_medium.png</file>
 		<file>data/shadertoy_presets/textures/gray_noise_medium.json</file>
 		<file>data/shadertoy_presets/textures/gray_noise_small.png</file>
 		<file>data/shadertoy_presets/textures/gray_noise_small.json</file>
-		<file>data/shadertoy_presets/textures/lichen.jpg</file>
+		<file>data/shadertoy_presets/textures/lichen.png</file>
 		<file>data/shadertoy_presets/textures/lichen.json</file>
-		<file>data/shadertoy_presets/textures/london.jpg</file>
+		<file>data/shadertoy_presets/textures/london.png</file>
 		<file>data/shadertoy_presets/textures/london.json</file>
 		<file>data/shadertoy_presets/textures/nyancat.png</file>
 		<file>data/shadertoy_presets/textures/nyancat.json</file>
-		<file>data/shadertoy_presets/textures/organic_1.jpg</file>
+		<file>data/shadertoy_presets/textures/organic_1.png</file>
 		<file>data/shadertoy_presets/textures/organic_1.json</file>
-		<file>data/shadertoy_presets/textures/organic_2.jpg</file>
+		<file>data/shadertoy_presets/textures/organic_2.png</file>
 		<file>data/shadertoy_presets/textures/organic_2.json</file>
-		<file>data/shadertoy_presets/textures/organic_3.jpg</file>
+		<file>data/shadertoy_presets/textures/organic_3.png</file>
 		<file>data/shadertoy_presets/textures/organic_3.json</file>
-		<file>data/shadertoy_presets/textures/organic_4.jpg</file>
+		<file>data/shadertoy_presets/textures/organic_4.png</file>
 		<file>data/shadertoy_presets/textures/organic_4.json</file>
 		<file>data/shadertoy_presets/textures/pebbles.png</file>
 		<file>data/shadertoy_presets/textures/pebbles.json</file>
@@ -78,30 +80,30 @@
 		<file>data/shadertoy_presets/textures/rgba_noise_medium.json</file>
 		<file>data/shadertoy_presets/textures/rgba_noise_small.png</file>
 		<file>data/shadertoy_presets/textures/rgba_noise_small.json</file>
-		<file>data/shadertoy_presets/textures/rock_tiles.jpg</file>
+		<file>data/shadertoy_presets/textures/rock_tiles.png</file>
 		<file>data/shadertoy_presets/textures/rock_tiles.json</file>
-		<file>data/shadertoy_presets/textures/rusty_metal.jpg</file>
+		<file>data/shadertoy_presets/textures/rusty_metal.png</file>
 		<file>data/shadertoy_presets/textures/rusty_metal.json</file>
-		<file>data/shadertoy_presets/textures/stars.jpg</file>
+		<file>data/shadertoy_presets/textures/stars.png</file>
 		<file>data/shadertoy_presets/textures/stars.json</file>
-		<file>data/shadertoy_presets/textures/wood.jpg</file>
+		<file>data/shadertoy_presets/textures/wood.png</file>
 		<file>data/shadertoy_presets/textures/wood.json</file>
 		<file>data/shadertoy_presets/3dtextures/gray_noise3d.bin</file>
 		<file>data/shadertoy_presets/3dtextures/gray_noise3d.json</file>
 		<file>data/shadertoy_presets/3dtextures/rgba_noise3d.bin</file>
 		<file>data/shadertoy_presets/3dtextures/rgba_noise3d.json</file>
-		<file>data/shadertoy_presets/cubemaps/st_peters0.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/st_peters1.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/st_peters2.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/st_peters3.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/st_peters4.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/st_peters5.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/uffizi_gallery0.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/uffizi_gallery1.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/uffizi_gallery2.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/uffizi_gallery3.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/uffizi_gallery4.jpg</file>
-		<file>data/shadertoy_presets/cubemaps/uffizi_gallery5.jpg</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters0.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters1.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters2.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters3.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters4.png</file>
+		<file>data/shadertoy_presets/cubemaps/st_peters5.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery0.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery1.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery2.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery3.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery4.png</file>
+		<file>data/shadertoy_presets/cubemaps/uffizi_gallery5.png</file>
 		<file>data/shadertoy_presets/cubemaps/forest0.png</file>
 		<file>data/shadertoy_presets/cubemaps/forest1.png</file>
 		<file>data/shadertoy_presets/cubemaps/forest2.png</file>

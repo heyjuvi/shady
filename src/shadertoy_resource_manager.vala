@@ -12,6 +12,7 @@ namespace Shady
 			"abstract_2",
 			"abstract_3",
 			"bayer",
+			"blue_noise",
 			"font_1",
 			"gray_noise_medium",
 			"gray_noise_small",
