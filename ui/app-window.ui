@@ -107,7 +107,7 @@
 					<object class="GtkImage">
 						<property name="visible">True</property>
 						<property name="can_focus">False</property>
-						<property name="resource">/org/hasi/shady/data/images/shady_logo_header_bar.svg</property>
+						<property name="resource">/org/hasi/shady/data/images/shady_logo_header_bar.png</property>
 					</object>
 				</child>
 

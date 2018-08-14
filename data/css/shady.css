@@ -91,10 +91,10 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 /* scene */
 .scene
 {
-  background: url('resource:///org/hasi/shady/data/images/paint.svg');
-  background-position: bottom;
+  background: url('resource:///org/hasi/shady/data/images/paint.png');
+  background-position: bottom right;
   background-repeat: no-repeat;
-  background-size: contain;
+  /*background-size: contain;*/
 }
 
 .main_shader_box

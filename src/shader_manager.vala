@@ -382,13 +382,29 @@ namespace Shady
 
 		public Thread<int> compile(Shader new_shader)
 		{
+			Gdk.GLContext thread_context;
+
+			try
+			{
+				thread_context = get_window().create_gl_context();
+				thread_context.realize();
+			}
+			catch(Error e)
+			{
+				print("Couldn't create gl context\n");
+
+				return new Thread<int>("compile_thread", () =>
+				{
+					return 0;
+				});
+			}
+
 			return new Thread<int>("compile_thread", () =>
 			{
 				if (_compile_mutex.trylock())
 				{
 					try
 					{
-						Gdk.GLContext thread_context = get_window().create_gl_context();
 						thread_context.make_current();
 
 						if(_render_switch)
@@ -697,14 +713,26 @@ namespace Shady
 						stdout.printf("%c", c);
 					}
 
-					pass_compilation_terminated(pass_index, new ShaderError.COMPILATION((string) log));
+					Idle.add(() =>
+					{
+						pass_compilation_terminated(pass_index, new ShaderError.COMPILATION((string) log));
+						return false;
+					});
 				}
 				else
 				{
-					pass_compilation_terminated(pass_index, new ShaderError.COMPILATION("Something went substantially wrong..."));
+					Idle.add(() =>
+					{
+						pass_compilation_terminated(pass_index, new ShaderError.COMPILATION("Something went substantially wrong..."));
+						return false;
+					});
 				}
 
-                compilation_finished();
+				Idle.add(() =>
+				{
+                	compilation_finished();
+					return false;
+				});
 
 				return;
 			}
@@ -731,9 +759,12 @@ namespace Shady
 			buf_prop.samplerate_loc = glGetUniformLocation(buf_prop.program, "iSampleRate");
 			buf_prop.offset_loc = glGetUniformLocation(buf_prop.program, "SHADY_COORDINATE_OFFSET");
 
-			pass_compilation_terminated(pass_index, null);
-
-			compilation_finished();
+			Idle.add(() =>
+			{
+				pass_compilation_terminated(pass_index, null);
+				compilation_finished();
+				return false;
+			});
 		}
 
 		private void render_thread_func(bool thread_switch, Mutex render_switch_mutex, ref BufferProperties img_prop, BufferProperties[] buf_props)
