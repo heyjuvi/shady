@@ -14,6 +14,10 @@ namespace Shady
 			set { name_label.set_text(value); }
 		}
 
+		private Shader.Input _last_texture_input = new Shader.Input();
+		private Shader.Input _last_cubemap_input = new Shader.Input();
+		private Shader.Input _last_3dtexture_input = new Shader.Input();
+
 		private Shader.Input _channel_input = new Shader.Input();
 		public Shader.Input channel_input
 		{
@@ -96,7 +100,8 @@ namespace Shady
 
 			_texture_popover.input_selected.connect((input) =>
 			{
-				_channel_input = input;
+				_channel_input.assign_content(input);
+				_last_texture_input.assign_content(input);
 
 				update_type();
 				update_sampler();
@@ -107,7 +112,8 @@ namespace Shady
 
 			_cubemap_popover.input_selected.connect((input) =>
 			{
-				_channel_input = input;
+				_channel_input.assign_content(input);
+				_last_cubemap_input.assign_content(input);
 
 				update_type();
 				update_sampler();
@@ -118,7 +124,8 @@ namespace Shady
 
 			_3dtexture_popover.input_selected.connect((input) =>
 			{
-				_channel_input = input;
+				_channel_input.assign_content(input);
+				_last_3dtexture_input.assign_content(input);
 
 				update_type();
 				update_sampler();
@@ -158,16 +165,19 @@ namespace Shady
 				{
 					_texture_popover.hide();
 					_current_popover = _texture_popover;
+					_channel_input.assign_content(_last_texture_input);
 				}
 				else if (_channel_input.type == Shader.InputType.CUBEMAP)
 				{
 					_cubemap_popover.hide();
 					_current_popover = _cubemap_popover;
+					_channel_input.assign_content(_last_cubemap_input);
 				}
 				else if (_channel_input.type == Shader.InputType.3DTEXTURE)
 				{
 					_3dtexture_popover.hide();
 					_current_popover = _3dtexture_popover;
+					_channel_input.assign_content(_last_3dtexture_input);
 				}
 			}
 			else
@@ -178,8 +188,6 @@ namespace Shady
 
 		private void update_shader()
 		{
-		    print(_channel_input.resource + "\n");
-		    print(@"$(_channel_input.id)\n");
 			_shader_area.compile_shader_input(_channel_input);
 		}
 

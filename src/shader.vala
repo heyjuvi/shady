@@ -78,6 +78,33 @@ namespace Shady
 			public string name;
 			public string resource;
 			public int resource_index;
+
+			public void assign(Input other)
+			{
+			    id = other.id;
+			    channel = other.channel;
+			    type = other.type;
+			    sampler = other.sampler;
+			    hash = other.hash;
+			    name = other.name;
+			    resource = other.resource;
+			    resource_index = other.resource_index;
+			}
+
+			public void assign_content(Input other)
+			{
+			    id = other.id;
+			    type = other.type;
+			    hash = other.hash;
+			    name = other.name;
+			    resource = other.resource;
+			    resource_index = other.resource_index;
+			}
+
+			public string to_string()
+			{
+			    return @"{ \"id\": $id, \"channel\": $channel, \"type\": \"$type\", \"sampler\": \"$sampler\", \"hash\": \"$hash\", \"name\": \"$name\", \"resource\": \"$resource\", \"resource_index\": $resource_index";
+			}
 		}
 
 		public class Output
@@ -110,6 +137,24 @@ namespace Shady
 
 				return INVALID;
 			}
+
+			public string to_string()
+			{
+			    if (this == LINEAR)
+			    {
+			        return "linear";
+			    }
+			    else if (this == NEAREST)
+			    {
+			        return "nearest";
+			    }
+			    else if (this == MIPMAP)
+			    {
+			        return "mipmap";
+			    }
+
+			    return "invalid";
+			}
 		}
 
 		public enum WrapMode
@@ -131,6 +176,20 @@ namespace Shady
 
 				return INVALID;
 			}
+
+			public string to_string()
+			{
+				if (this == CLAMP)
+				{
+					return "clamp";
+				}
+				else if (this == REPEAT)
+				{
+					return "repeat";
+				}
+
+				return "invalid";
+			}
 		}
 
 		public class Sampler
@@ -138,6 +197,11 @@ namespace Shady
 			public FilterMode filter = FilterMode.MIPMAP;
 			public WrapMode wrap = WrapMode.REPEAT;
 			public bool v_flip = false;
+
+			public string to_string()
+			{
+			    return @"{ \"filter\": \"$filter\", \"wrap\": \"$wrap\", \"v_flip\": $v_flip }";
+			}
 		}
 
 		public enum RenderpassType
