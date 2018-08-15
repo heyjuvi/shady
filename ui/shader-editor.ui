@@ -41,15 +41,24 @@
 		    <property name="transition_type">slide-up</property>
 
 		    <child>
-		      <object class="GtkBox" id="channels_box">
+		      <object class="GtkScrolledWindow">
 		        <property name="visible">True</property>
 		        <property name="can_focus">False</property>
-		        <property name="orientation">horizontal</property>
-		        <property name="spacing">12</property>
+		        <property name="vscrollbar_policy">never</property>
+		        <property name="hscrollbar_policy">automatic</property>
 
-		        <style>
-		          <class name="channels_box_margin" />
-		        </style>
+		        <child>
+		          <object class="GtkBox" id="channels_box">
+		            <property name="visible">True</property>
+		            <property name="can_focus">False</property>
+		            <property name="orientation">horizontal</property>
+		            <property name="spacing">12</property>
+
+		            <style>
+		              <class name="channels_box_margin" />
+		            </style>
+		          </object>
+		        </child>
 		      </object>
 		    </child>
 		  </object>

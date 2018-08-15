@@ -40,36 +40,6 @@ namespace Shady
 		private int _error_width;
 		private int _error_height;
 
-		construct
-		{
-		    File shadertoy_glsl_resource = File.new_for_uri("resource:///org/hasi/shady/data/lang_specs/shadertoy_glsl.lang");
-			File shadertoy_glsl_cache = File.new_for_path(Environment.get_home_dir());
-
-			shadertoy_glsl_cache = shadertoy_glsl_cache.get_child(".cache").get_child("shady");
-
-            if (!shadertoy_glsl_cache.query_exists())
-            {
-			    try
-			    {
-			        shadertoy_glsl_cache.make_directory_with_parents();
-			    }
-			    catch (Error e)
-			    {
-			        print(@"Error while creating ~/.cache/shady: $(e.message)");
-			    }
-			}
-
-			string shadertoy_glsl_search_path = shadertoy_glsl_cache.get_path();
-
-			shadertoy_glsl_cache = shadertoy_glsl_cache.get_child("shadertoy_glsl.lang");
-			shadertoy_glsl_resource.copy(shadertoy_glsl_cache, FileCopyFlags.OVERWRITE);
-
-			Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
-			string[] current_search_path = source_language_manager.search_path;
-			current_search_path += shadertoy_glsl_search_path;
-			source_language_manager.search_path = current_search_path;
-		}
-
 		public ShaderSourceBuffer(string buffer_name)
 		{
 			buf_name = buffer_name;
@@ -174,6 +144,43 @@ namespace Shady
             });
 		}
 
+		public static void initialize_resources()
+		{
+		    File shadertoy_glsl_resource = File.new_for_uri("resource:///org/hasi/shady/data/lang_specs/shadertoy_glsl.lang");
+			File shadertoy_glsl_cache = File.new_for_path(Environment.get_home_dir());
+
+			shadertoy_glsl_cache = shadertoy_glsl_cache.get_child(".cache").get_child("shady");
+
+            if (!shadertoy_glsl_cache.query_exists())
+            {
+			    try
+			    {
+			        shadertoy_glsl_cache.make_directory_with_parents();
+			    }
+			    catch (Error e)
+			    {
+			        print(@"Error while creating ~/.cache/shady: $(e.message)");
+			    }
+			}
+
+            try
+            {
+			    string shadertoy_glsl_search_path = shadertoy_glsl_cache.get_path();
+
+			    shadertoy_glsl_cache = shadertoy_glsl_cache.get_child("shadertoy_glsl.lang");
+			    shadertoy_glsl_resource.copy(shadertoy_glsl_cache, FileCopyFlags.OVERWRITE);
+
+			    Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
+                string[] current_search_path = source_language_manager.search_path;
+			    current_search_path += shadertoy_glsl_search_path;
+			    source_language_manager.search_path = current_search_path;
+			}
+			catch (Error e)
+			{
+			    print(@"Could not initialize resources for shader source buffer: $(e.message)\n");
+			}
+		}
+
 		private bool over_error(int x, int y)
 		{
             if (x > _error_x &&
@@ -258,7 +265,7 @@ namespace Shady
 
 			view.set_mark_attributes("error", _source_mark_attributes, 10);
 
-			Gtk.SourceMark new_source_mark = buffer.create_source_mark(name, "error", start_iter);
+			buffer.create_source_mark(name, "error", start_iter);
 
 			buffer.apply_tag(_error_tag, start_iter, end_iter);
 

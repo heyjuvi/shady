@@ -12,9 +12,9 @@
 		<property name="visible">False</property>
 		<property name="can_focus">False</property>
 		<property name="show_menubar">False</property>
+		<property name="default_height">720</property>
 		<property name="title">Shady</property>
-		<property name="width_request">1280</property>
-		<property name="height_request">720</property>
+		<property name="default_width">1280</property>
 
 		<signal name="destroy" handler="on_destroy" />
 
@@ -133,6 +133,8 @@
 						<property name="receives_default">False</property>
 
 						<signal name="clicked" handler="compile_button_clicked" />
+
+					  <accelerator key="r" modifiers="GDK_CONTROL_MASK" signal="clicked" />
 
 						<style>
 							<class name="suggested-action" />

@@ -3,6 +3,5 @@
 	<template class="ShadyShaderSourceBuffer" parent="GtkScrolledWindow">
 		<property name="visible">True</property>
 		<property name="can_focus">False</property>
-		<property name="width_request">720</property>
 	</template>
 </interface>

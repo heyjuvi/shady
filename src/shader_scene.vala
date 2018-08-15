@@ -20,14 +20,11 @@ namespace Shady
 	    [GtkChild]
 	    private Gtk.Label time_label;
 
-	    [GtkChild]
-	    private Gtk.Button fullscreen_button;
-
-	    [GtkChild]
+	    /*[GtkChild]
 	    private Gtk.Label shader_title;
 
 	    [GtkChild]
-	    private Gtk.Label shader_description;
+	    private Gtk.Label shader_description;*/
 
         public ShaderManager _fullscreen_shader_manager;
 	    private Gtk.Window _fullscreen_window;

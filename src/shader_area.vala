@@ -263,8 +263,18 @@ namespace Shady
 
 					Shader? input_shader = get_shader_from_input(input);
 
-					string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
-					string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
+					string shader_prefix, shader_suffix;
+
+                    try
+                    {
+					    shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
+					    shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
+					}
+					catch (Error e)
+					{
+					    print(@"Could not compile shader input: $(e.message)\n");
+					    return;
+					}
 
 					string target_source = input_shader.renderpasses.index(0).code;
 

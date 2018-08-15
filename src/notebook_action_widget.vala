@@ -6,12 +6,6 @@ namespace Shady
 	    public signal void new_buffer_clicked();
 	    public signal void show_channels_clicked();
 
-		[GtkChild]
-		private Gtk.Button new_buffer_button;
-
-		[GtkChild]
-		private Gtk.Button show_channels_button;
-
 		public NotebookActionWidget()
 		{
 		}

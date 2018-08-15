@@ -57,14 +57,14 @@ namespace Shady
 
 		[GtkChild]
 		private Gtk.Stack compile_button_stack;
-		[GtkChild]
-		private Gtk.Button compile_button;
 
 		[GtkChild]
 		private Gtk.Paned main_paned;
 
         private ShaderScene _scene;
 		private ShaderEditor _editor;
+
+		private Gtk.AccelGroup _accels = new Gtk.AccelGroup();
 
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
 
@@ -73,6 +73,8 @@ namespace Shady
 		public AppWindow(Gtk.Application app, AppPreferences preferences)
 		{
 			Object(application: app);
+
+			add_accel_group(_accels);
 
             _scene = new ShaderScene();
 			_editor = new ShaderEditor();
@@ -96,39 +98,6 @@ namespace Shady
 				menu_button.menu_model = app.app_menu;
 				menu_button.visible = true;
 			}
-
-			key_press_event.connect((widget, event) =>
-			{
-				/*bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
-
-				if (event.keyval == Gdk.Key.F11)
-				{
-					if (is_fullscreen)
-					{
-						leave_fullscreen(_scene.shader_manager);
-					}
-					else
-					{
-						enter_fullscreen(_scene.shader_manager);
-					}
-				}
-
-				if (is_fullscreen && event.keyval == Gdk.Key.Escape)
-				{
-					leave_fullscreen(_scene.shader_manager);
-				}*/
-
-				return false;
-			});
-
-			/*window_state_event.connect((event) =>
-			{
-				bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
-
-				_editor.visible = !is_fullscreen;
-
-				return false;
-			});*/
 
 			// react to changed editor layout
 			_settings.changed["switched-layout"].connect(switched_layout_handler);
@@ -211,7 +180,7 @@ namespace Shady
 
 								string[] line_and_row = position.split("(", 2);
 								int line = int.parse(line_and_row[0]) - prefix_length + 1;
-								int row = int.parse(line_and_row[1][0:line_and_row[0].length]);
+								int row = int.parse(line_and_row[1][0:line_and_row[0].length - 1]);
 
 								if (line != last_line)
 								{

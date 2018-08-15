@@ -20,9 +20,6 @@ namespace Shady
 	    private Gtk.Notebook notebook;
 
 	    [GtkChild]
-	    private NotebookActionWidget action_widget;
-
-	    [GtkChild]
 	    private Gtk.Revealer channels_revealer;
 
 	    [GtkChild]
@@ -62,13 +59,18 @@ namespace Shady
 
 			_edited = false;
 
-			ShaderChannel _channel_0 = new ShaderChannel();
+			_channel_0 = new ShaderChannel();
 			_channel_0.channel_name = "iChannel0";
 			_channel_0.channel_input_changed.connect(channel_input_changed);
 
-			ShaderChannel _channel_1 = new ShaderChannel();
-			ShaderChannel _channel_2 = new ShaderChannel();
-			ShaderChannel _channel_3 = new ShaderChannel();
+			_channel_1 = new ShaderChannel();
+			_channel_1.channel_name = "iChannel1";
+
+			_channel_2 = new ShaderChannel();
+			_channel_2.channel_name = "iChannel2";
+
+			_channel_3 = new ShaderChannel();
+			_channel_3.channel_name = "iChannel3";
 
 			channels_box.pack_start(_channel_0, false, true);
 			channels_box.pack_start(_channel_1, false, true);

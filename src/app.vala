@@ -58,7 +58,7 @@ namespace Shady
 					switch (response_id)
 					{
 						case Gtk.ResponseType.ACCEPT:
-							var file = open_dialog.get_file();
+							//var file = open_dialog.get_file();
 
 							if (!newest_app_window.edited)
 							{
@@ -177,6 +177,8 @@ namespace Shady
 			new ShadertoyResourceManager();
 			new NotebookActionWidget();
 			//new ShaderChannel();
+
+			ShaderSourceBuffer.initialize_resources();
 
 			app_preferences = new AppPreferences();
 			newest_app_window = new AppWindow(this, app_preferences);
