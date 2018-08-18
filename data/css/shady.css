@@ -88,6 +88,17 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
   /*box-shadow: 0 0 3px #000000;*/
 }
 
+.search_slider
+{
+  background-color: @theme_base_color;
+  padding: 6pt;
+  margin-right: 12pt;
+  border-color: @borders;
+  border-radius: 0 0 3pt 3pt;
+  border-width: 0 1px 1pt 1pt;
+  border-style: solid;
+}
+
 /* scene */
 .scene
 {

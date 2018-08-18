@@ -4,6 +4,7 @@ namespace Shady
 	public class ShaderSourceBuffer : Gtk.ScrolledWindow
 	{
 		public Gtk.SourceBuffer buffer { get; private set; }
+		public Gtk.SourceSearchContext search_context { get; private set; }
 		public ShaderSourceView view { get; private set; }
 
 		public string buf_name { get; set; default = null; }
@@ -48,6 +49,8 @@ namespace Shady
 			Gtk.SourceLanguage source_language = source_language_manager.get_language("shadertoy_glsl");
 
 			buffer = new Gtk.SourceBuffer.with_language(source_language);
+
+			search_context = new Gtk.SourceSearchContext(buffer, null);
 
 			view = new ShaderSourceView();
 			view.buffer = buffer;

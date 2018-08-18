@@ -1,7 +1,7 @@
 namespace Shady
 {
 	[GtkTemplate (ui = "/org/hasi/shady/ui/shader-editor.ui")]
-	public class ShaderEditor : Gtk.Box
+	public class ShaderEditor : Gtk.Overlay
 	{
 	    // TODO: bad solution?
 	    private bool _edited;
@@ -15,6 +15,14 @@ namespace Shady
 		{
 		    get { return _curr_shader; }
 		}
+
+		public signal void buffer_switched(ShaderSourceBuffer from, ShaderSourceBuffer to);
+
+		[GtkChild]
+		private Gtk.Revealer search_revealer;
+
+		[GtkChild]
+		private Gtk.SearchEntry search_entry;
 
 	    [GtkChild]
 	    private Gtk.Notebook notebook;
@@ -37,6 +45,9 @@ namespace Shady
 
         private Shader _curr_shader;
 		private ShaderSourceBuffer _curr_buffer;
+
+		private Gtk.TextIter _last_match_start;
+		private Gtk.TextIter _last_match_end;
 
 		public ShaderEditor()
 		{
@@ -76,6 +87,133 @@ namespace Shady
 			channels_box.pack_start(_channel_1, false, true);
 			channels_box.pack_start(_channel_2, false, true);
 			channels_box.pack_start(_channel_3, false, true);
+
+			buffer_switched.connect((from, to) =>
+			{
+			    // we always need valid iters
+			    Gtk.TextIter cursor_iter;
+                to.buffer.get_iter_at_offset(out cursor_iter, to.buffer.cursor_position);
+
+                _last_match_start = cursor_iter;
+		        _last_match_end = cursor_iter;
+			});
+
+			search_entry.key_press_event.connect((widget, event) =>
+			{
+			    if (event.keyval == Gdk.Key.Down)
+				{
+					search_forward();
+					return true;
+				}
+
+				if (event.keyval == Gdk.Key.Up)
+				{
+					search_backward();
+					return true;
+				}
+
+				if (event.keyval == Gdk.Key.Return)
+				{
+					hide_search();
+				}
+
+				return false;
+			});
+
+			search_entry.focus_out_event.connect(() =>
+			{
+			    hide_search();
+
+			    return false;
+			});
+		}
+
+		public void show_search()
+		{
+		    // always valid iters
+		    Gtk.TextIter cursor_iter;
+            _curr_buffer.buffer.get_iter_at_offset(out cursor_iter, _curr_buffer.buffer.cursor_position);
+
+            _last_match_start = cursor_iter;
+		    _last_match_end = cursor_iter;
+
+            _curr_buffer.search_context.highlight = true;
+		    search_revealer.reveal_child = true;
+		    search_entry.grab_focus();
+		}
+
+		public void hide_search()
+		{
+		    _curr_buffer.search_context.highlight = false;
+		    search_revealer.reveal_child = false;
+		    _curr_buffer.view.grab_focus();
+		}
+
+		[GtkCallback]
+		private void search_changed()
+		{
+		    Gtk.TextIter cursor_iter;
+            _curr_buffer.buffer.get_iter_at_offset(out cursor_iter, _curr_buffer.buffer.cursor_position);
+
+            _last_match_start = cursor_iter;
+		    _last_match_end = cursor_iter;
+
+            _curr_buffer.search_context.settings.search_text = search_entry.text;
+            _curr_buffer.search_context.settings.wrap_around = true;
+		    _curr_buffer.search_context.forward_async.begin(cursor_iter, null, (object, resource) =>
+		    {
+		        Gtk.TextIter match_start, match_end;
+		        bool results;
+
+		        bool match_found = _curr_buffer.search_context.forward_async.end(resource, out match_start, out match_end, out results);
+
+		        if (match_found)
+		        {
+		            _last_match_start = match_start;
+		            _last_match_end = match_end;
+		        }
+		    });
+		}
+
+		[GtkCallback]
+		private void search_forward()
+		{
+		    _curr_buffer.search_context.forward_async.begin(_last_match_end, null, (object, resource) =>
+		    {
+		        Gtk.TextIter match_start, match_end;
+		        bool results;
+
+		        bool match_found = _curr_buffer.search_context.forward_async.end(resource, out match_start, out match_end, out results);
+
+                if (match_found)
+                {
+                    _curr_buffer.buffer.select_range(match_start, match_end);
+                    _curr_buffer.view.scroll_to_iter(match_start, 0.0, true, 0.0, 0.5);
+
+                    _last_match_start = match_start;
+		            _last_match_end = match_end;
+		        }
+		    });
+		}
+
+		[GtkCallback]
+		private void search_backward()
+		{
+		    _curr_buffer.search_context.backward_async.begin(_last_match_start, null, (object, resource) =>
+		    {
+		        Gtk.TextIter match_start, match_end;
+		        bool results;
+
+		        bool match_found = _curr_buffer.search_context.backward_async.end(resource, out match_start, out match_end, out results);
+
+                if (match_found)
+                {
+                    _curr_buffer.buffer.select_range(match_start, match_end);
+
+                    _last_match_start = match_start;
+		            _last_match_end = match_end;
+		        }
+		    });
 		}
 
 		public void gather_shader()
@@ -130,7 +268,20 @@ namespace Shady
 			ShaderSourceBuffer shader_buffer = new ShaderSourceBuffer(buffer_name);
 			shader_buffer.buffer.changed.connect(() =>
 			{
+			    // valid iters
+			    Gtk.TextIter cursor_iter;
+                shader_buffer.buffer.get_iter_at_offset(out cursor_iter, shader_buffer.buffer.cursor_position);
+
+                _last_match_start = cursor_iter;
+		        _last_match_end = cursor_iter;
+
 				_edited = true;
+			});
+
+			shader_buffer.view.grab_focus.connect(() =>
+			{
+			    _curr_buffer.search_context.highlight = false;
+		        search_revealer.reveal_child = false;
 			});
 
 			shader_buffer.button_press_event.connect((widget, event) =>
@@ -301,6 +452,8 @@ namespace Shady
 		[GtkCallback]
 		private void switch_buffer(Gtk.Notebook sender_notebook, Gtk.Widget buffer, uint page_num)
 		{
+		    buffer_switched(_curr_buffer, buffer as ShaderSourceBuffer);
+
 		    _curr_buffer = buffer as ShaderSourceBuffer;
 		}
 	}

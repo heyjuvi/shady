@@ -18,6 +18,9 @@
 
 		<signal name="destroy" handler="on_destroy" />
 
+    <accelerator key="f" modifiers="GDK_CONTROL_MASK" signal="search_toggled" />
+	  <accelerator key="Escape" modifiers="" signal="escape_pressed" />
+
 		<child type="titlebar">
 			<object class="GtkHeaderBar" id="header_bar">
 				<property name="visible">True</property>

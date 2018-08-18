@@ -176,6 +176,7 @@ namespace Shady
 			new ShaderChannelTypePopover();
 			new ShadertoyResourceManager();
 			new NotebookActionWidget();
+			//new ShaderEditor();
 			//new ShaderChannel();
 
 			ShaderSourceBuffer.initialize_resources();

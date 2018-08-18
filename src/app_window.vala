@@ -43,6 +43,12 @@ namespace Shady
 			}
 		}
 
+		[Signal (action=true)]
+		public signal void search_toggled();
+
+		[Signal (action=true)]
+		public signal void escape_pressed();
+
 		[GtkChild]
 		private Gtk.MenuButton menu_button;
 
@@ -78,6 +84,16 @@ namespace Shady
 
             _scene = new ShaderScene();
 			_editor = new ShaderEditor();
+
+			search_toggled.connect(() =>
+			{
+			    _editor.show_search();
+			});
+
+			escape_pressed.connect(() =>
+			{
+			    _editor.hide_search();
+			});
 
 			// set current switched layout state
 			_switched_layout = _settings.get_boolean("switched-layout");
