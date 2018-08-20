@@ -76,14 +76,11 @@ namespace Shady
 		private GLuint _vertex_shader;
 		private GLuint _fragment_shader;
 
-		private GLuint _resize_fb;
-
 		/* Time variables */
 		private DateTime _curr_date;
 
 		private int64 _start_time;
 		private int64 _curr_time;
-		private int64 _pause_time;
 		private int64 _delta_time;
 
 		private float _year;
@@ -122,8 +119,6 @@ namespace Shady
 			realize.connect(() =>
 			{
 				init_gl(get_default_shader());
-
-				print("REALIZE: " + get_window().get_type().name() + "\n\n\n");
 			});
 
 			button_press_event.connect((widget, event) =>
@@ -136,19 +131,6 @@ namespace Shady
 				}
 
 				return false;
-			});
-
-			create_context.connect(() =>
-			{
-				try
-				{
-					return get_window().create_gl_context();
-				}
-				catch(Error e)
-				{
-					print("Couldn't create gl context\n");
-					return (Gdk.GLContext)null;
-				}
 			});
 
 			render.connect(() =>
@@ -177,11 +159,6 @@ namespace Shady
 				}
 
 				_size_mutex.unlock();
-			});
-
-			unrealize.connect(() =>
-			{
-				print("UNREALIZE: " + get_window().get_type().name() + "\n\n\n");
 			});
 		}
 

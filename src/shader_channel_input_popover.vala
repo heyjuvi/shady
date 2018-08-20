@@ -53,8 +53,6 @@ namespace Shady
 				input_selected(selected_input_item.input);
 
 				_last_selected = selected_input_item;
-
-				print(@"The window is $((int) get_window())\n\n");
 				//popdown();
 			}
 		}

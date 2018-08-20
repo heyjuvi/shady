@@ -103,15 +103,10 @@ namespace Shady
 					uint8[] data = resources_lookup_data(3dtexture.resource, 0).get_data();
 
 					3DTEXTURE_VOXMAPS[i].width = bytes_to_int(data[4:8]);
-					print("a\n");
 					3DTEXTURE_VOXMAPS[i].height = bytes_to_int(data[8:12]);
-					print("b\n");
 					3DTEXTURE_VOXMAPS[i].depth = bytes_to_int(data[12:16]);
-					print("c\n");
 					3DTEXTURE_VOXMAPS[i].n_channels = bytes_to_int(data[16:20]);
-					print("d\n");
 					3DTEXTURE_VOXMAPS[i].voxels = data[20:data.length];
-					print("e\n");
 				}
 				catch (Error e)
 				{

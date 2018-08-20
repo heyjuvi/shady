@@ -99,6 +99,7 @@ namespace Shady
 		public double time_slider { get; set; default = 0.0; }
 
 		private GLuint _tile_render_buf;
+		private uint _render_timeout;
 
 		/* Buffer properties structs*/
 		private BufferProperties _target_prop = BufferProperties();
@@ -109,14 +110,10 @@ namespace Shady
 		private BufferProperties[] _buffer_props1 = {};
 		private BufferProperties[] _buffer_props2 = {};
 
-		/* Objects */
-		private Gdk.GLContext _render_context1;
-		private Gdk.GLContext _render_context2;
-
 		/* Constants */
 		private const double _time_slider_factor = 2.0;
-		private const int _x_image_parts = 4;
-		private const int _y_image_parts = 4;
+		private const int _x_image_parts = 1;
+		private const int _y_image_parts = 1;
 
 		/* OpenGL ids */
 		private const string _channel_string = "iChannel";
@@ -167,25 +164,22 @@ namespace Shady
 
 		private bool _render_switch = true;
 
-		private Cond _render_switch_cond = Cond();
-		private Mutex _render_switch_mutex1 = Mutex();
-		private Mutex _render_switch_mutex2 = Mutex();
+		private Mutex _render_switch_mutex = Mutex();
 
 		private Mutex _size_mutex = Mutex();
 
-		private Thread<int> _render_thread1;
-		private Thread<int> _render_thread2;
-		private bool _render_threads_running = true;
-
 		private Mutex _compile_mutex = Mutex();
+
+		private Thread<int> _compile_thread = new Thread<int>("compile_thread", () =>
+		{
+			return 0;
+		});
 
 		public ShaderManager()
 		{
 			realize.connect(() =>
 			{
 				init_gl(get_default_shader());
-
-				print("REALIZE: " + get_window().get_type().name() + "\n\n\n");
 			});
 
 			button_press_event.connect((widget, event) =>
@@ -220,21 +214,6 @@ namespace Shady
 				return false;
 			});
 
-			create_context.connect(() =>
-			{
-				try
-				{
-					_render_context1 = get_window().create_gl_context();
-					_render_context2 = get_window().create_gl_context();
-					return get_window().create_gl_context();
-				}
-				catch(Error e)
-				{
-					print("Couldn't create gl context\n");
-					return (Gdk.GLContext)null;
-				}
-			});
-
 			render.connect(() =>
 			{
 				_size_mutex.lock();
@@ -264,16 +243,8 @@ namespace Shady
 
 			unrealize.connect(() =>
 			{
-				print("UNREALIZE: " + get_window().get_type().name() + "\n\n\n");
-
-				_render_threads_running = false;
-
-				_render_switch_cond.signal();
-
-				_render_thread1.join();
-				_render_thread2.join();
-				_compile_mutex.lock();
-				_compile_mutex.unlock();
+				Source.remove(_render_timeout);
+				_compile_thread.join();
 			});
 		}
 
@@ -399,36 +370,47 @@ namespace Shady
 				});
 			}
 
-			return new Thread<int>("compile_thread", () =>
+			if (_compile_mutex.trylock())
 			{
-				if (_compile_mutex.trylock())
+				Thread<int> _compile_thread = new Thread<int>("compile_thread", () =>
 				{
-					try
+					thread_context.make_current();
+
+					if(_render_switch)
 					{
-						thread_context.make_current();
-
-						if(_render_switch)
-						{
-							compile_blocking(new_shader, ref _image_prop1, ref _buffer_props1);
-						}
-						else
-						{
-							compile_blocking(new_shader, ref _image_prop2, ref _buffer_props2);
-						}
-
-						Gdk.GLContext.clear_current();
-						_compile_mutex.unlock();
-
-						_render_switch_cond.signal();
+						compile_blocking(new_shader, ref _image_prop1, ref _buffer_props1);
+						dummy_render_gl(_image_prop1);
 					}
-					catch(Error e)
+					else
 					{
-						print("Couldn't create gl context!\n");
+						compile_blocking(new_shader, ref _image_prop2, ref _buffer_props2);
+						dummy_render_gl(_image_prop2);
 					}
-				}
 
-				return 0;
-			});
+					Gdk.GLContext.clear_current();
+					_compile_mutex.unlock();
+
+					_render_switch_mutex.lock();
+					_render_switch=!_render_switch;
+					_render_switch_mutex.unlock();
+
+					Idle.add(() =>
+					{
+						compilation_finished();
+						return false;
+					});
+					return 0;
+				});
+
+				return _compile_thread;
+			}
+			else
+			{
+				return new Thread<int>("compile_thread", () =>
+				{
+					return 0;
+				});
+			}
 		}
 
 		private void compile_blocking(Shader new_shader, ref BufferProperties image_prop, ref BufferProperties[] buffer_props)
@@ -700,7 +682,7 @@ namespace Shady
 
 			if (success[0] == GL_FALSE)
 			{
-				stdout.printf("compile error\n");
+				print("Compile error:\n");
 				GLint log_size[] = {0};
 				glGetShaderiv(_fragment_shader, GL_INFO_LOG_LENGTH, log_size);
 				GLubyte[] log = new GLubyte[log_size[0]];
@@ -710,7 +692,7 @@ namespace Shady
 				{
 					foreach (GLubyte c in log)
 					{
-						stdout.printf("%c", c);
+						print(@"$((char)c)");
 					}
 
 					Idle.add(() =>
@@ -727,10 +709,9 @@ namespace Shady
 						return false;
 					});
 				}
-
 				Idle.add(() =>
 				{
-                	compilation_finished();
+					compilation_finished();
 					return false;
 				});
 
@@ -762,34 +743,24 @@ namespace Shady
 			Idle.add(() =>
 			{
 				pass_compilation_terminated(pass_index, null);
-				compilation_finished();
 				return false;
 			});
 		}
 
-		private void render_thread_func(bool thread_switch, Mutex render_switch_mutex, ref BufferProperties img_prop, BufferProperties[] buf_props)
+		private bool render_thread_func()
 		{
-			while(_render_threads_running)
+			_render_switch_mutex.lock();
+			if(!_render_switch)
 			{
-
-				while(((thread_switch && !_render_switch) || (!thread_switch && _render_switch)) && _render_threads_running)
-				{
-					render_switch_mutex.lock();
-					_render_switch_cond.wait(render_switch_mutex);
-					render_switch_mutex.unlock();
-
-					if(!_render_threads_running)
-					{
-						continue;
-					}
-
-					dummy_render_gl(img_prop);
-
-					_render_switch = !_render_switch;
-				}
-
-				render_image(ref img_prop, buf_props);
+				render_image(ref _image_prop1, _buffer_props1);
 			}
+			else
+			{
+				render_image(ref _image_prop2, _buffer_props2);
+			}
+			_render_switch_mutex.unlock();
+
+			return true;
 		}
 
 		private void init_gl(Shader default_shader)
@@ -900,7 +871,6 @@ namespace Shady
 			glAttachShader(_image_prop2.program, _fragment_shader);
 
 			compile(default_shader).join();
-			_render_switch = !_render_switch;
 			compile(default_shader).join();
 
 			GLuint[] vao_arr = {0};
@@ -924,44 +894,45 @@ namespace Shady
 			glEnableVertexAttribArray(attrib0);
 			glVertexAttribPointer(attrib0, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
 
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindVertexArray(0);
+			//glBindBuffer(GL_ARRAY_BUFFER, 0);
+			//glBindVertexArray(0);
 
 			GLuint[] fb_arr = {0};
 
 			glGenFramebuffers(1, fb_arr);
 			_resize_fb = fb_arr[0];
 
-			_render_context1.make_current();
-			_image_prop1.context = _render_context1;
+			//_render_context1.make_current();
+			//_image_prop1.context = _render_context1;
+			_image_prop1.context = get_context();
 
 			glGenFramebuffers(1, fb_arr);
 			_image_prop1.fb = fb_arr[0];
 
-			glGenVertexArrays(1, vao_arr);
-			glBindVertexArray(vao_arr[0]);
+			//glGenVertexArrays(1, vao_arr);
+			//glBindVertexArray(vao_arr[0]);
 			_image_prop1.vao = vao_arr[0];
 
-			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+			//glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
 			GLuint attrib1 = glGetAttribLocation(_image_prop1.program, "v");
 
 			glEnableVertexAttribArray(attrib1);
 			glVertexAttribPointer(attrib1, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
 
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			//glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			_render_context2.make_current();
-			_image_prop2.context = _render_context2;
+			//_render_context2.make_current();
+			_image_prop2.context = get_context();
 
 			glGenFramebuffers(1, fb_arr);
 			_image_prop2.fb = fb_arr[0];
 
-			glGenVertexArrays(1, vao_arr);
-			glBindVertexArray(vao_arr[0]);
+			//glGenVertexArrays(1, vao_arr);
+			//glBindVertexArray(vao_arr[0]);
 			_image_prop2.vao = vao_arr[0];
 
-			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+			//glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
 			GLuint attrib2 = glGetAttribLocation(_image_prop2.program, "v");
 
@@ -975,24 +946,7 @@ namespace Shady
 
 			Gdk.GLContext.clear_current();
 
-			try
-			{
-				_render_thread1 = new Thread<int>.try("Render Thread1", () =>
-				{
-					render_thread_func(false, _render_switch_mutex1, ref _image_prop1, _buffer_props1);
-					return 0;
-				});
-
-				_render_thread2 = new Thread<int>.try("Render Thread2", () =>
-				{
-					render_thread_func(true, _render_switch_mutex2, ref _image_prop2, _buffer_props2);
-					return 0;
-				});
-			}
-			catch(Error e)
-			{
-				print("Couldn't start render threads\n");
-			}
+			_render_timeout = Timeout.add(16,render_thread_func);
 
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |
@@ -1371,13 +1325,11 @@ namespace Shady
 		{
 			if (_initialized)
 			{
-				int64 time_before = get_monotonic_time();
-
 				_size_mutex.lock();
 
 				if(_size_updated)
 				{
-					img_prop.context.make_current();
+					make_current();
 
     				glBindRenderbuffer(GL_RENDERBUFFER,_tile_render_buf);
 
@@ -1497,20 +1449,13 @@ namespace Shady
 				}
 
 				_size_mutex.unlock();
-
-				int64 time_after = get_monotonic_time();
-
-				if(time_after - time_before < 16000/(_x_image_parts * _y_image_parts))
-				{
-					Thread.usleep( (ulong) (16000/(_x_image_parts * _y_image_parts) - (time_after - time_before)) );
-				}
 			}
 	
 		}
 
 		private int64 render_gl(ref BufferProperties buf_prop)
 		{
-			buf_prop.context.make_current();
+			make_current();
 
 			if(buf_prop.fb!=0)
 			{

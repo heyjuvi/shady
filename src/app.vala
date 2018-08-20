@@ -189,7 +189,6 @@ namespace Shady
 			add_window(newest_app_window);
 
 			newest_app_window.present();
-			newest_app_window.compile();
 		}
 
 		private void load_css()

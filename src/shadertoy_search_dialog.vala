@@ -35,8 +35,6 @@ namespace Shady
 
 				shader_parser.load_from_data(shader_data, -1);
 
-				//print("NEW SHADER:\n " + shader_data + "\n\n\n");
-
 				var shader_root = shader_parser.get_root().get_object().get_object_member("Shader");
 				var info_node = shader_root.get_object_member("info");
 
@@ -242,7 +240,6 @@ namespace Shady
 					Gtk.Allocation allocation;
 					shader_box.get_allocated_size(out allocation, null);
 
-					print(@"$(allocation.y)\n");
 					if (allocation.y > 20)
 					{
 						break;
