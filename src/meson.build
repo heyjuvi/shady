@@ -58,7 +58,7 @@ executable('shady',
     libsoup_dep,
     json_glib_dep
   ],
-  link_args : ['-lepoxy', '-lX11', '-lEGL', '-lglslang'],
+  link_args : ['-lepoxy', '-lX11', '-lglslang'],
   install: true,
 )
 

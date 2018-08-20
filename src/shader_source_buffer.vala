@@ -41,6 +41,11 @@ namespace Shady
 		private int _error_width;
 		private int _error_height;
 
+		private int _mouse_x;
+		private int _mouse_y;
+		private int _view_x;
+		private int _view_y;
+
 		public ShaderSourceBuffer(string buffer_name)
 		{
 			buf_name = buffer_name;
@@ -85,7 +90,7 @@ namespace Shady
 
                 buffer.get_iter_at_offset(out iter, buffer.cursor_position);
 
-                if (iter.has_tag(_error_tag))
+                if (iter.has_tag(_error_tag) && !over_error(_mouse_x + _view_x, _mouse_y + _view_y))
                 {
                     show_error(iter.get_line());
                 }
@@ -104,18 +109,19 @@ namespace Shady
 	            {
 	                Gtk.TextIter iter, cursor_iter;
 
-                    int mouse_x, mouse_y, trailing;
-                    int view_x, view_y;
+                    int trailing;
 
-                    view.translate_coordinates(toplevel, 0, 0, out view_x, out view_y);
+                    view.translate_coordinates(toplevel, 0, 0, out _view_x, out _view_y);
                     //print(@"$view_x, $view_y\n");
 
-	                view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out mouse_x, out mouse_y);
-	                view.get_iter_at_position(out iter, out trailing, mouse_x, mouse_y);
+	                view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out _mouse_x, out _mouse_y);
+	                view.get_iter_at_position(out iter, out trailing, _mouse_x, _mouse_y);
+
+	                print(@"($_mouse_x, $_mouse_y)\n");
 
 	                buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
 
-                    if (!over_error(mouse_x + view_x, mouse_y + view_y) && cursor_iter.has_tag(_error_tag))
+                    if (!over_error(_mouse_x + _view_x, _mouse_y + _view_y) && cursor_iter.has_tag(_error_tag))
 	                {
 	                    if (!_error_tooltip_window.visible)
 	                    {
@@ -228,8 +234,13 @@ namespace Shady
                 // x compenent
                 _error_tooltip_label.set_text(_errors[line + 1]);
 
+                _error_tooltip_window.hide();
+                _error_tooltip_window.move(view_x + gutter_width,
+	                                       view_y + start_iter_y - _error_tooltip_window.get_allocated_height());
                 _error_tooltip_window.resize(view.get_allocated_width() - gutter_width, 1);
+
                 _error_tooltip_window.show();
+
                 _error_tooltip_window.move(view_x + gutter_width,
 	                                       view_y + start_iter_y - _error_tooltip_window.get_allocated_height());
 
