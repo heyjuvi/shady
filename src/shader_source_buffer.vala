@@ -117,8 +117,6 @@ namespace Shady
 	                view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out _mouse_x, out _mouse_y);
 	                view.get_iter_at_position(out iter, out trailing, _mouse_x, _mouse_y);
 
-	                print(@"($_mouse_x, $_mouse_y)\n");
-
 	                buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
 
                     if (!over_error(_mouse_x + _view_x, _mouse_y + _view_y) && cursor_iter.has_tag(_error_tag))

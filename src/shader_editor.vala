@@ -188,7 +188,7 @@ namespace Shady
                 if (match_found)
                 {
                     _curr_buffer.buffer.select_range(match_start, match_end);
-                    _curr_buffer.view.scroll_to_iter(match_start, 0.0, true, 0.0, 0.5);
+                    _curr_buffer.view.scroll_to_iter(match_start, 0.0, true, 0.5, 0.5);
 
                     _last_match_start = match_start;
 		            _last_match_end = match_end;
