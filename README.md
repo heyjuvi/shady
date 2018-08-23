@@ -20,7 +20,7 @@ For not yet implemented features, please have a look at the current issues.
 
 ## Flatpak
 
-In order to build a flatpak of Shady, run the following command:
+In order to build a flatpak of Shady, you need to have an up-to-date GNOME Sdk and Platform installed. Then run the following command:
 
 ``` bash
 flatpak-builder build-dir org.hasi.shady.json
