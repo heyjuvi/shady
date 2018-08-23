@@ -6,5 +6,5 @@ install_data([
 ], install_dir: desktop_dir)
 
 install_data([
-  'shady.svg',
+  'shady.png',
 ], install_dir: icon_dir)
