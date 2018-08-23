@@ -15,3 +15,4 @@ app_resources = gnome.compile_resources(
 subdir('src')
 subdir('data')
 
+meson.add_install_script('meson_post_install.py')
