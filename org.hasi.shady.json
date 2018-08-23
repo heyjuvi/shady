@@ -1,0 +1,70 @@
+{
+    "app-id": "org.hasi.shady",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "3.28",
+    "sdk": "org.gnome.Sdk",
+    "command": "shady",
+    "finish-args" : [
+        "--allow=devel",
+        "--talk-name=org.freedesktop.Flatpak",
+        "--socket=x11",
+        "--socket=wayland",
+        "--filesystem=home",
+        "--filesystem=host",
+        "--share=network",
+        "--talk-name=org.gtk.vfs.*",
+        "--system-talk-name=org.freedesktop.PolicyKit1",
+        "--filesystem=xdg-run/dconf",
+        "--filesystem=~/.config/dconf:ro",
+        "--talk-name=ca.desrt.dconf",
+        "--env=DCONF_USER_CONFIG_DIR=.config/dconf",
+        "--talk-name=org.freedesktop.FileManager1",
+        "--talk-name=org.gnome.SettingsDaemon.Color",
+        "--talk-name=org.freedesktop.PackageKit",
+        "--talk-name=org.freedesktop.secrets",
+        "--filesystem=xdg-run/keyring",
+        "--env=SSL_CERT_DIR=/etc/ssl/certs",
+        "--filesystem=/etc/ssl:ro",
+        "--filesystem=/etc/pki:ro",
+        "--filesystem=/etc/ca-certificates:ro",
+        "--filesystem=~/.local/share/flatpak",
+        "--filesystem=/var/lib/flatpak"
+	],
+    "modules": [
+        {
+            "name": "gtksourceview",
+            "sources": [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/gtksourceview.git",
+                    "branch" : "master"
+                }
+            ]
+        },
+        {
+            "name": "glslang",
+            "buildsystem" : "cmake",
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://github.com/KhronosGroup/glslang",
+                    "branch": "master"
+                }
+            ]
+        },
+        {
+            "name": "shady",
+            "buildsystem": "meson",
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "git://github.com/misterdanb/shady"
+                }
+            ],
+            "post-install": [
+                "glib-compile-schemas /app/share/glib-2.0/schemas/"
+            ]
+        }
+    ]
+}
+
