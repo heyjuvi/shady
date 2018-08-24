@@ -24,6 +24,7 @@ namespace Shady
 				{
 					newest_app_window.destroy();
 				}
+
 				// for some reason the window is displayed below the
 				// previous one
 				var new_window = new AppWindow(this, app_preferences);

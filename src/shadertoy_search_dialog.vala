@@ -152,6 +152,8 @@ namespace Shady
 		[GtkChild]
 		private Gtk.FlowBox shader_box;
 
+		private bool _destroyed;
+
 		construct
 		{
 			// it is not so super clear, why this cannot be set in the ui file
@@ -163,6 +165,12 @@ namespace Shady
 			set_transient_for(parent);
 
 			content_stack.visible_child_name = "content";
+
+			_destroyed = false;
+			destroy.connect(() =>
+			{
+			    _destroyed = true;
+			});
 		}
 
 		[GtkCallback]
@@ -195,7 +203,7 @@ namespace Shady
 		{
 			if (_found_shaders != null && _last_index < _found_shaders.length)
 			{
-				for (int i = 0; i < n && i < _found_shaders.length; i++)
+				for (int i = 0; i < n && _last_index + i < _found_shaders.length; i++)
 				{
 					int shader_index = _last_index + i;
 
@@ -300,7 +308,7 @@ namespace Shady
 					uint64 num_shaders = search_shaders(search_string);
 
 					bool search_finished = false;
-					while (!search_finished)
+					while (!search_finished && !_destroyed)
 					{
 						int count = 0;
 						bool null_shader_found = false;
@@ -321,26 +329,32 @@ namespace Shady
 							search_finished = true;
 						}
 
-						Idle.add(() =>
-						{
-							loading_label.set_text(@"Loaded $count/$num_shaders shaders...");
-							return false;
-						});
+                        if (!_destroyed)
+                        {
+						    Idle.add(() =>
+						    {
+							    loading_label.set_text(@"Loaded $count/$num_shaders shaders...");
+							    return false;
+						    });
+						}
 
-						Thread.usleep(100000);
+						Thread.usleep(1000000);
 					}
 
-					Idle.add(() =>
+					if (!_destroyed)
 					{
-						content_stack.visible_child_name = "content";
-						shadertoy_search_entry.sensitive = true;
-						return false;
-					});
+					    Idle.add(() =>
+					    {
+						    content_stack.visible_child_name = "content";
+						    shadertoy_search_entry.sensitive = true;
+						    return false;
+					    });
+					}
 
 					return 0;
 				});
 			}
-			catch(Error e)
+			catch (Error e)
 			{
 				print("Couldn't start shader loading thread\n");
 			}
