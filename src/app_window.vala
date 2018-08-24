@@ -22,18 +22,18 @@ namespace Shady
 			{
 				if (value != _switched_layout)
 				{
-					main_paned.remove(_editor);
-			        main_paned.remove(_scene);
+					main_paned.remove(editor);
+			        main_paned.remove(scene);
 
 			        if (value)
 			        {
-				        main_paned.pack1(_scene, true, true);
-				        main_paned.pack2(_editor, true, true);
+				        main_paned.pack1(scene, true, true);
+				        main_paned.pack2(editor, true, true);
 			        }
 			        else
 			        {
-				        main_paned.pack1(_editor, true, true);
-				        main_paned.pack2(_scene, true, true);
+				        main_paned.pack1(editor, true, true);
+				        main_paned.pack2(scene, true, true);
 			        }
 
 			        compile();
@@ -42,6 +42,9 @@ namespace Shady
 				}
 			}
 		}
+
+		public ShaderScene scene { get; private set; }
+		public ShaderEditor editor { get; private set; }
 
 		[Signal (action=true)]
 		public signal void search_toggled();
@@ -67,9 +70,6 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Paned main_paned;
 
-        private ShaderScene _scene;
-		private ShaderEditor _editor;
-
 		private Gtk.AccelGroup _accels = new Gtk.AccelGroup();
 
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
@@ -82,8 +82,8 @@ namespace Shady
 
 			add_accel_group(_accels);
 
-            _scene = new ShaderScene();
-			_editor = new ShaderEditor();
+            scene = new ShaderScene();
+			editor = new ShaderEditor();
 
 			search_toggled.connect(() =>
 			{
@@ -100,13 +100,13 @@ namespace Shady
 
 			if (_switched_layout)
 			{
-				main_paned.pack1(_scene, true, true);
-				main_paned.pack2(_editor, true, true);
+				main_paned.pack1(scene, true, true);
+				main_paned.pack2(editor, true, true);
 			}
 			else
 			{
-				main_paned.pack1(_editor, true, true);
-				main_paned.pack2(_scene, true, true);
+				main_paned.pack1(editor, true, true);
+				main_paned.pack2(scene, true, true);
 			}
 
 			if (!app.prefers_app_menu())
@@ -154,16 +154,16 @@ namespace Shady
 
 		public void compile()
 		{
-			_scene.shader_manager.compilation_finished.connect(() =>
+			scene.shader_manager.compilation_finished.connect(() =>
 			{
 				compile_button_stack.visible_child_name = "compile_image";
 			});
 
 			compile_button_stack.visible_child_name = "compile_spinner";
 
-			_scene.shader_manager.pass_compilation_terminated.connect((index, e) =>
+			scene.shader_manager.pass_compilation_terminated.connect((index, e) =>
 			{
-			    _editor.clear_error_messages();
+			    editor.clear_error_messages();
 
 				if (e != null && e is ShaderError.COMPILATION)
 				{
@@ -228,19 +228,19 @@ namespace Shady
 				}
 			});
 
-            _editor.gather_shader();
-			_scene.compile(_editor.shader);
-			//_scene._fullscreen_shader_manager.compile(_editor.shader);
+            editor.gather_shader();
+			scene.compile(_editor.shader);
+			//scene._fullscreen_shader_manager.compile(_editor.shader);
 		}
 
 		public void reset_time()
 		{
-		    _scene.shader_manager.reset_time();
+		    scene.shader_manager.reset_time();
 		}
 
 		public void play()
 		{
-			_scene.shader_manager.paused = false;
+			scene.shader_manager.paused = false;
 
 			play_button_image.set_from_icon_name("media-playback-pause-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(false);
@@ -248,7 +248,7 @@ namespace Shady
 
 		public void pause()
 		{
-			_scene.shader_manager.paused = true;
+			scene.shader_manager.paused = true;
 
 			play_button_image.set_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(true);
@@ -257,13 +257,13 @@ namespace Shady
 		[GtkCallback]
 		private void reset_button_clicked()
 		{
-			_scene.shader_manager.reset_time();
+			scene.shader_manager.reset_time();
 		}
 
 		[GtkCallback]
 		private void play_button_clicked()
 		{
-			if (_scene.shader_manager.paused)
+			if (scene.shader_manager.paused)
 			{
 				play();
 			}
@@ -276,7 +276,7 @@ namespace Shady
 		[GtkCallback]
 		private void rubber_band_scale_value_changed()
 		{
-			_scene.shader_manager.time_slider = rubber_band_scale.get_value();
+			scene.shader_manager.time_slider = rubber_band_scale.get_value();
 		}
 
 		[GtkCallback]

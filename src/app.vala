@@ -59,7 +59,7 @@ namespace Shady
 					switch (response_id)
 					{
 						case Gtk.ResponseType.ACCEPT:
-							//var file = open_dialog.get_file();
+							var file = open_dialog.get_file();
 
 							if (!newest_app_window.edited)
 							{
@@ -71,17 +71,17 @@ namespace Shady
 							var new_window = new AppWindow(this, app_preferences);
 
 							// TODO: opening files must be solved with an appropriate file format
-							//new_window.set_buffer("Image", read_file_as_string(file));
-							new_window.reset_time();
-							new_window.compile();
-							new_window.play();
-
 							remove_window(newest_app_window);
 							add_window(new_window);
 
+							newest_app_window = new_window;
+
+							new_window.editor.set_buffer("Image", read_file_as_string(file));
 							new_window.present();
 
-							newest_app_window = new_window;
+							new_window.reset_time();
+							new_window.compile();
+							new_window.play();
 
 							break;
 
