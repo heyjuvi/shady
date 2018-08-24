@@ -18,6 +18,17 @@ For not yet implemented features, please have a look at the current issues.
 
 # Building instructions
 
+## Meson
+
+Run the following lines:
+
+``` bash
+meson build
+cd build
+ninja
+ninja install
+```
+
 ## Flatpak
 
 In order to build a flatpak of Shady, you need to have an up-to-date GNOME Sdk and Platform installed. Then run the following command:
