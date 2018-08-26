@@ -149,6 +149,30 @@ namespace Shady
 		    _curr_buffer.view.grab_focus();
 		}
 
+		public void next_buffer()
+		{
+		    if (notebook.get_current_page() == notebook.get_n_pages() - 1)
+		    {
+		        notebook.set_current_page(0);
+		    }
+		    else
+		    {
+		        notebook.next_page();
+		    }
+		}
+
+		public void prev_buffer()
+		{
+		    if (notebook.get_current_page() == 0)
+		    {
+		        notebook.set_current_page(notebook.get_n_pages() - 1);
+		    }
+		    else
+		    {
+		        notebook.prev_page();
+		    }
+		}
+
 		[GtkCallback]
 		private void search_changed()
 		{

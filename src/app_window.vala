@@ -95,6 +95,25 @@ namespace Shady
 			    _editor.hide_search();
 			});
 
+			key_press_event.connect((widget, event) =>
+			{
+			    if (event.keyval == Gdk.Key.Tab &&
+			        event.state == Gdk.ModifierType.CONTROL_MASK)
+			    {
+			        editor.next_buffer();
+			        return true;
+			    }
+
+			    if (event.keyval == Gdk.Key.ISO_Left_Tab &&
+			        event.state == (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK))
+			    {
+			        editor.prev_buffer();
+			        return true;
+			    }
+
+			    return false;
+			});
+
 			// set current switched layout state
 			_switched_layout = _settings.get_boolean("switched-layout");
 
