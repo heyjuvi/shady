@@ -64,7 +64,7 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Label views_label;
 
-		private ShaderManager _shader_manager;
+		public ShaderManager _shader_manager;
 
 		public ShadertoyShaderItem()
 		{
@@ -83,18 +83,17 @@ namespace Shady
 			{
 				print("Couldn't load loading shader\n");
 			}
+
 			renderpass.type = Shader.RenderpassType.IMAGE;
 
 			load_shader.renderpasses.append_val(renderpass);
+			shader = load_shader;
 
 			_shader_manager = new ShaderManager();
 			_shader_manager.set_size_request(152, 140);
 			_shader_manager.paused = true;
 
 			shader_container.pack_start(_shader_manager, false, false);
-			/*Gtk.Button bla = new Gtk.Button();
-			bla.set_size_request(152, 140);
-			shader_container.pack_start(bla, false, false);*/
 
 			show_all();
 		}

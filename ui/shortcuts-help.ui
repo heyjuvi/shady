@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkShortcutsWindow" id="help_overlay">
+    <property name="modal">True</property>
+
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="visible">True</property>
+
+        <!--property name="section-name">shortcuts</property-->
+
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="visible">True</property>
+            <property name="title" context="shortcut window">General</property>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Open shader</property>
+                <property name="accelerator">&lt;Primary&gt;o</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Compile</property>
+                <property name="accelerator">&lt;Primary&gt;r</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Open Shadertoy.com search</property>
+                <property name="accelerator">&lt;Primary&gt;l</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Go fullscreen</property>
+                <property name="accelerator">&lt;Primary&gt;f</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Quit</property>
+                <property name="accelerator">&lt;Primary&gt;q</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="visible">True</property>
+            <property name="title" context="shortcut window">Find</property>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Find</property>
+                <property name="accelerator">&lt;Primary&gt;f</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="visible">True</property>
+            <property name="title" context="shortcut window">Playback</property>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Play/Pause</property>
+                <property name="accelerator">&lt;Primary&gt;p</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -27,6 +27,12 @@
 		</section>
 		<section>
 			<item>
+				<attribute name="label" translatable="yes">Keyboard Shortcuts</attribute>
+				<attribute name="action">win.show-help-overlay</attribute>
+			  <!-- TODO: why is this not working? -->
+				<attribute name="accel">&lt;Primary&gt;h</attribute>
+			</item>
+		  <item>
 				<attribute name="label" translatable="yes">Quit</attribute>
 				<attribute name="action">app.quit</attribute>
 				<attribute name="accel">&lt;Primary&gt;q</attribute>

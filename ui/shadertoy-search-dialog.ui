@@ -11,6 +11,8 @@
 		<property name="default_width">1080</property>
 		<property name="default_height">640</property>
 
+	  <accelerator key="Escape" modifiers="" signal="close" />
+
 		<child type="action">
 			<object class="GtkButton" id="load_shader_button">
 				<property name="label">Load</property>

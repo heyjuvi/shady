@@ -201,6 +201,7 @@ namespace Shady
 
 		private void show_n_more_shaders(int n)
 		{
+		    print(@"YOLO: $_last_index, $(_found_shaders.length)\n");
 			if (_found_shaders != null && _last_index < _found_shaders.length)
 			{
 				for (int i = 0; i < n && _last_index + i < _found_shaders.length; i++)
@@ -212,20 +213,24 @@ namespace Shady
 						ShadertoyShaderItem element = new ShadertoyShaderItem();
 						shader_box.add(element);
 
-						element.sh_it_name = _found_shaders[shader_index].name;
-						element.author = _found_shaders[shader_index].author;
-						element.likes = (int) _found_shaders[shader_index].likes;
-						element.views = (int) _found_shaders[shader_index].views;
-						element.shader = _found_shaders[shader_index];
+						element.compile();
+                        element._shader_manager.compilation_finished.connect(() =>
+                        {
+						    element.sh_it_name = _found_shaders[shader_index].name;
+						    element.author = _found_shaders[shader_index].author;
+						    element.likes = (int) _found_shaders[shader_index].likes;
+						    element.views = (int) _found_shaders[shader_index].views;
+						    element.shader = _found_shaders[shader_index];
 
-						try
-						{
-							element.compile();
-						}
-						catch (ShaderError e)
-						{
-							print(@"Compilation error: $(e.message)");
-						}
+						    try
+						    {
+							    element.compile();
+						    }
+						    catch (ShaderError e)
+						    {
+							    print(@"Compilation error: $(e.message)");
+						    }
+						});
 					}
 				}
 

@@ -112,8 +112,8 @@ namespace Shady
 
 		/* Constants */
 		private const double _time_slider_factor = 2.0;
-		private const int _x_image_parts = 1;
-		private const int _y_image_parts = 1;
+		private const int _x_image_parts = 4;
+		private const int _y_image_parts = 4;
 
 		/* OpenGL ids */
 		private const string _channel_string = "iChannel";
