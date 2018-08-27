@@ -7,7 +7,7 @@ namespace Shady
 		public Gtk.SourceSearchContext search_context { get; private set; }
 		public ShaderSourceView view { get; private set; }
 
-		public string buf_name { get; set; default = null; }
+		public string buffer_name { get; set; default = null; }
 
 		private bool _live_mode = false;
 		public bool live_mode
@@ -46,9 +46,9 @@ namespace Shady
 		private int _view_x;
 		private int _view_y;
 
-		public ShaderSourceBuffer(string buffer_name)
+		public ShaderSourceBuffer(string new_buffer_name)
 		{
-			buf_name = buffer_name;
+			buffer_name = new_buffer_name;
 
             Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
 			Gtk.SourceLanguage source_language = source_language_manager.get_language("shadertoy_glsl");

@@ -19,7 +19,7 @@
             <property name="can_focus">True</property>
 		        <property name="tab_pos">bottom</property>
 
-		        <signal name="switch_page" handler="switch_buffer" />
+		        <signal name="switch_page" handler="switch_page" />
 
 		        <child type="action-end">
               <object class="ShadyNotebookActionWidget" id="action_widget">
@@ -30,6 +30,17 @@
                 <signal name="show_channels_clicked" handler="toggle_channels" />
               </object>
               <packing>
+                <property name="tab_fill">False</property>
+              </packing>
+            </child>
+
+        	  <child type="action-start">
+	            <object class="GtkLabel" id="chars_label">
+		            <property name="visible">True</property>
+		            <property name="can_focus">False</property>
+	              <property name="width_request">80</property>
+	            </object>
+	            <packing>
                 <property name="tab_fill">False</property>
               </packing>
             </child>

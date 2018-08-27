@@ -16,6 +16,42 @@ namespace Shady
 		    get { return _curr_shader; }
 		}
 
+	    private int _buffer_chars;
+	    public int buffer_chars
+	    {
+	        get { return _buffer_chars; }
+	        set
+	        {
+	            _buffer_chars = value;
+	            refresh_chars_label();
+	        }
+	    }
+
+	    private int _total_chars;
+	    public int total_chars
+	    {
+	        get { return _total_chars; }
+	        set
+	        {
+	            _total_chars = value;
+	            refresh_chars_label();
+	        }
+	    }
+
+		/*public unowned string[] buffers
+		{
+		    get
+		    {
+		        string[] keys;
+		        foreach (string key in _shader_buffers.get_keys())
+		        {
+		            keys += key;
+		        }
+
+		        return keys;
+		    }
+		}*/
+
 		public signal void buffer_switched(ShaderSourceBuffer from, ShaderSourceBuffer to);
 
 		[GtkChild]
@@ -26,6 +62,12 @@ namespace Shady
 
 	    [GtkChild]
 	    private Gtk.Notebook notebook;
+
+	    [GtkChild]
+	    private Gtk.Label chars_label;
+
+	    [GtkChild]
+	    private NotebookActionWidget action_widget;
 
 	    [GtkChild]
 	    private Gtk.Revealer channels_revealer;
@@ -49,6 +91,8 @@ namespace Shady
 		private Gtk.TextIter _last_match_start;
 		private Gtk.TextIter _last_match_end;
 
+		private Core.GLSLMinifier _minifier;
+
 		public ShaderEditor()
 		{
 			try
@@ -61,12 +105,14 @@ namespace Shady
 				print("Couldn't load default shader!\n");
 			}
 
+			_minifier = new Core.GLSLMinifier();
+
 			_curr_shader = ShaderManager.get_default_shader();
 
 			add_buffer("Image", false);
 			set_buffer("Image", _default_code);
 
-			_curr_buffer = _shader_buffers["Image"];
+			do_full_char_count_refresh();
 
 			_edited = false;
 
@@ -278,13 +324,30 @@ namespace Shady
 
 			for (int i = 0; i < _curr_shader.renderpasses.length; i++)
 			{
-				if (_curr_shader.renderpasses.index(i).name == _curr_buffer.buf_name)
+				if (_curr_shader.renderpasses.index(i).name == _curr_buffer.buffer_name)
 				{
 					curr_renderpass = _curr_shader.renderpasses.index(i);
 				}
 			}
 
 			return curr_renderpass;
+		}
+
+		private void refresh_chars_label()
+		{
+		    chars_label.set_markup(@"<b>$_buffer_chars</b>/$_total_chars");
+		}
+
+		private void do_full_char_count_refresh()
+		{
+		    int new_total_chars = 0;
+			foreach (string key in _shader_buffers.get_keys())
+			{
+			    new_total_chars += _minifier.minify_kindly(_shader_buffers[key].buffer.text).length;
+			}
+
+			buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
+			total_chars = new_total_chars;
 		}
 
 		private int add_buffer(string buffer_name, bool show_close_button=true)
@@ -298,6 +361,14 @@ namespace Shady
 
                 _last_match_start = cursor_iter;
 		        _last_match_end = cursor_iter;
+
+		        int new_total_chars = total_chars - buffer_chars;
+		        int new_buffer_chars = _minifier.minify_kindly(shader_buffer.buffer.text).length;
+
+		        new_total_chars += new_buffer_chars;
+
+		        buffer_chars = new_buffer_chars;
+		        total_chars = new_total_chars;
 
 				_edited = true;
 			});
@@ -323,7 +394,11 @@ namespace Shady
 			});
 
 			_shader_buffers.insert(buffer_name, shader_buffer);
-			return notebook.append_page(shader_buffer, shader_buffer_label);
+			int num = notebook.append_page(shader_buffer, shader_buffer_label);
+
+            shader_buffer.show();
+
+			return num;
 		}
 
 		private string add_buffer_alphabetically()
@@ -339,7 +414,10 @@ namespace Shady
 
 			int new_page_num = add_buffer(buffer_name);
 			set_buffer(buffer_name, _buffer_default_code);
-			notebook.set_current_page(new_page_num);
+
+			switch_buffer(buffer_name);
+
+		    do_full_char_count_refresh();
 
 			return buffer_name;
 		}
@@ -354,10 +432,27 @@ namespace Shady
 			return _shader_buffers[buffer_name].buffer.text;
 		}
 
+		public bool switch_buffer(string buffer_name)
+		{
+		    for (int i = 0; i < notebook.get_n_pages(); i++)
+		    {
+		        ShaderSourceBuffer shader_buffer = notebook.get_nth_page(i) as ShaderSourceBuffer;
+		        if (shader_buffer.buffer_name == buffer_name)
+		        {
+		            notebook.set_current_page(i);
+		            return true;
+		        }
+		    }
+
+		    return false;
+		}
+
 		private void remove_buffer(string buffer_name)
 		{
 			notebook.remove_page(notebook.page_num(_shader_buffers[buffer_name]));
 			_shader_buffers.remove(buffer_name);
+
+			do_full_char_count_refresh();
 		}
 
 		public void set_shader(Shader? shader)
@@ -469,16 +564,17 @@ namespace Shady
 			{
 				curr_renderpass.inputs.append_val(channel_input);
 			}
-			//compile();
 
+			//compile();
 		}
 
 		[GtkCallback]
-		private void switch_buffer(Gtk.Notebook sender_notebook, Gtk.Widget buffer, uint page_num)
+		private void switch_page(Gtk.Notebook sender_notebook, Gtk.Widget buffer, uint page_num)
 		{
 		    buffer_switched(_curr_buffer, buffer as ShaderSourceBuffer);
 
 		    _curr_buffer = buffer as ShaderSourceBuffer;
+		    buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
 		}
 	}
 }
