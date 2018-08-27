@@ -946,7 +946,7 @@ namespace Shady
 
 			Gdk.GLContext.clear_current();
 
-			_render_timeout = Timeout.add(16,render_thread_func);
+			_render_timeout = Timeout.add(1,render_thread_func);
 
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |
