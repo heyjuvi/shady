@@ -70,6 +70,7 @@ namespace Shady
 			buffer.tag_table.add(_error_tag);
 
 			_error_tooltip_window = new Gtk.Window(Gtk.WindowType.POPUP);
+			_error_tooltip_window.can_focus = false;
             _error_tooltip_window.window_position = Gtk.WindowPosition.NONE;
             _error_tooltip_window.get_style_context().add_class("error_tooltip");
 
@@ -102,9 +103,9 @@ namespace Shady
 
             view.motion_notify_event.connect((event_motion) =>
             {
-                // might not be the main window
-	            Gtk.Widget toplevel = get_toplevel();
+                view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out _mouse_x, out _mouse_y);
 
+                Gtk.Window toplevel = get_toplevel() as Gtk.Window;
 	            if (toplevel.is_toplevel())
 	            {
 	                Gtk.TextIter iter, cursor_iter;
@@ -114,12 +115,13 @@ namespace Shady
                     view.translate_coordinates(toplevel, 0, 0, out _view_x, out _view_y);
                     //print(@"$view_x, $view_y\n");
 
-	                view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out _mouse_x, out _mouse_y);
 	                view.get_iter_at_position(out iter, out trailing, _mouse_x, _mouse_y);
 
 	                buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
 
-                    if (!over_error(_mouse_x + _view_x, _mouse_y + _view_y) && cursor_iter.has_tag(_error_tag))
+                    if (!over_error(_mouse_x + _view_x, _mouse_y + _view_y) &&
+                        cursor_iter.has_tag(_error_tag) &&
+                        view.has_focus)
 	                {
 	                    if (!_error_tooltip_window.visible)
 	                    {
@@ -148,6 +150,51 @@ namespace Shady
                 _error_tooltip_window.hide();
 
                 return false;
+            });
+
+            realize.connect(() =>
+            {
+                Gtk.Window toplevel = get_toplevel() as Gtk.Window;
+
+                toplevel.configure_event.connect((event) =>
+                {
+	                if (toplevel.is_toplevel())
+	                {
+	                    Gtk.TextIter cursor_iter;
+	                    buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
+
+                        if (_error_tooltip_window.visible)
+                        {
+                            show_error(cursor_iter.get_line());
+                        }
+	                }
+
+					return false;
+                });
+
+				toplevel.focus_out_event.connect((event) =>
+				{
+					hide_error();
+
+					return false;
+				});
+
+				toplevel.focus_in_event.connect((event) =>
+				{
+				    if (toplevel.is_toplevel())
+	                {
+	                    Gtk.TextIter cursor_iter;
+	                    buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
+
+                        if (!over_error(_mouse_x + _view_x, _mouse_y + _view_y) &&
+                            cursor_iter.has_tag(_error_tag))
+                        {
+                            show_error(cursor_iter.get_line());
+                        }
+	                }
+
+					return false;
+				});
             });
 		}
 
@@ -203,17 +250,24 @@ namespace Shady
 
 		private void show_error(int line)
 		{
-            // might not be the main window
-	        Gtk.Widget toplevel = get_toplevel();
+		    if (over_error(_mouse_x + _view_x, _mouse_y + _view_y))
+		    {
+		        return;
+		    }
+
+	        Gtk.Window toplevel = get_toplevel() as Gtk.Window;
 
 	        if (toplevel.is_toplevel())
 	        {
 	            _error_tooltip_window.set_transient_for(toplevel as Gtk.Window);
 
                 Gtk.TextIter start_iter;
+                int win_x, win_y;
                 int view_x, view_y;
                 int start_iter_x, start_iter_y;
                 Gdk.Rectangle start_iter_rectangle;
+
+                toplevel.get_position(out win_x, out win_y);
 
                 view.translate_coordinates(toplevel, 0, 0, out view_x, out view_y);
 
@@ -232,15 +286,15 @@ namespace Shady
                 // x compenent
                 _error_tooltip_label.set_text(_errors[line + 1]);
 
-                _error_tooltip_window.hide();
-                _error_tooltip_window.move(view_x + gutter_width,
-	                                       view_y + start_iter_y - _error_tooltip_window.get_allocated_height());
+                //_error_tooltip_window.hide();
+                _error_tooltip_window.move(win_x + gutter_width,
+	                                       win_y + start_iter_y + 32 - _error_tooltip_window.get_allocated_height());
                 _error_tooltip_window.resize(view.get_allocated_width() - gutter_width, 1);
 
                 _error_tooltip_window.show();
 
-                _error_tooltip_window.move(view_x + gutter_width,
-	                                       view_y + start_iter_y - _error_tooltip_window.get_allocated_height());
+                _error_tooltip_window.move(win_x + gutter_width,
+	                                       win_y + start_iter_y + 32 - _error_tooltip_window.get_allocated_height());
 
 	            _error_tooltip_window.get_position(out _error_x, out _error_y);
                 _error_tooltip_window.get_size(out _error_width, out _error_height);
@@ -262,6 +316,8 @@ namespace Shady
 			buffer.remove_tag_by_name("glsl-error-tag", start_iter, end_iter);
 
 		    _errors.remove_all();
+
+		    hide_error();
 		}
 
 		public void add_error_message(int line, string name, string message)
@@ -284,7 +340,8 @@ namespace Shady
 			Gtk.TextIter cursor_iter;
             buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
 
-            if (cursor_iter.has_tag(_error_tag))
+            if (!over_error(_mouse_x + _view_x, _mouse_y + _view_y) &&
+                cursor_iter.has_tag(_error_tag))
             {
                 show_error(cursor_iter.get_line());
             }
