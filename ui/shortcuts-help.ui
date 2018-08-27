@@ -58,13 +58,29 @@
         <child>
           <object class="GtkShortcutsGroup">
             <property name="visible">True</property>
-            <property name="title" context="shortcut window">Find</property>
+            <property name="title" context="shortcut window">Editor</property>
 
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">True</property>
                 <property name="title" context="shortcut window">Find</property>
                 <property name="accelerator">&lt;Primary&gt;f</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Switch to next buffer</property>
+                <property name="accelerator">&lt;Primary&gt;Tab</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Switch to previous buffer</property>
+                <property name="accelerator">&lt;Primary&gt;&lt;Shift&gt;Tab</property>
               </object>
             </child>
           </object>
