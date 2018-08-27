@@ -1,6 +1,8 @@
 {
 	"ctype": "texture",
 	"hash": "e6e5631ce1237ae4c05b3563eda686400a401df4548d0f9fad40ecac1659c46c",
+	"channels": 3,
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/stars.png",
-	"name": "Stars"
+	"name": "Stars",
+	"author": "shadertoy"
 }

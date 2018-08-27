@@ -2,5 +2,7 @@
 	"ctype": "cubemap",
 	"hash": "0681c014f6c88c356cf9c0394ffe015acc94ec1474924855f45d22c3e70b5785",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/cubemaps/forest_blurred$j.png",
-	"name": "ForestBlurred"
+	"channels": 3,
+	"name": "Forest Blurred",
+	"author": "shadertoy"
 }

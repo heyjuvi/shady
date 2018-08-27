@@ -214,6 +214,7 @@ namespace Shady
 				texture.type = Shader.InputType.TEXTURE;
 				texture.hash = texture_root.get_string_member("hash");
 				texture.resource = texture_root.get_string_member("resource");
+				texture.n_channels = (int) texture_root.get_int_member("channels");
 				texture.name = texture_root.get_string_member("name");
 
 				return texture;
@@ -241,6 +242,7 @@ namespace Shady
 				3dtexture.type = Shader.InputType.3DTEXTURE;
 				3dtexture.hash = 3dtexture_root.get_string_member("hash");
 				3dtexture.resource = 3dtexture_root.get_string_member("resource");
+				3dtexture.n_channels = (int) 3dtexture_root.get_int_member("channels");
 				3dtexture.name = 3dtexture_root.get_string_member("name");
 
 				return 3dtexture;
@@ -268,6 +270,7 @@ namespace Shady
 				cubemap.type = Shader.InputType.CUBEMAP;
 				cubemap.hash = cubemap_root.get_string_member("hash");
 				cubemap.resource = cubemap_root.get_string_member("resource");
+				cubemap.n_channels = (int) cubemap_root.get_int_member("channels");
 				cubemap.name = cubemap_root.get_string_member("name");
 
 				return cubemap;

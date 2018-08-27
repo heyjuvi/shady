@@ -82,7 +82,7 @@ namespace Shady
 				int texture_width = ShadertoyResourceManager.TEXTURE_PIXBUFS[input.resource_index].width;
 				int texture_height = ShadertoyResourceManager.TEXTURE_PIXBUFS[input.resource_index].height;
 
-				int texture_channels = ShadertoyResourceManager.TEXTURE_PIXBUFS[input.resource_index].n_channels;
+				int texture_channels = input.n_channels;
 
 				chn_name = input.name;
 				author = "shadertoy";
@@ -94,7 +94,7 @@ namespace Shady
 				int cubemap_width = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index, 0].width;
 				int cubemap_height = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index, 0].height;
 
-				int cubemap_channels = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index, 0].n_channels;
+				int cubemap_channels = input.n_channels;
 
 				chn_name = input.name;
 				author = "shadertoy";
@@ -107,7 +107,7 @@ namespace Shady
 				int 3dtexture_height = ShadertoyResourceManager.3DTEXTURE_VOXMAPS[input.resource_index].height;
 				int 3dtexture_depth = ShadertoyResourceManager.3DTEXTURE_VOXMAPS[input.resource_index].depth;
 
-				int 3dtexture_channels = ShadertoyResourceManager.3DTEXTURE_VOXMAPS[input.resource_index].n_channels;
+				int 3dtexture_channels = input.n_channels;
 
 				chn_name = input.name;
 				author = "shadertoy";

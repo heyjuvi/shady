@@ -2,5 +2,7 @@
 	"ctype": "texture",
 	"hash": "3083c722c0c738cad0f468383167a0d246f91af2bfa373e9c5c094fb8c8413e0",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/rgba_noise_small.png",
-	"name": "RGBA Noise Small"
+	"channels": 4,
+	"name": "RGBA Noise Small",
+	"author": "shadertoy"
 }

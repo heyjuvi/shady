@@ -2,5 +2,7 @@
 	"ctype": "texture",
 	"hash": "10eb4fe0ac8a7dc348a2cc282ca5df1759ab8bf680117e4047728100969e7b43",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/rock_tiles.png",
-	"name": "Rock Tiles"
+	"channels": 3,
+	"name": "Rock Tiles",
+	"author": "shadertoy"
 }

@@ -2,5 +2,7 @@
 	"ctype": "texture",
 	"hash": "cb49c003b454385aa9975733aff4571c62182ccdda480aaba9a8d250014f00ec",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/blue_noise.png",
-	"name": "Blue Noise"
+	"channels": 4,
+	"name": "Blue Noise",
+	"author": "shadertoy"
 }

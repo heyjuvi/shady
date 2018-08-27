@@ -2,5 +2,7 @@
 	"ctype": "texture",
 	"hash": "0c7bf5fe9462d5bffbd11126e82908e39be3ce56220d900f633d58fb432e56f5",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/gray_noise_medium.png",
-	"name": "Gray Noise Medium"
+	"channels": 1,
+	"name": "Gray Noise Medium",
+	"author": "shadertoy"
 }

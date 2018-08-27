@@ -2,5 +2,7 @@
 	"ctype": "texture",
 	"hash": "79520a3d3a0f4d3caa440802ef4362e99d54e12b1392973e4ea321840970a88a",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/organic_3.png",
-	"name": "Organic 3"
+	"channels": 3,
+	"name": "Organic 3",
+	"author": "shadertoy"
 }

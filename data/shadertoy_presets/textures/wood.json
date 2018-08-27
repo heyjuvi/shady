@@ -2,5 +2,7 @@
 	"ctype": "texture",
 	"hash": "1f7dca9c22f324751f2a5a59c9b181dfe3b5564a04b724c657732d0bf09c99db",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/wood.png",
-	"name": "Wood"
+	"channels": 3,
+	"name": "Wood",
+	"author": "shadertoy"
 }

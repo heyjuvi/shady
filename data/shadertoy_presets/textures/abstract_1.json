@@ -2,5 +2,7 @@
 	"ctype": "texture",
 	"hash": "52d2a8f514c4fd2d9866587f4d7b2a5bfa1a11a0e772077d7682deb8b3b517e5",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/abstract_1.png",
-	"name": "Abstract 1"
+	"channels": 3,
+	"name": "Abstract 1",
+	"author": "shadertoy"
 }

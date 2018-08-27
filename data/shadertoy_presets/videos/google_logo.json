@@ -2,7 +2,7 @@
 	"ctype": "video",
 	"hash": "c3a071ecf273428bc72fc72b2dd972671de8da420a2d4f917b75d20e1c24b34c",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/google_logo.ogv",
+	"channels": 3,
 	"name": "Google Logo",
-	"author": "shadertoy",
-	"channels": 3
+	"author": "shadertoy"
 }

@@ -2,5 +2,7 @@
 	"ctype": "texture",
 	"hash": "85a6d68622b36995ccb98a89bbb119edf167c914660e4450d313de049320005c",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/bayer.png",
-	"name": "Bayer"
+	"channels": 1,
+	"name": "Bayer",
+	"author": "shadertoy"
 }

@@ -2,5 +2,7 @@
 	"ctype": "3dtexture",
 	"hash": "27012b4eadd0c3ce12498b867058e4f717ce79e10a99568cca461682d84a4b04",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/3dtextures/gray_noise3d.bin",
-	"name": "Grey Noise 3D"
+	"channels": 1,
+	"name": "Grey Noise 3D",
+	"author": "shadertoy"
 }

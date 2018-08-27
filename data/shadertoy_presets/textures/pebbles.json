@@ -2,5 +2,7 @@
 	"ctype": "texture",
 	"hash": "ad56fba948dfba9ae698198c109e71f118a54d209c0ea50d77ea546abad89c57",
 	"resource": "/org/hasi/shady/data/shadertoy_presets/textures/pebbles.png",
-	"name": "Pebbles"
+	"channels": 1,
+	"name": "Pebbles",
+	"author": "shadertoy"
 }
