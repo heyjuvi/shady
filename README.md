@@ -41,3 +41,11 @@ To run the flatpak locally, run:
 ``` bash
 flatpak-builder --run build-dir org.hasi.shady.json shady
 ```
+
+# Contributing
+
+You want to help us? Nice! You're very welcome. Please contact us (for example on Twitter @misterdanb) so we can better discuss, what needs to be done and how you can do it.
+
+# Donate
+
+We'd also like to point you to our [Patreon](https://www.patreon.com/shadygl), which is mostly intended to finane some infrastructure like the domain and the server.
