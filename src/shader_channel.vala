@@ -14,6 +14,12 @@ namespace Shady
 			set { name_label.set_text(value); }
 		}
 
+		public int id
+		{
+			get { return _channel_input.channel; }
+			set { _channel_input.channel = value; }
+		}
+
 		private Shader.Input _last_texture_input = new Shader.Input();
 		private Shader.Input _last_cubemap_input = new Shader.Input();
 		private Shader.Input _last_3dtexture_input = new Shader.Input();

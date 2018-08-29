@@ -132,6 +132,7 @@ namespace Shady
             {
 			    _channels[i] = new ShaderChannel();
 			    _channels[i].channel_name = @"iChannel$i";
+			    _channels[i].id = i;
 			    _channels[i].channel_input_changed.connect(channel_input_changed);
 			    channels_box.pack_start(_channels[i], false, true);
 			}
@@ -323,9 +324,11 @@ namespace Shady
 		private Shader.Renderpass find_current_renderpass()
 		{
 			Shader.Renderpass curr_renderpass = null;
+			print(_curr_buffer.buffer_name);
 
 			for (int i = 0; i < _curr_shader.renderpasses.length; i++)
 			{
+			    print(_curr_shader.renderpasses.index(i).name + "\n");
 				if (_curr_shader.renderpasses.index(i).name == _curr_buffer.buffer_name)
 				{
 					curr_renderpass = _curr_shader.renderpasses.index(i);
@@ -535,10 +538,12 @@ namespace Shady
 
 		private void channel_input_changed(Shader.Input channel_input)
 		{
+		    print("yay?\n");
 		    if (channel_input.resource == null)
 			{
 				return;
 			}
+			print("yay!\n");
 
 			Shader.Renderpass? curr_renderpass = find_current_renderpass();
 			if (curr_renderpass == null)
@@ -546,9 +551,12 @@ namespace Shady
 				return;
 			}
 
+			print("yaaay!\n");
+
             for (int i = 0; i < curr_renderpass.inputs.length; i++)
 		    {
 		        int channel_index = curr_renderpass.inputs.index(i).channel;
+		        print(@"channel: $channel_index\n");
 
 		        if (channel_input.channel == channel_index)
 		        {
@@ -563,9 +571,10 @@ namespace Shady
 			            return;
 			        }
 			    }
-
-			    curr_renderpass.inputs.append_val(channel_input);
 			}
+
+			 curr_renderpass.inputs.append_val(channel_input);
+			print("yay\n\n\n");
 
 			//compile();
 		}
