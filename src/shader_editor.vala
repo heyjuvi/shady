@@ -75,12 +75,10 @@ namespace Shady
 	    [GtkChild]
 	    private Gtk.Box channels_box;
 
-		private ShaderChannel _channel_0;
-		private ShaderChannel _channel_1;
-		private ShaderChannel _channel_2;
-		private ShaderChannel _channel_3;
+		private ShaderChannel[] _channels;
 
-		private HashTable<string, ShaderSourceBuffer> _shader_buffers = new HashTable<string, ShaderSourceBuffer>(str_hash, str_equal);
+		private HashTable<string, ShaderSourceBuffer> _shader_buffers;
+		private HashTable<string, int> _shader_buffers_order;
 
 		private string _default_code;
 		private string _buffer_default_code;
@@ -95,6 +93,18 @@ namespace Shady
 
 		public ShaderEditor()
 		{
+		    _shader_buffers = new HashTable<string, ShaderSourceBuffer>(str_hash, str_equal);
+		    _shader_buffers_order = new HashTable<string, int>(str_hash, str_equal);
+
+		    _shader_buffers_order.insert("Image", 0);
+		    _shader_buffers_order.insert("Common", 1);
+		    _shader_buffers_order.insert("Sound", 2);
+		    _shader_buffers_order.insert("Buf A", 3);
+		    _shader_buffers_order.insert("Buf B", 4);
+		    _shader_buffers_order.insert("Buf C", 5);
+		    _shader_buffers_order.insert("Buf D", 6);
+		    _shader_buffers_order.insert("Cubemap A", 7);
+
 			try
 			{
 				_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
@@ -109,30 +119,22 @@ namespace Shady
 
 			_curr_shader = ShaderManager.get_default_shader();
 
-			add_buffer("Image", false);
+			add_buffer("Image", get_insert_index_for_buffer("Image"), false);
 			set_buffer("Image", _default_code);
 
 			do_full_char_count_refresh();
 
 			_edited = false;
 
-			_channel_0 = new ShaderChannel();
-			_channel_0.channel_name = "iChannel0";
-			_channel_0.channel_input_changed.connect(channel_input_changed);
+			_channels = new ShaderChannel[4];
 
-			_channel_1 = new ShaderChannel();
-			_channel_1.channel_name = "iChannel1";
-
-			_channel_2 = new ShaderChannel();
-			_channel_2.channel_name = "iChannel2";
-
-			_channel_3 = new ShaderChannel();
-			_channel_3.channel_name = "iChannel3";
-
-			channels_box.pack_start(_channel_0, false, true);
-			channels_box.pack_start(_channel_1, false, true);
-			channels_box.pack_start(_channel_2, false, true);
-			channels_box.pack_start(_channel_3, false, true);
+            for (int i = 0; i < 4; i++)
+            {
+			    _channels[i] = new ShaderChannel();
+			    _channels[i].channel_name = @"iChannel$i";
+			    _channels[i].channel_input_changed.connect(channel_input_changed);
+			    channels_box.pack_start(_channels[i], false, true);
+			}
 
 			buffer_switched.connect((from, to) =>
 			{
@@ -350,7 +352,7 @@ namespace Shady
 			total_chars = new_total_chars;
 		}
 
-		private int add_buffer(string buffer_name, bool show_close_button=true)
+		private int add_buffer(string buffer_name, int insert_index, bool show_close_button=true)
 		{
 			ShaderSourceBuffer shader_buffer = new ShaderSourceBuffer(buffer_name);
 			shader_buffer.buffer.changed.connect(() =>
@@ -390,41 +392,25 @@ namespace Shady
 			shader_buffer_label.show_close_button = show_close_button;
 			shader_buffer_label.close_clicked.connect(() =>
 			{
-				remove_buffer(buffer_name);
+			    // triggers the removal, not sure, wether this could be solved more elegant
+				action_widget.set_buffer_active(buffer_name, false);
 			});
 
 			_shader_buffers.insert(buffer_name, shader_buffer);
-			int num = notebook.append_page(shader_buffer, shader_buffer_label);
+			int num = notebook.insert_page(shader_buffer, shader_buffer_label, insert_index);
 
             shader_buffer.show();
 
+			do_full_char_count_refresh();
+
 			return num;
-		}
-
-		private string add_buffer_alphabetically()
-		{
-			int i = 0;
-
-			string buffer_name = @"Buf $((char) (0x41 + i))";
-			while (buffer_name in _shader_buffers)
-			{
-				i++;
-				buffer_name = @"Buf $((char) (0x41 + i))";
-			}
-
-			int new_page_num = add_buffer(buffer_name);
-			set_buffer(buffer_name, _buffer_default_code);
-
-			switch_buffer(buffer_name);
-
-		    do_full_char_count_refresh();
-
-			return buffer_name;
 		}
 
 		public void set_buffer(string buffer_name, string content)
 		{
 			_shader_buffers[buffer_name].buffer.text = content;
+
+			do_full_char_count_refresh();
 		}
 
 		public string get_buffer(string buffer_name)
@@ -452,7 +438,39 @@ namespace Shady
 			notebook.remove_page(notebook.page_num(_shader_buffers[buffer_name]));
 			_shader_buffers.remove(buffer_name);
 
+			for (int i = 0; i < shader.renderpasses.length; i++)
+			{
+			    if (shader.renderpasses.index(i).name == buffer_name)
+			    {
+			        _curr_shader.renderpasses.remove_index(i);
+			        break;
+			    }
+			}
+
 			do_full_char_count_refresh();
+		}
+
+		private int get_insert_index_for_buffer(string buffer_name)
+		{
+		    int insert_index = -1;
+		    for (int i = 0; i < notebook.get_n_pages(); i++)
+		    {
+		        ShaderSourceBuffer? shader_buffer_before = notebook.get_nth_page(i) as ShaderSourceBuffer;
+		        ShaderSourceBuffer? shader_buffer_after = notebook.get_nth_page(i + 1) as ShaderSourceBuffer;
+		        if (shader_buffer_after == null)
+		        {
+		            insert_index = i + 1;
+		            break;
+		        }
+		        else if (_shader_buffers_order[shader_buffer_before.buffer_name] < _shader_buffers_order[buffer_name] &&
+		                 _shader_buffers_order[buffer_name] < _shader_buffers_order[shader_buffer_after.buffer_name])
+		        {
+		            insert_index = i + 1;
+		            break;
+		        }
+		    }
+
+		    return insert_index;
 		}
 
 		public void set_shader(Shader? shader)
@@ -492,49 +510,45 @@ namespace Shady
 					}
 				}
 
-				if (sound_renderpass != null)
-				{
-					add_buffer("Sound", false);
-					set_buffer("Sound", sound_renderpass.code);
-				}
-
 				if (image_renderpass != null)
 				{
-					add_buffer("Image", false);
+					add_buffer("Image", get_insert_index_for_buffer("Image"), false);
 					set_buffer("Image", image_renderpass.code);
 				}
 
-				foreach (string renderpass_name in sorted_keys)
+				for (int i = 0; i < shader.renderpasses.length; i++)
 				{
-					for (int i = 0; i < shader.renderpasses.length; i++)
+					if (shader.renderpasses.index(i) is Shader.Renderpass)
 					{
-						if (shader.renderpasses.index(i) is Shader.Renderpass)
-						{
-							Shader.Renderpass renderpass = shader.renderpasses.index(i) as Shader.Renderpass;
+						Shader.Renderpass renderpass = shader.renderpasses.index(i) as Shader.Renderpass;
 
-							if (renderpass.name == renderpass_name)
-							{
-								add_buffer(renderpass_name);
-								set_buffer(renderpass_name, renderpass.code);
-							}
-						}
+						add_buffer(renderpass.name, get_insert_index_for_buffer(renderpass.name));
+						set_buffer(renderpass.name, renderpass.code);
 					}
 				}
 			}
 		}
 
 		[GtkCallback]
-		private void add_renderpass()
+		private void change_renderpass(string buffer_name, bool active)
 		{
-			string renderpass_name = add_buffer_alphabetically();
+		    if (active)
+		    {
+			    add_buffer(buffer_name, get_insert_index_for_buffer(buffer_name));
+			    set_buffer(buffer_name, _buffer_default_code);
 
-			Shader.Renderpass renderpass = new Shader.Renderpass();
+			    Shader.Renderpass renderpass = new Shader.Renderpass();
 
-			renderpass.name = renderpass_name;
-			renderpass.code = _buffer_default_code;
-			renderpass.type = Shader.RenderpassType.BUFFER;
+			    renderpass.name = buffer_name;
+			    renderpass.code = _buffer_default_code;
+			    renderpass.type = Shader.RenderpassType.BUFFER;
 
-			_curr_shader.renderpasses.append_val(renderpass);
+			    _curr_shader.renderpasses.append_val(renderpass);
+			}
+			else
+			{
+			    remove_buffer(buffer_name);
+			}
 		}
 
         [GtkCallback]
@@ -550,19 +564,31 @@ namespace Shady
 				return;
 			}
 
-			Shader.Renderpass curr_renderpass = find_current_renderpass();
+			Shader.Renderpass? curr_renderpass = find_current_renderpass();
 			if (curr_renderpass == null)
 			{
 				return;
 			}
 
-			if (curr_renderpass.inputs.length >= 1)
-			{
-				curr_renderpass.inputs.data[0] = channel_input;
-			}
-			else
-			{
-				curr_renderpass.inputs.append_val(channel_input);
+            for (int i = 0; i < curr_renderpass.inputs.length; i++)
+		    {
+		        int channel_index = curr_renderpass.inputs.index(i).channel;
+
+		        if (channel_input.channel == channel_index)
+		        {
+			        if (channel_input.type == Shader.InputType.NONE)
+			        {
+			            curr_renderpass.inputs.remove_index(i);
+			            return;
+			        }
+			        else
+			        {
+			            curr_renderpass.inputs.index(i).assign(channel_input);
+			            return;
+			        }
+			    }
+
+			    curr_renderpass.inputs.append_val(channel_input);
 			}
 
 			//compile();
@@ -575,6 +601,22 @@ namespace Shady
 
 		    _curr_buffer = buffer as ShaderSourceBuffer;
 		    buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
+
+		    Shader.Renderpass? curr_renderpass = find_current_renderpass();
+		    if (curr_renderpass == null)
+			{
+				return;
+			}
+
+		    for (int i = 0; i < curr_renderpass.inputs.length; i++)
+		    {
+		        int channel_index = curr_renderpass.inputs.index(i).channel;
+		        if (channel_index >= 0 &&
+		            channel_index < 4)
+		        {
+		            _channels[channel_index].channel_input = curr_renderpass.inputs.index(i);
+		        }
+		    }
 		}
 	}
 }

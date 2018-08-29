@@ -6,6 +6,9 @@ namespace Shady
 		public bool switched_layout{ get; private set; default = false; }
 		public bool auto_compile { get; private set; default = false; }
 
+		[Signal (action=true)]
+		public signal void escape_pressed();
+
 		[GtkChild]
 		private Gtk.Switch switched_layout_switch;
 
@@ -17,6 +20,11 @@ namespace Shady
 		public AppPreferences()
 		{
 			_settings = new GLib.Settings("org.hasi.shady");
+
+			escape_pressed.connect(() =>
+			{
+			    hide();
+			});
 
 			switched_layout = _settings.get_boolean("switched-layout");
 			auto_compile = _settings.get_boolean("auto-compile");

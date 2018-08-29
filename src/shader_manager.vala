@@ -16,6 +16,8 @@ namespace Shady
 		public signal void compilation_finished();
 		public signal void pass_compilation_terminated(int pass_index, ShaderError? e);
 
+		public signal void dummy_rendering_finished();
+
 		struct BufferProperties
 		{
 			public GLuint program;
@@ -378,13 +380,19 @@ namespace Shady
 
 					if(_render_switch)
 					{
-						compile_blocking(new_shader, ref _image_prop1, ref _buffer_props1);
-						dummy_render_gl(_image_prop1);
+						bool success = compile_blocking(new_shader, ref _image_prop1, ref _buffer_props1);
+						if (success)
+						{
+						    dummy_render_gl(_image_prop1);
+						}
 					}
 					else
 					{
-						compile_blocking(new_shader, ref _image_prop2, ref _buffer_props2);
-						dummy_render_gl(_image_prop2);
+						bool success = compile_blocking(new_shader, ref _image_prop2, ref _buffer_props2);
+						if (success)
+						{
+						    dummy_render_gl(_image_prop2);
+						}
 					}
 
 					Gdk.GLContext.clear_current();
@@ -399,6 +407,7 @@ namespace Shady
 						compilation_finished();
 						return false;
 					});
+
 					return 0;
 				});
 
@@ -413,7 +422,7 @@ namespace Shady
 			}
 		}
 
-		private void compile_blocking(Shader new_shader, ref BufferProperties image_prop, ref BufferProperties[] buffer_props)
+		private bool compile_blocking(Shader new_shader, ref BufferProperties image_prop, ref BufferProperties[] buffer_props)
 		{
 			string image_source = "";
 			int image_index = -1;
@@ -476,7 +485,7 @@ namespace Shady
 			else
 			{
 				print("No image buffer found!\n");
-				return;
+				return false;
 			}
 
 			string[] buffer_sources = new string[buffer_count];
@@ -625,7 +634,11 @@ namespace Shady
 
 				string full_image_source = shader_prefix + image_channel_prefix + image_source + shader_suffix;
 
-				compile_pass(image_index, full_image_source, ref image_prop);
+				bool success = compile_pass(image_index, full_image_source, ref image_prop);
+				if (!success)
+				{
+				    return false;
+				}
 
 				for(int i=0;i<buffer_count;i++)
 				{
@@ -651,10 +664,14 @@ namespace Shady
 
 					string full_buffer_source = shader_prefix + buffer_channel_prefix + buffer_sources[i] + shader_suffix;
 
-					compile_pass(buffer_indices[i], full_buffer_source, ref buffer_props[i]);
+					success = compile_pass(buffer_indices[i], full_buffer_source, ref buffer_props[i]);
+					if (!success)
+					{
+					    return false;
+					}
 				}
 			}
-			catch(Error e)
+			catch (Error e)
 			{
 				print("Couldn't load shader prefix or suffix\n");
 			}
@@ -662,6 +679,7 @@ namespace Shady
 			//prevent averaging in of old shader
 			fps = 0;
 
+            return true;
 		}
 
 		public void reset_time()
@@ -670,7 +688,7 @@ namespace Shady
 			_pause_time = _curr_time;
 		}
 
-		private void compile_pass(int pass_index, string shader_source, ref BufferProperties buf_prop)
+		private bool compile_pass(int pass_index, string shader_source, ref BufferProperties buf_prop)
 		{
 			string[] source_array = { shader_source, null };
 
@@ -709,13 +727,14 @@ namespace Shady
 						return false;
 					});
 				}
+
 				Idle.add(() =>
 				{
 					compilation_finished();
 					return false;
 				});
 
-				return;
+				return false;
 			}
 
 			glLinkProgram(buf_prop.program);
@@ -745,6 +764,8 @@ namespace Shady
 				pass_compilation_terminated(pass_index, null);
 				return false;
 			});
+
+			return true;
 		}
 
 		private bool render_thread_func()

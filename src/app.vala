@@ -144,6 +144,7 @@ namespace Shady
 			SimpleAction preferences_action = new SimpleAction("preferences", null);
 			preferences_action.activate.connect(() =>
 			{
+			    app_preferences.set_transient_for(newest_app_window);
 				app_preferences.present();
 			});
 
@@ -176,6 +177,7 @@ namespace Shady
 			new ShaderSourceView();
 			new ShaderChannelTypePopover();
 			new ShadertoyResourceManager();
+			new ShaderSourceBufferAddPopover();
 			new NotebookActionWidget();
 			//new ShaderEditor();
 			//new ShaderChannel();

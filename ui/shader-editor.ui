@@ -26,7 +26,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
 
-                <signal name="new_buffer_clicked" handler="add_renderpass" />
+                <signal name="buffer_active_changed" handler="change_renderpass" />
                 <signal name="show_channels_clicked" handler="toggle_channels" />
               </object>
               <packing>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<interface>
+	<template class="ShadyShaderSourceBufferAddPopover" parent="GtkPopover">
+		<property name="visible">True</property>
+		<property name="can_focus">False</property>
+
+		<style>
+			<class name="popover_padding" />
+		</style>
+
+		<child>
+			<object class="GtkBox">
+				<property name="visible">True</property>
+				<property name="can_focus">False</property>
+				<property name="orientation">vertical</property>
+
+				<child>
+					<object class="GtkCheckButton" id="common_check_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="label">Common</property>
+
+						<signal name="toggled" handler="common_check_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">0</property>
+					</packing>
+				</child>
+
+			  <child>
+					<object class="GtkCheckButton" id="sound_check_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="label">Sound</property>
+
+						<signal name="toggled" handler="sound_check_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">1</property>
+					</packing>
+				</child>
+
+			  <child>
+					<object class="GtkCheckButton" id="buf_a_check_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="label">Buf A</property>
+
+						<signal name="toggled" handler="buf_a_check_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">2</property>
+					</packing>
+				</child>
+
+			  <child>
+					<object class="GtkCheckButton" id="buf_b_check_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="label">Buf B</property>
+
+						<signal name="toggled" handler="buf_b_check_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">3</property>
+					</packing>
+				</child>
+
+			  <child>
+					<object class="GtkCheckButton" id="buf_c_check_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="label">Buf C</property>
+
+						<signal name="toggled" handler="buf_c_check_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">4</property>
+					</packing>
+				</child>
+
+			  <child>
+					<object class="GtkCheckButton" id="buf_d_check_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="label">Buf D</property>
+
+						<signal name="toggled" handler="buf_d_check_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">5</property>
+					</packing>
+				</child>
+
+			  <child>
+					<object class="GtkCheckButton" id="cubemap_a_check_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="label">Cubemap A</property>
+
+						<signal name="toggled" handler="cubemap_a_check_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">6</property>
+					</packing>
+				</child>
+			</object>
+		</child>
+	</template>
+</interface>

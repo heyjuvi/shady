@@ -24,7 +24,7 @@ namespace Shady
 			get { return _channel_input; }
 			set
 			{
-				_channel_input = value;
+				_channel_input.assign_content(value);
 
 				if (_channel_input.sampler.filter == Shader.FilterMode.NEAREST)
 				{

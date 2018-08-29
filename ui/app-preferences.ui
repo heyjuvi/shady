@@ -30,8 +30,11 @@
 		<property name="default_height">240</property>
 		<property name="title">Preferences</property>
 		<property name="border-width">0</property>
+	  <property name="modal">True</property>
 
 		<signal name="delete_event" handler="hide_on_delete" />
+
+	  <accelerator key="Escape" modifiers="" signal="escape_pressed" />
 
 		<child type="titlebar">
 			<object class="GtkHeaderBar" id="header_bar">
