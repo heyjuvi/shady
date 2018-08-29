@@ -484,45 +484,21 @@ namespace Shady
 
 			if (shader != null)
 			{
-				List<string> sorted_keys = new List<string>();
-
-				Shader.Renderpass sound_renderpass = null;
-				Shader.Renderpass image_renderpass = null;
-
 				for (int i = 0; i < shader.renderpasses.length; i++)
 				{
 					if (shader.renderpasses.index(i) is Shader.Renderpass)
 					{
 						Shader.Renderpass renderpass = shader.renderpasses.index(i) as Shader.Renderpass;
 
-						if (renderpass.type == Shader.RenderpassType.SOUND)
-						{
-							sound_renderpass = renderpass;
-						}
-						else if (renderpass.type == Shader.RenderpassType.IMAGE)
-						{
-							image_renderpass = renderpass;
+                        if (renderpass.name == "Image")
+                        {
+						    add_buffer(renderpass.name, get_insert_index_for_buffer(renderpass.name), false);
 						}
 						else
 						{
-							sorted_keys.insert_sorted(renderpass.name, strcmp);
+						    add_buffer(renderpass.name, get_insert_index_for_buffer(renderpass.name), true);
 						}
-					}
-				}
 
-				if (image_renderpass != null)
-				{
-					add_buffer("Image", get_insert_index_for_buffer("Image"), false);
-					set_buffer("Image", image_renderpass.code);
-				}
-
-				for (int i = 0; i < shader.renderpasses.length; i++)
-				{
-					if (shader.renderpasses.index(i) is Shader.Renderpass)
-					{
-						Shader.Renderpass renderpass = shader.renderpasses.index(i) as Shader.Renderpass;
-
-						add_buffer(renderpass.name, get_insert_index_for_buffer(renderpass.name));
 						set_buffer(renderpass.name, renderpass.code);
 					}
 				}

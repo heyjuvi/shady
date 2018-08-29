@@ -41,6 +41,7 @@ app_sources = files(
   'notebook_action_widget.vala',
   'shader_editor.vala',
   'shader_scene.vala',
+  'shadertoy_search.vala',
   'shadertoy_search_dialog.vala',
   'shadertoy_shader_item.vala'
 )
