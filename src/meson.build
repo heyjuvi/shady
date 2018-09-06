@@ -2,7 +2,7 @@ add_project_arguments([
     '--vapidir', join_paths(meson.current_source_dir(), 'vapi'),
     '--pkg', 'shady-gl',     # those are handled extra, because they
     '--pkg', 'shady-egl',    # are in the custom vapi directory of
-    '--pkg', 'shady-epoxy'  # the project
+    '--pkg', 'shady-epoxy'   # the project
 #    '--pkg', 'shady-glslang'
   ],
   language: 'vala'
@@ -51,6 +51,10 @@ sources = [
   app_sources
 ]
 
+cc = meson.get_compiler('c')
+lib_epoxy = cc.find_library('epoxy')
+lib_glslang = cc.find_library('glslang')
+
 executable('shady',
   sources,
   dependencies: [
@@ -59,9 +63,10 @@ executable('shady',
     gobject_dep,
     gtksourceview_dep,
     libsoup_dep,
-    json_glib_dep
+    json_glib_dep,
+    lib_epoxy,
+    lib_glslang
   ],
-  link_args : ['-lepoxy', '-lX11', '-lglslang'],
   install: true,
 )
 
