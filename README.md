@@ -48,4 +48,4 @@ You want to help us? Nice! You're very welcome. Please contact us (for example o
 
 # Donate
 
-We'd also like to point you to our [Patreon](https://www.patreon.com/shadygl), which is mostly intended to finane some infrastructure like the domain and the server.
+We'd also like to point you to our [Patreon](https://www.patreon.com/shadygl), which is mostly intended to finance some infrastructure like the domain and the server.
