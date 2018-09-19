@@ -11,7 +11,7 @@ namespace Shady
 		public bool edited
 		{
 			get { return _edited; }
-			default = false;
+			//default = false;
 		}
 
 		private bool _switched_layout = false;
@@ -249,7 +249,7 @@ namespace Shady
 
             editor.gather_shader();
 			scene.compile(_editor.shader);
-			//scene._fullscreen_shader_manager.compile(_editor.shader);
+			scene._fullscreen_shader_manager.compile(_editor.shader);
 		}
 
 		public void reset_time()

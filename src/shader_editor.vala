@@ -8,7 +8,7 @@ namespace Shady
 		public bool edited
 		{
 			get { return _edited; }
-			default = false;
+			//default = false;
 		}
 
 		public Shader shader
