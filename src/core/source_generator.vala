@@ -20,7 +20,7 @@ namespace Shady.Core
 			return string_table;
 		}
 
-		public static uint renderpass_prefix_length(Shader.Renderpass renderpass)
+		public static uint renderpass_prefix_line_count(Shader.Renderpass renderpass)
 		{
 			try
 			{
