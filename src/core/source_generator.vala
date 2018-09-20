@@ -20,6 +20,20 @@ namespace Shady.Core
 			return string_table;
 		}
 
+		public static uint renderpass_prefix_length(Shader.Renderpass renderpass)
+		{
+			try
+			{
+				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
+				return shader_prefix.split("\n").length + renderpass.inputs.length;
+			}
+			catch (Error e)
+			{
+				print("Couldn't load shader prefix or suffix\n");
+				return 0;
+			}
+		}
+
 		public static string generate_renderpass_source(Shader.Renderpass renderpass)
 		{
 			try
