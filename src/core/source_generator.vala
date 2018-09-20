@@ -25,7 +25,19 @@ namespace Shady.Core
 			try
 			{
 				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
-				return shader_prefix.split("\n").length + renderpass.inputs.length;
+
+				uint input_count = 0;
+
+				for(int i=0;i<renderpass.inputs.length;i++)
+				{
+					Shader.Input input = renderpass.inputs.index(i);
+					if(input.type != Shader.InputType.NONE && input.type != Shader.InputType.INVALID)
+					{
+						input_count++;
+					}
+				}
+
+				return shader_prefix.split("\n").length + input_count;
 			}
 			catch (Error e)
 			{
@@ -46,7 +58,14 @@ namespace Shady.Core
 				for(int i=0;i<renderpass.inputs.length;i++)
 				{
 					int index = renderpass.inputs.index(i).channel;
-					if(renderpass.inputs.index(i).type == Shader.InputType.TEXTURE || renderpass.inputs.index(i).type == Shader.InputType.BUFFER)
+					if(renderpass.inputs.index(i).type == Shader.InputType.TEXTURE ||
+					   renderpass.inputs.index(i).type == Shader.InputType.BUFFER ||
+					   renderpass.inputs.index(i).type == Shader.InputType.KEYBOARD ||
+					   renderpass.inputs.index(i).type == Shader.InputType.WEBCAM ||
+					   renderpass.inputs.index(i).type == Shader.InputType.MICROPHONE ||
+					   renderpass.inputs.index(i).type == Shader.InputType.SOUNDCLOUD ||
+					   renderpass.inputs.index(i).type == Shader.InputType.VIDEO ||
+					   renderpass.inputs.index(i).type == Shader.InputType.MUSIC)
 					{
 						channel_prefix += "uniform sampler2D " + _channel_string + @"$index;\n";
 					}
