@@ -610,29 +610,8 @@ namespace Shady
 
 			try
 			{
-				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
-				string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
-
-				string image_channel_prefix = "";
-
-				for(int i=0;i<image_inputs.length;i++)
-				{
-					int index = image_inputs.index(i).channel;
-					if(image_inputs.index(i).type == Shader.InputType.TEXTURE || image_inputs.index(i).type == Shader.InputType.BUFFER)
-					{
-						image_channel_prefix += "uniform sampler2D " + _channel_string + @"$index;\n";
-					}
-					else if(image_inputs.index(i).type == Shader.InputType.3DTEXTURE)
-					{
-						image_channel_prefix += "uniform sampler3D " + _channel_string + @"$index;\n";
-					}
-					else if(image_inputs.index(i).type == Shader.InputType.CUBEMAP)
-					{
-						image_channel_prefix += "uniform samplerCube " + _channel_string + @"$index;\n";
-					}
-				}
-
-				string full_image_source = shader_prefix + image_channel_prefix + image_source + shader_suffix;
+				Shader.Renderpass image_pass = new_shader.renderpasses.index(image_index);
+				string full_image_source = Core.SourceGenerator.generate_renderpass_source(image_pass);
 
 				bool success = compile_pass(image_index, full_image_source, ref image_prop);
 				if (!success)
@@ -642,27 +621,8 @@ namespace Shady
 
 				for(int i=0;i<buffer_count;i++)
 				{
-					string buffer_channel_prefix = "";
-
-					for(int j=0;j<buffer_inputs[i].length;j++)
-					{
-						int index = buffer_inputs[i].index(j).channel;
-						if(buffer_inputs[i].index(j).type == Shader.InputType.TEXTURE ||
-						   buffer_inputs[i].index(j).type == Shader.InputType.BUFFER)
-						{
-							buffer_channel_prefix += "uniform sampler2D " + _channel_string + @"$index;\n";
-						}
-						else if(buffer_inputs[i].index(j).type == Shader.InputType.3DTEXTURE)
-						{
-							buffer_channel_prefix += "uniform sampler3D " + _channel_string + @"$index;\n";
-						}
-						else if(buffer_inputs[i].index(j).type == Shader.InputType.CUBEMAP)
-						{
-							buffer_channel_prefix += "uniform samplerCube " + _channel_string + @"$index;\n";
-						}
-					}
-
-					string full_buffer_source = shader_prefix + buffer_channel_prefix + buffer_sources[i] + shader_suffix;
+					Shader.Renderpass buffer_pass = new_shader.renderpasses.index(buffer_indices[i]);
+					string full_buffer_source = Core.SourceGenerator.generate_renderpass_source(buffer_pass);
 
 					success = compile_pass(buffer_indices[i], full_buffer_source, ref buffer_props[i]);
 					if (!success)

@@ -20,6 +20,7 @@ json_glib_dep = dependency('json-glib-1.0')
 app_sources = files(
   'core/glsl_compiler.vala',
   'core/glsl_minifier.vala',
+  'core/source_generator.vala',
   'main.vala',
   'io_sugar.vala',
   'app.vala',
