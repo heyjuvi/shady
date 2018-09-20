@@ -72,7 +72,7 @@ namespace Shady.Core
 
         public void compile(Stage stage, string source, CompilationFinishedCallback callback)
         {
-            string spawn_args[] = { "glslangValidator", "--stdin", "-V", "-S", stage.to_string(), "-o", "/dev/stderr", null };
+            string spawn_args[] = { "glslangValidator", "--stdin", "-S", stage.to_string(), null };
 
             Pid child_pid;
             int standard_in, standard_out, standard_error;
