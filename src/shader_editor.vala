@@ -238,13 +238,20 @@ namespace Shady
 		        Gtk.TextIter match_start, match_end;
 		        bool results;
 
-		        bool match_found = _curr_buffer.search_context.forward_async.end(resource, out match_start, out match_end, out results);
+				try
+				{
+					bool match_found = _curr_buffer.search_context.forward_async.end(resource, out match_start, out match_end, out results);
 
-		        if (match_found)
-		        {
-		            _last_match_start = match_start;
-		            _last_match_end = match_end;
-		        }
+					if (match_found)
+					{
+						_last_match_start = match_start;
+						_last_match_end = match_end;
+					}
+				}
+				catch(Error e)
+				{
+					print("Error in search changed\n");
+				}
 		    });
 		}
 
@@ -256,16 +263,23 @@ namespace Shady
 		        Gtk.TextIter match_start, match_end;
 		        bool results;
 
-		        bool match_found = _curr_buffer.search_context.forward_async.end(resource, out match_start, out match_end, out results);
+				try
+				{
+					bool match_found = _curr_buffer.search_context.forward_async.end(resource, out match_start, out match_end, out results);
 
-                if (match_found)
-                {
-                    _curr_buffer.buffer.select_range(match_start, match_end);
-                    _curr_buffer.view.scroll_to_iter(match_start, 0.0, true, 0.5, 0.5);
+					if (match_found)
+					{
+						_curr_buffer.buffer.select_range(match_start, match_end);
+						_curr_buffer.view.scroll_to_iter(match_start, 0.0, true, 0.5, 0.5);
 
-                    _last_match_start = match_start;
-		            _last_match_end = match_end;
-		        }
+						_last_match_start = match_start;
+						_last_match_end = match_end;
+					}
+				}
+				catch(Error e)
+				{
+					print("Error in forward search\n");
+				}
 		    });
 		}
 
@@ -277,15 +291,22 @@ namespace Shady
 		        Gtk.TextIter match_start, match_end;
 		        bool results;
 
-		        bool match_found = _curr_buffer.search_context.backward_async.end(resource, out match_start, out match_end, out results);
+				try
+				{
+					bool match_found = _curr_buffer.search_context.backward_async.end(resource, out match_start, out match_end, out results);
 
-                if (match_found)
-                {
-                    _curr_buffer.buffer.select_range(match_start, match_end);
+					if (match_found)
+					{
+						_curr_buffer.buffer.select_range(match_start, match_end);
 
-                    _last_match_start = match_start;
-		            _last_match_end = match_end;
-		        }
+						_last_match_start = match_start;
+						_last_match_end = match_end;
+					}
+				}
+				catch(Error e)
+				{
+					print("Error in backward search\n");
+				}
 		    });
 		}
 

@@ -608,32 +608,25 @@ namespace Shady
 				}
 			}
 
-			try
-			{
-				Shader.Renderpass image_pass = new_shader.renderpasses.index(image_index);
-				string full_image_source = Core.SourceGenerator.generate_renderpass_source(image_pass);
+			Shader.Renderpass image_pass = new_shader.renderpasses.index(image_index);
+			string full_image_source = Core.SourceGenerator.generate_renderpass_source(image_pass);
 
-				bool success = compile_pass(image_index, full_image_source, ref image_prop);
+			bool success = compile_pass(image_index, full_image_source, ref image_prop);
+			if (!success)
+			{
+				return false;
+			}
+
+			for(int i=0;i<buffer_count;i++)
+			{
+				Shader.Renderpass buffer_pass = new_shader.renderpasses.index(buffer_indices[i]);
+				string full_buffer_source = Core.SourceGenerator.generate_renderpass_source(buffer_pass);
+
+				success = compile_pass(buffer_indices[i], full_buffer_source, ref buffer_props[i]);
 				if (!success)
 				{
-				    return false;
+					return false;
 				}
-
-				for(int i=0;i<buffer_count;i++)
-				{
-					Shader.Renderpass buffer_pass = new_shader.renderpasses.index(buffer_indices[i]);
-					string full_buffer_source = Core.SourceGenerator.generate_renderpass_source(buffer_pass);
-
-					success = compile_pass(buffer_indices[i], full_buffer_source, ref buffer_props[i]);
-					if (!success)
-					{
-					    return false;
-					}
-				}
-			}
-			catch (Error e)
-			{
-				print("Couldn't load shader prefix or suffix\n");
 			}
 
 			//prevent averaging in of old shader

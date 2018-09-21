@@ -24,11 +24,7 @@ namespace Shady
 			public GLuint[] tex_targets;
 			public int[] tex_channels;
 
-			public GLuint tex_id_out_front;
 			public GLuint tex_id_out_back;
-
-			public int[,] tex_out_refs;
-			public int[] tex_out_refs_img;
 
 			public int[] tex_widths;
 			public int[] tex_heights;
@@ -54,7 +50,7 @@ namespace Shady
 			public Shader.InputType type;
 			public int index;
 			public bool v_flip;
-			public int input_id;
+			//public int input_id;
 			public GLuint[] tex_ids;
 			public GLuint target;
 			public int width;
@@ -492,7 +488,7 @@ namespace Shady
 					height = height,
 					depth = depth,
 					target = target,
-					input_id = input.id,
+					//input_id = input.id,
 					tex_ids = tex_ids,
 					type = input.type,
 					v_flip = input.sampler.v_flip,
