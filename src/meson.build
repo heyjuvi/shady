@@ -22,6 +22,7 @@ app_sources = files(
   'core/glsl_minifier.vala',
   'core/source_generator.vala',
   'core/texture_manager.vala',
+  'core/render_resources.vala',
   'main.vala',
   'io_sugar.vala',
   'app.vala',
