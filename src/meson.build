@@ -23,6 +23,8 @@ app_sources = files(
   'core/source_generator.vala',
   'core/texture_manager.vala',
   'core/render_resources.vala',
+  'core/compile_resources.vala',
+  'core/shader_compiler.vala',
   'main.vala',
   'io_sugar.vala',
   'app.vala',

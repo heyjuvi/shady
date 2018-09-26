@@ -54,6 +54,8 @@ namespace Shady.Core
 
 		private bool _buffer_switch = false;
 
+		public Mutex buffer_switch_mutex = Mutex();
+
 		private BufferProperties _image_prop1 = new BufferProperties();
 		private BufferProperties _image_prop2 = new BufferProperties();
 
@@ -90,7 +92,9 @@ namespace Shady.Core
 
 		public void switch_buffer()
 		{
+			buffer_switch_mutex.lock();
 			_buffer_switch=!_buffer_switch;
+			buffer_switch_mutex.unlock();
 		}
 	}
 }
