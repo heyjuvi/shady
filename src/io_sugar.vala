@@ -15,9 +15,9 @@ namespace Shady
 
 			return file_string[0:file_string.length - 1];
 		}
-		catch(Error e)
+		catch (Error e)
 		{
-			print(@"Couldn't load $(file.get_path())\n");
+			//print(@"Couldn't load $(file.get_path())\n");
 			return "";
 		}
 	}

@@ -17,8 +17,6 @@
  */
 
 using Shady;
-using Shady.Core;
-using GL;
 
 int main(string[] args)
 {

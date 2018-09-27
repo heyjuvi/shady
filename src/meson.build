@@ -16,10 +16,12 @@ gobject_dep = dependency('gobject-2.0')
 gtksourceview_dep = dependency('gtksourceview-4')
 libsoup_dep = dependency('libsoup-2.4')
 json_glib_dep = dependency('json-glib-1.0')
+libxml2_dep = dependency('libxml-2.0')
 
 app_sources = files(
   'core/glsl_compiler.vala',
   'core/glsl_minifier.vala',
+  'core/glsl_reference_parser.vala',
   'core/source_generator.vala',
   'core/texture_manager.vala',
   'core/render_resources.vala',
@@ -36,6 +38,7 @@ app_sources = files(
   'shader_manager.vala',
   'shader_source_buffer.vala',
   'shader_source_view.vala',
+  'lang_doc_popover.vala',
   'shader_source_buffer_add_popover.vala',
   'shader_channel.vala',
   'shader_channel_type_popover.vala',
@@ -69,6 +72,7 @@ executable('shady',
     gtksourceview_dep,
     libsoup_dep,
     json_glib_dep,
+    libxml2_dep,
     lib_epoxy,
     lib_glslang
   ],

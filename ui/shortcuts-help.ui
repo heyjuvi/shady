@@ -71,6 +71,14 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">True</property>
+                <property name="title" context="shortcut window">Show documentation for function</property>
+                <property name="accelerator">F1</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
                 <property name="title" context="shortcut window">Switch to next buffer</property>
                 <property name="accelerator">&lt;Primary&gt;Tab</property>
               </object>

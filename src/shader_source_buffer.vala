@@ -36,6 +36,8 @@ namespace Shady
 		private Gtk.Window _error_tooltip_window;
 		private Gtk.Label _error_tooltip_label;
 
+		private LangDocPopover _doc_popover;
+
 		private int _error_x;
 		private int _error_y;
 		private int _error_width;
@@ -69,6 +71,59 @@ namespace Shady
 
 			buffer.tag_table.add(_error_tag);
 
+            _doc_popover = new LangDocPopover(view);
+
+			key_press_event.connect((widget, event) =>
+			{
+			    if (event.keyval == Gdk.Key.F1)
+				{
+				    string alphanumerics = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ1234567890";
+
+				    int start = buffer.cursor_position;
+				    int end = buffer.cursor_position;
+
+				    while (@"$(buffer.text[start])" in alphanumerics && start != 0) start--;
+				    start++;
+
+				    while (@"$(buffer.text[end])" in alphanumerics && end != buffer.text.length) end++;
+
+				    if (start >= end)
+				    {
+				        return false;
+				    }
+
+				    Core.GLSLReferenceParser parser = new Core.GLSLReferenceParser();
+				    Core.GLSLReference reference = parser.get_reference_for(@"$(buffer.text[start:end])");
+
+                    if (reference == null)
+                    {
+                        return false;
+                    }
+
+                    _doc_popover.reference = reference;
+
+                    Gtk.TextIter cursor_iter;
+                    buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
+
+                    Gdk.Rectangle cursor_rect;
+                    view.get_iter_location(cursor_iter, out cursor_rect);
+
+                    int gutter_width = view.get_window(Gtk.TextWindowType.LEFT).get_width();
+                    cursor_rect.x += gutter_width;
+
+					_doc_popover.set_pointing_to(cursor_rect);
+
+					if (_error_tooltip_window.visible)
+					{
+					    hide_error();
+					}
+
+					_doc_popover.popup();
+				}
+
+				return false;
+			});
+
 			_error_tooltip_window = new Gtk.Window(Gtk.WindowType.POPUP);
 			_error_tooltip_window.can_focus = false;
             _error_tooltip_window.window_position = Gtk.WindowPosition.NONE;
@@ -99,6 +154,8 @@ namespace Shady
                 {
                     hide_error();
                 }
+
+                _doc_popover.hide();
             });
 
             view.motion_notify_event.connect((event_motion) =>
@@ -291,6 +348,7 @@ namespace Shady
 	                                       win_y + start_iter_y + 32 - _error_tooltip_window.get_allocated_height());
                 _error_tooltip_window.resize(view.get_allocated_width() - gutter_width, 1);
 
+                _doc_popover.popdown();
                 _error_tooltip_window.show();
 
                 _error_tooltip_window.move(win_x + gutter_width,
