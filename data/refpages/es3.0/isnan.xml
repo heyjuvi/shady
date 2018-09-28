@@ -5,7 +5,7 @@
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="isnan">
     <info>
         <copyright>
-            <year>2011-2015</year>
+            <year>2011-2014</year>
             <holder>Khronos Group</holder>
         </copyright>
     </info>
@@ -17,8 +17,7 @@
         <refname>isnan</refname>
         <refpurpose>determine whether the parameter is a number</refpurpose>
     </refnamediv>
-    <refsynopsisdiv>
-        <title>Declaration</title>
+    <refsynopsisdiv><title>Declaration</title>
         <funcsynopsis>
             <funcprototype>
                 <funcdef>genBType <function>isnan</function></funcdef>
@@ -47,12 +46,12 @@
     </refsect1>
     <refsect1 xml:id="versions"><title>Version Support</title>
         <informaltable>
-            <tgroup cols="5" align="left">
+            <tgroup cols="3" align="center">
                 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="funchead.xml" xpointer="xpointer(/*/*)"/>
                 <tbody>
                     <row>
                         <entry>isnan (genType)</entry>
-                        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="version.xml" xpointer="xpointer(/*/*[@role='es30']/*)"/>
+                        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="version.xml" xpointer="xpointer(/*/*[@role='30']/*)"/>
                     </row>
                </tbody>
             </tgroup>
@@ -65,7 +64,7 @@
     </refsect1>
     <refsect1 xml:id="Copyright"><title>Copyright</title>
         <para>
-            Copyright <trademark class="copyright"/> 2011-2015 Khronos Group.
+            Copyright <trademark class="copyright"/> 2011-2014 Khronos Group.
             This material may be distributed subject to the terms and conditions set forth in
             the Open Publication License, v 1.0, 8 June 1999.
             <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://opencontent.org/openpub/">http://opencontent.org/openpub/</link>.

@@ -45,23 +45,6 @@
 	  <file>data/refpages/es3.0/asin.xml</file>
 	  <file>data/refpages/es3.0/atanh.xml</file>
 	  <file>data/refpages/es3.0/atan.xml</file>
-	  <file>data/refpages/es3.0/atomicAdd.xml</file>
-	  <file>data/refpages/es3.0/atomicAnd.xml</file>
-	  <file>data/refpages/es3.0/atomicCompSwap.xml</file>
-	  <file>data/refpages/es3.0/atomicCounterDecrement.xml</file>
-	  <file>data/refpages/es3.0/atomicCounterIncrement.xml</file>
-	  <file>data/refpages/es3.0/atomicCounter.xml</file>
-	  <file>data/refpages/es3.0/atomicExchange.xml</file>
-	  <file>data/refpages/es3.0/atomicMax.xml</file>
-	  <file>data/refpages/es3.0/atomicMin.xml</file>
-	  <file>data/refpages/es3.0/atomicOr.xml</file>
-	  <file>data/refpages/es3.0/atomicXor.xml</file>
-	  <file>data/refpages/es3.0/barrier.xml</file>
-	  <file>data/refpages/es3.0/bitCount.xml</file>
-	  <file>data/refpages/es3.0/bitfieldExtract.xml</file>
-	  <file>data/refpages/es3.0/bitfieldInsert.xml</file>
-	  <file>data/refpages/es3.0/bitfieldReverse.xml</file>
-	  <file>data/refpages/es3.0/bufferbindings.xml</file>
 	  <file>data/refpages/es3.0/ceil.xml</file>
 	  <file>data/refpages/es3.0/clamp.xml</file>
 	  <file>data/refpages/es3.0/cosh.xml</file>
@@ -72,43 +55,21 @@
 	  <file>data/refpages/es3.0/dFdx.xml</file>
 	  <file>data/refpages/es3.0/distance.xml</file>
 	  <file>data/refpages/es3.0/dot.xml</file>
-	  <file>data/refpages/es3.0/EmitVertex.xml</file>
-	  <file>data/refpages/es3.0/EndPrimitive.xml</file>
 	  <file>data/refpages/es3.0/equal.xml</file>
 	  <file>data/refpages/es3.0/exp2.xml</file>
 	  <file>data/refpages/es3.0/exp.xml</file>
 	  <file>data/refpages/es3.0/faceforward.xml</file>
-	  <file>data/refpages/es3.0/findLSB.xml</file>
-	  <file>data/refpages/es3.0/findMSB.xml</file>
 	  <file>data/refpages/es3.0/floatBitsToInt.xml</file>
 	  <file>data/refpages/es3.0/floor.xml</file>
-	  <file>data/refpages/es3.0/fma.xml</file>
 	  <file>data/refpages/es3.0/fract.xml</file>
-	  <file>data/refpages/es3.0/frexp.xml</file>
 	  <file>data/refpages/es3.0/fwidth.xml</file>
 	  <file>data/refpages/es3.0/greaterThanEqual.xml</file>
 	  <file>data/refpages/es3.0/greaterThan.xml</file>
-	  <file>data/refpages/es3.0/groupMemoryBarrier.xml</file>
-	  <file>data/refpages/es3.0/imageAtomicAdd.xml</file>
-	  <file>data/refpages/es3.0/imageAtomicAnd.xml</file>
-	  <file>data/refpages/es3.0/imageAtomicCompSwap.xml</file>
-	  <file>data/refpages/es3.0/imageAtomicExchange.xml</file>
-	  <file>data/refpages/es3.0/imageAtomicMax.xml</file>
-	  <file>data/refpages/es3.0/imageAtomicMin.xml</file>
-	  <file>data/refpages/es3.0/imageAtomicOr.xml</file>
-	  <file>data/refpages/es3.0/imageAtomicXor.xml</file>
-	  <file>data/refpages/es3.0/imageLoad.xml</file>
-	  <file>data/refpages/es3.0/imageSize.xml</file>
-	  <file>data/refpages/es3.0/imageStore.xml</file>
 	  <file>data/refpages/es3.0/intBitsToFloat.xml</file>
-	  <file>data/refpages/es3.0/interpolateAtCentroid.xml</file>
-	  <file>data/refpages/es3.0/interpolateAtOffset.xml</file>
-	  <file>data/refpages/es3.0/interpolateAtSample.xml</file>
 	  <file>data/refpages/es3.0/inversesqrt.xml</file>
 	  <file>data/refpages/es3.0/inverse.xml</file>
 	  <file>data/refpages/es3.0/isinf.xml</file>
 	  <file>data/refpages/es3.0/isnan.xml</file>
-	  <file>data/refpages/es3.0/ldexp.xml</file>
 	  <file>data/refpages/es3.0/length.xml</file>
 	  <file>data/refpages/es3.0/lessThanEqual.xml</file>
 	  <file>data/refpages/es3.0/lessThan.xml</file>
@@ -116,11 +77,6 @@
 	  <file>data/refpages/es3.0/log.xml</file>
 	  <file>data/refpages/es3.0/matrixCompMult.xml</file>
 	  <file>data/refpages/es3.0/max.xml</file>
-	  <file>data/refpages/es3.0/memoryBarrierAtomicCounter.xml</file>
-	  <file>data/refpages/es3.0/memoryBarrierBuffer.xml</file>
-	  <file>data/refpages/es3.0/memoryBarrierImage.xml</file>
-	  <file>data/refpages/es3.0/memoryBarrierShared.xml</file>
-	  <file>data/refpages/es3.0/memoryBarrier.xml</file>
 	  <file>data/refpages/es3.0/min.xml</file>
 	  <file>data/refpages/es3.0/mix.xml</file>
 	  <file>data/refpages/es3.0/modf.xml</file>
@@ -145,12 +101,8 @@
 	  <file>data/refpages/es3.0/step.xml</file>
 	  <file>data/refpages/es3.0/tanh.xml</file>
 	  <file>data/refpages/es3.0/tan.xml</file>
-	  <file>data/refpages/es3.0/texboformattable.xml</file>
 	  <file>data/refpages/es3.0/texelFetchOffset.xml</file>
 	  <file>data/refpages/es3.0/texelFetch.xml</file>
-	  <file>data/refpages/es3.0/textureGatherOffsets.xml</file>
-	  <file>data/refpages/es3.0/textureGatherOffset.xml</file>
-	  <file>data/refpages/es3.0/textureGather.xml</file>
 	  <file>data/refpages/es3.0/textureGradOffset.xml</file>
 	  <file>data/refpages/es3.0/textureGrad.xml</file>
 	  <file>data/refpages/es3.0/textureLodOffset.xml</file>
@@ -166,12 +118,8 @@
 	  <file>data/refpages/es3.0/texture.xml</file>
 	  <file>data/refpages/es3.0/transpose.xml</file>
 	  <file>data/refpages/es3.0/trunc.xml</file>
-	  <file>data/refpages/es3.0/uaddCarry.xml</file>
-	  <file>data/refpages/es3.0/umulExtended.xml</file>
 	  <file>data/refpages/es3.0/unpackHalf2x16.xml</file>
 	  <file>data/refpages/es3.0/unpackUnorm.xml</file>
-	  <file>data/refpages/es3.0/unsizedformattable.xml</file>
-	  <file>data/refpages/es3.0/usubBorrow.xml</file>
 
 		<!-- shaders -->
 		<file>data/shader/prefix.glsl</file>

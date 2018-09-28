@@ -5,7 +5,7 @@
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="unpackUnorm">
     <info>
         <copyright>
-            <year>2011-2015</year>
+            <year>2011-2014</year>
             <holder>Khronos Group</holder>
         </copyright>
     </info>
@@ -14,14 +14,10 @@
         <manvolnum>3G</manvolnum>
     </refmeta>
     <refnamediv>
-        <refname>unpackUnorm2x16</refname>
-        <refname>unpackSnorm2x16</refname>
-        <refname>unpackUnorm4x8</refname>
-        <refname>unpackSnorm4x8</refname>
+        <refname>unpackUnorm2x16, unpackSnorm2x16</refname>
         <refpurpose>unpack floating-point values from an unsigned integer</refpurpose>
     </refnamediv>
-    <refsynopsisdiv>
-        <title>Declaration</title>
+    <refsynopsisdiv><title>Declaration</title>
         <funcsynopsis>
             <funcprototype>
                 <funcdef>vec2 <function>unpackUnorm2x16</function></funcdef>
@@ -29,14 +25,6 @@
             </funcprototype>
             <funcprototype>
                 <funcdef>vec2 <function>unpackSnorm2x16</function></funcdef>
-                <paramdef>uint <parameter>p</parameter></paramdef>
-            </funcprototype>
-            <funcprototype>
-                <funcdef>vec2 <function>unpackUnorm4x8</function></funcdef>
-                <paramdef>uint <parameter>p</parameter></paramdef>
-            </funcprototype>
-            <funcprototype>
-                <funcdef>vec2 <function>unpackSnorm4x8</function></funcdef>
                 <paramdef>uint <parameter>p</parameter></paramdef>
             </funcprototype>
         </funcsynopsis>
@@ -55,16 +43,10 @@
     </refsect1>
     <refsect1 xml:id="description"><title>Description</title>
         <para>
-            <function>unpackUnorm2x16</function>,
-            <function>unpackSnorm2x16</function>,
-            <function>unpackUnorm4x8</function>, and
-            <function>unpackSnorm4x8</function> unpack single 32-bit
-            unsigned integers, specified in the parameter
-            <parameter>p</parameter> into a pair of 16-bit unsigned
-            integers. a pair of 16-bit signed integers, four 8-bit unsigned
-            integers, or four 8-bit signed integers respectively. Then, each
-            component is converted to a normalized floating-point value to
-            generate the returned two- or four-component vector.
+            <function>unpackUnorm2x16</function>, <function>unpackSnorm2x16</function> unpack
+            single 32-bit unsigned integers, specified in the parameter <parameter>p</parameter> into a pair of 16-bit unsigned integers.
+                        Then, each component is converted to a normalized floating-point
+            value to generate the returned two- or four-component vector.
         </para>
         <para>
             The conversion for unpacked fixed point value <emphasis>f</emphasis> to floating-point is performed as follows:
@@ -79,16 +61,6 @@
                         <function>unpackSnorm2x16</function>: <code>clamp(f / 32727.0, -1.0, 1.0)</code>
                     </para>
                 </listitem>
-                <listitem>
-                    <para>
-                        <function>packUnorm4x8</function>: <code>f / 255.0</code>
-                    </para>
-                </listitem>
-                <listitem>
-                    <para>
-                        <function>packSnorm4x8</function>: <code>clamp(f / 127.0, -1.0, 1.0)</code>
-                    </para>
-                </listitem>
            </itemizedlist>
         </para>
         <para>
@@ -98,24 +70,16 @@
     </refsect1>
     <refsect1 xml:id="versions"><title>Version Support</title>
         <informaltable>
-            <tgroup cols="5" align="left">
+            <tgroup cols="3" align="left">
                 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="funchead.xml" xpointer="xpointer(/*/*)"/>
                 <tbody>
                     <row>
                         <entry>unpackUnorm2x16</entry>
-                        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="version.xml" xpointer="xpointer(/*/*[@role='es30']/*)"/>
+                        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="version.xml" xpointer="xpointer(/*/*[@role='30']/*)"/>
                     </row>
                     <row>
                         <entry>unpackSnorm2x16</entry>
-                        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="version.xml" xpointer="xpointer(/*/*[@role='es30']/*)"/>
-                    </row>
-                    <row>
-                        <entry>unpackSnorm4x8</entry>
-                        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="version.xml" xpointer="xpointer(/*/*[@role='es31']/*)"/>
-                    </row>
-                    <row>
-                        <entry>unpackSnorm4x8</entry>
-                        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="version.xml" xpointer="xpointer(/*/*[@role='es31']/*)"/>
+                        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="version.xml" xpointer="xpointer(/*/*[@role='30']/*)"/>
                     </row>
                 </tbody>
             </tgroup>
@@ -126,13 +90,11 @@
             <citerefentry><refentrytitle>clamp</refentrytitle></citerefentry>,
             <citerefentry><refentrytitle>packUnorm2x16</refentrytitle></citerefentry>,
             <citerefentry><refentrytitle>packSnorm2x16</refentrytitle></citerefentry>
-            <citerefentry><refentrytitle>packUnorm4x8</refentrytitle></citerefentry>
-            <citerefentry><refentrytitle>packSnorm4x8</refentrytitle></citerefentry>
         </para>
     </refsect1>
     <refsect1 xml:id="Copyright"><title>Copyright</title>
         <para>
-            Copyright <trademark class="copyright"/> 2011-2015 Khronos Group.
+            Copyright <trademark class="copyright"/> 2011-2014 Khronos Group.
             This material may be distributed subject to the terms and conditions set forth in
             the Open Publication License, v 1.0, 8 June 1999.
             <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://opencontent.org/openpub/">http://opencontent.org/openpub/</link>.
