@@ -120,6 +120,14 @@
 	  <file>data/refpages/es3.0/trunc.xml</file>
 	  <file>data/refpages/es3.0/unpackHalf2x16.xml</file>
 	  <file>data/refpages/es3.0/unpackUnorm.xml</file>
+	  <file>data/refpages/es3.0/gl_FragCoord.xml</file>
+	  <file>data/refpages/es3.0/gl_FragDepth.xml</file>
+	  <file>data/refpages/es3.0/gl_FrontFacing.xml</file>
+	  <file>data/refpages/es3.0/gl_InstanceID.xml</file>
+	  <file>data/refpages/es3.0/gl_PointCoord.xml</file>
+	  <file>data/refpages/es3.0/gl_PointSize.xml</file>
+	  <file>data/refpages/es3.0/gl_Position.xml</file>
+	  <file>data/refpages/es3.0/gl_VertexID.xml</file>
 
 		<!-- shaders -->
 		<file>data/shader/prefix.glsl</file>

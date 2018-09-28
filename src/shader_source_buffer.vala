@@ -77,7 +77,7 @@ namespace Shady
 			{
 			    if (event.keyval == Gdk.Key.F1)
 				{
-				    string alphanumerics = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ1234567890";
+				    string alphanumerics = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ1234567890_";
 
 				    int start = buffer.cursor_position;
 				    int end = buffer.cursor_position;
