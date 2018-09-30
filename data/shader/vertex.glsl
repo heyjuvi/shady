@@ -1,4 +1,4 @@
-#version 330
+#version 300 es
 
 #if __VERSION__ > 120
 in vec2 v;
