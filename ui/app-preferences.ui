@@ -1,30 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <interface>
-	<object class="GtkListStore" id="glsl_versions_store">
-		<columns>
-			<column type="gint" />
-			<column type="gchararray" />
-		</columns>
-		<data>
-			<row>
-				<col id="0">0</col>
-				<col id="1">GLSL 1.0</col>
-			</row>
-			<row>
-				<col id="0">1</col>
-				<col id="1">GLSL 2.0</col>
-			</row>
-			<row>
-				<col id="0">2</col>
-				<col id="1">GLSL 3.0</col>
-			</row>
-			<row>
-				<col id="0">3</col>
-				<col id="1">GLSL 4.0</col>
-			</row>
-		</data>
-	</object>
-
 	<template class="ShadyAppPreferences" parent="GtkWindow">
 		<property name="default_width">320</property>
 		<property name="default_height">240</property>
@@ -203,20 +178,62 @@
 						<child>
 							<object class="GtkComboBoxText">
 								<property name="visible">True</property>
-								<property name="can_focus">False</property>
+								<property name="can_focus">True</property>
 								<property name="width_request">200</property>
 								<property name="active">3</property>
 
 								<items>
-									<item>GLSL 1.0</item>
-									<item>GLSL 2.0</item>
-									<item>GLSL 3.0</item>
-									<item>GLSL 4.0</item>
+									<item>GLSL 1.00 ES (OpenGL ES 2.0) (WebGL 1.0)</item>
+									<item>GLSL 1.10 (OpenGL 2.0)</item>
+									<item>GLSL 1.10 (OpenGL 2.0)</item>
+									<item>GLSL 1.20 (OpenGL 2.1)</item>
+									<item>GLSL 1.30 (OpenGL 3.0)</item>
+									<item>GLSL 1.40 (OpenGL 3.1)</item>
+									<item>GLSL 1.50 (OpenGL 3.2)</item>
+									<item>GLSL 3.00 ES (OpenGL ES 3.0) (WebGL 2.0)</item>
+									<item>GLSL 3.30 (OpenGL 3.3)</item>
+									<item>GLSL 3.10 ES (OpenGL ES 3.1)</item>
+									<item>GLSL 3.20 ES (OpenGL ES 3.2)</item>
+									<item>GLSL 4.00 (OpenGL 4.0)</item>
+									<item>GLSL 4.10 (OpenGL 4.1)</item>
+									<item>GLSL 4.20 (OpenGL 4.2)</item>
+									<item>GLSL 4.30 (OpenGL 4.3)</item>
+									<item>GLSL 4.40 (OpenGL 4.4)</item>
+									<item>GLSL 4.50 (OpenGL 4.5)</item>
+									<item>GLSL 4.60 (OpenGL 4.6)</item>
 								</items>
 							</object>
 							<packing>
 								<property name="left-attach">1</property>
 								<property name="top-attach">1</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">GLSL profile</property>
+								<property name="halign">end</property>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">2</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkCheckButton">
+								<property name="visible">True</property>
+								<property name="can_focus">True</property>
+								<property name="label">Enable compatibility profile</property>
+        						<property name="draw_indicator">True</property>
+        						<property name="sensitive">False</property>
+							</object>
+							<packing>
+								<property name="left-attach">1</property>
+								<property name="top-attach">2</property>
 								<property name="width">1</property>
 							</packing>
 						</child>
