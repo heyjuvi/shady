@@ -210,33 +210,6 @@
 							</packing>
 						</child>
 
-						<child>
-							<object class="GtkLabel">
-								<property name="visible">True</property>
-								<property name="label">GLSL profile</property>
-								<property name="halign">end</property>
-							</object>
-							<packing>
-								<property name="left-attach">0</property>
-								<property name="top-attach">2</property>
-								<property name="width">1</property>
-							</packing>
-						</child>
-
-						<child>
-							<object class="GtkCheckButton">
-								<property name="visible">True</property>
-								<property name="can_focus">True</property>
-								<property name="label">Enable compatibility profile</property>
-        						<property name="draw_indicator">True</property>
-        						<property name="sensitive">False</property>
-							</object>
-							<packing>
-								<property name="left-attach">1</property>
-								<property name="top-attach">2</property>
-								<property name="width">1</property>
-							</packing>
-						</child>
 					</object>
 					<packing>
 						<property name="title">GLSL</property>
