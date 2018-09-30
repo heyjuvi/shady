@@ -89,13 +89,13 @@ namespace Shady
 
 		private Gtk.Popover _current_popover;
 
-		private ShaderArea _shader_area;
+		private ChannelArea _channel_area;
 
 		public ShaderChannel()
 		{
-			_shader_area = new ShaderArea();
+			_channel_area = new ChannelArea();
 
-			shader_container.pack_start(_shader_area, true, true);
+			shader_container.pack_start(_channel_area, true, true);
 
 			_soundcloud_popover = new ShaderChannelSoundcloudPopover(value_button);
 			_texture_popover = new ShaderChannelInputPopover(Shader.InputType.TEXTURE, value_button);
@@ -140,7 +140,7 @@ namespace Shady
 				channel_input_changed(_channel_input);
 			});
 
-			_shader_area.show();
+			_channel_area.show();
 		}
 
 		private void update_sampler()
@@ -194,7 +194,7 @@ namespace Shady
 
 		private void update_shader()
 		{
-			_shader_area.compile_shader_input(_channel_input);
+			_channel_area.compile_shader_input(_channel_input);
 		}
 
 		[GtkCallback]

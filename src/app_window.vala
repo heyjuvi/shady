@@ -173,14 +173,14 @@ namespace Shady
 
 		public void compile()
 		{
-			scene.shader_manager.compilation_finished.connect(() =>
+			scene.shadertoy_area.compilation_finished.connect(() =>
 			{
 				compile_button_stack.visible_child_name = "compile_image";
 			});
 
 			compile_button_stack.visible_child_name = "compile_spinner";
 
-			scene.shader_manager.pass_compilation_terminated.connect((index, e) =>
+			scene.shadertoy_area.pass_compilation_terminated.connect((index, e) =>
 			{
 			    editor.clear_error_messages();
 
@@ -249,17 +249,17 @@ namespace Shady
 
             editor.gather_shader();
 			scene.compile(_editor.shader);
-			scene._fullscreen_shader_manager.compile(_editor.shader);
+			scene._fullscreen_shadertoy_area.compile(_editor.shader);
 		}
 
 		public void reset_time()
 		{
-		    scene.shader_manager.reset_time();
+		    scene.shadertoy_area.reset_time();
 		}
 
 		public void play()
 		{
-			scene.shader_manager.paused = false;
+			scene.shadertoy_area.paused = false;
 
 			play_button_image.set_from_icon_name("media-playback-pause-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(false);
@@ -267,7 +267,7 @@ namespace Shady
 
 		public void pause()
 		{
-			scene.shader_manager.paused = true;
+			scene.shadertoy_area.paused = true;
 
 			play_button_image.set_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(true);
@@ -276,13 +276,13 @@ namespace Shady
 		[GtkCallback]
 		private void reset_button_clicked()
 		{
-			scene.shader_manager.reset_time();
+			scene.shadertoy_area.reset_time();
 		}
 
 		[GtkCallback]
 		private void play_button_clicked()
 		{
-			if (scene.shader_manager.paused)
+			if (scene.shadertoy_area.paused)
 			{
 				play();
 			}
@@ -295,7 +295,7 @@ namespace Shady
 		[GtkCallback]
 		private void rubber_band_scale_value_changed()
 		{
-			scene.shader_manager.time_slider = rubber_band_scale.get_value();
+			scene.shadertoy_area.time_slider = rubber_band_scale.get_value();
 		}
 
 		[GtkCallback]

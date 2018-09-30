@@ -3,10 +3,10 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/shader-scene.ui")]
 	public class ShaderScene : Gtk.Box
 	{
-	    private ShaderManager _shader_manager;
-	    public ShaderManager shader_manager
+	    private ShadertoyArea _shadertoy_area;
+	    public ShadertoyArea shadertoy_area
 	    {
-	        get { return _shader_manager; }
+	        get { return _shadertoy_area; }
 	    }
 
 	    public signal void fullscreen_requested();
@@ -26,13 +26,13 @@ namespace Shady
 	    [GtkChild]
 	    private Gtk.Label shader_description;*/
 
-        public ShaderManager _fullscreen_shader_manager;
+        public ShadertoyArea _fullscreen_shadertoy_area;
 	    private Gtk.Window _fullscreen_window;
 
 		public ShaderScene()
 		{
-		    _shader_manager = new ShaderManager();
-		    _fullscreen_shader_manager = new ShaderManager();
+		    _shadertoy_area = new ShadertoyArea();
+		    _fullscreen_shadertoy_area = new ShadertoyArea();
 
             _fullscreen_window = new Gtk.Window();
             _fullscreen_window.width_request = 320;
@@ -59,16 +59,16 @@ namespace Shady
             // TODO: it must be possible to enforce the aspect ratio in a better way
 		    main_shader_container.size_allocate.connect((allocation) =>
 		    {
-		        _shader_manager.height_request = (int) (allocation.width / 1.7777777777);
+		        _shadertoy_area.height_request = (int) (allocation.width / 1.7777777777);
 		    });
 
-		    main_shader_container.pack_start(_shader_manager, false, true);
+		    main_shader_container.pack_start(_shadertoy_area, false, true);
 
 		    fps_label.draw.connect(() =>
 		    {
 		        StringBuilder fps = new StringBuilder();
 
-			    fps.printf("%5.2ffps", _shader_manager.fps);
+			    fps.printf("%5.2ffps", _shadertoy_area.fps);
 			    fps_label.set_label(fps.str);
 
 			    return false;
@@ -78,22 +78,22 @@ namespace Shady
 			{
 			    StringBuilder time = new StringBuilder();
 
-			    time.printf("%3.2fs", _shader_manager.time);
+			    time.printf("%3.2fs", _shadertoy_area.time);
 			    time_label.set_label(time.str);
 
 			    return false;
 			});
 
-		    _shader_manager.show();
+		    _shadertoy_area.show();
 
 			_fullscreen_window.realize();
-		    _fullscreen_window.add(_fullscreen_shader_manager);
+		    _fullscreen_window.add(_fullscreen_shadertoy_area);
 		}
 
 		public void compile(Shader shader)
 		{
-		    _shader_manager.compile(shader);
-		    _fullscreen_shader_manager.compile(shader);
+		    _shadertoy_area.compile(shader);
+		    _fullscreen_shadertoy_area.compile(shader);
 		}
 
 		public void enter_fullscreen()

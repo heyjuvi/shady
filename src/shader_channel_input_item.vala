@@ -64,18 +64,18 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Box shader_container;
 
-		private ShaderArea _shader_area;
+		private ChannelArea _channel_area;
 
 		public void recompile()
 		{
-			_shader_area.compile_shader_input(input);
+			_channel_area.compile_shader_input(input);
 		}
 
 		public ShaderChannelInputItem.from_input(Shader.Input input)
 		{
-			_shader_area = new ShaderArea();
+			_channel_area = new ChannelArea();
 
-			shader_container.pack_start(_shader_area, true, true);
+			shader_container.pack_start(_channel_area, true, true);
 
 			if (input.type == Shader.InputType.TEXTURE)
 			{
@@ -119,11 +119,11 @@ namespace Shady
 
 			input.channel = 0;
 
-			_shader_area.show();
+			_channel_area.show();
 
-			_shader_area.initialized.connect(() =>
+			_channel_area.initialized.connect(() =>
 			{
-				_shader_area.compile_shader_input(input);
+				_channel_area.compile_shader_input(input);
 			});
 		}
 	}

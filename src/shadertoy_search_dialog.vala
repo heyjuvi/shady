@@ -99,7 +99,7 @@ namespace Shady
 			        element.views = (int) _found_shaders[loc_index].views;
 			        element.shader = _found_shaders[loc_index];
 
-			        element._shader_manager.compilation_finished.connect(() =>
+			        element._shadertoy_area.compilation_finished.connect(() =>
 			        {
 			            show_n_more_shaders(n - 1);
 			        });

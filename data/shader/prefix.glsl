@@ -3,6 +3,7 @@
 #ifdef GL_ES
 precision highp float;
 precision highp int;
+precision highp sampler3D;
 #endif
 
 #if __VERSION__ > 120

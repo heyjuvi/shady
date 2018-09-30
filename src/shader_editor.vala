@@ -117,7 +117,7 @@ namespace Shady
 
 			_minifier = new Core.GLSLMinifier();
 
-			_curr_shader = ShaderManager.get_default_shader();
+			_curr_shader = ShaderArea.get_default_shader();
 
 			add_buffer("Image", get_insert_index_for_buffer("Image"), false);
 			set_buffer("Image", _default_code);

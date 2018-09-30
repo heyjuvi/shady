@@ -10,10 +10,8 @@ namespace Shady
 		COMPILATION
 	}
 
-	public class ShaderManager : GLArea
+	public class ShadertoyArea : ShaderArea
 	{
-		public signal void initialized();
-
 		public signal void compilation_finished();
 		public signal void pass_compilation_terminated(int pass_index, ShaderError? e);
 
@@ -37,8 +35,6 @@ namespace Shady
 			}
 		}
 
-		public double fps { get; private set; }
-		public double time { get; private set; }
 		public double time_slider { get; set; default = 0.0; }
 
 		private GLuint _tile_render_buf;
@@ -67,43 +63,16 @@ namespace Shady
 		private int64 _pause_time;
 		private int64 _delta_time;
 
-		private float _year;
-		private float _month;
-		private float _day;
-		private float _seconds;
-
-		private float _delta;
-
-		private float _samplerate = 44100.0f;
-
-		/* Initialized */
-		private bool _initialized = false;
-
-		private bool _size_updated = false;
-
-		/* Mouse variables */
-		private bool _button_pressed;
-		private double _button_pressed_x;
-		private double _button_pressed_y;
-		private double _button_released_x;
-		private double _button_released_y;
-
-		private double _mouse_x = 0;
-		private double _mouse_y = 0;
-
 		/* Shader render buffer variables */
 
 		private int64 _time_delta_accum = 0;
-
-		private int _width = 0;
-		private int _height = 0;
 
 		private Mutex _compile_mutex = Mutex();
 		private Cond _compile_cond = Cond();
 
 		private Mutex _size_mutex = Mutex();
 
-		public ShaderManager()
+		public ShadertoyArea()
 		{
 			realize.connect(() =>
 			{
@@ -151,24 +120,6 @@ namespace Shady
 				return false;
 			});
 
-			resize.connect((width, height) =>
-			{
-				_size_mutex.lock();
-
-				_width = width;
-				_height = height;
-
-				_size_updated = true;
-
-				if(!_initialized)
-				{
-					_initialized = true;
-					initialized();
-				}
-
-				_size_mutex.unlock();
-			});
-
 			unrealize.connect(() =>
 			{
 				Source.remove(_render_timeout);
@@ -192,69 +143,6 @@ namespace Shady
 		public void compile(Shader shader)
 		{
 			ShaderCompiler.queue_shader_compile(shader, _render_resources, _compile_resources);
-		}
-
-		public Shader? get_shader_from_input(Shader.Input input)
-		{
-			Shader.Renderpass input_renderpass = new Shader.Renderpass();
-			input_renderpass.inputs.append_val(input);
-			input_renderpass.type = Shader.RenderpassType.IMAGE;
-
-			if (input.resource == null)
-			{
-				print("Input has no specified resource!\n");
-				return null;
-			}
-
-			try
-			{
-				if (input.type == Shader.InputType.TEXTURE)
-				{
-					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
-				}
-				else if (input.type == Shader.InputType.CUBEMAP)
-				{
-					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/cubemap_channel_default.glsl", 0).get_data());
-				}
-				else if (input.type == Shader.InputType.3DTEXTURE)
-				{
-					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/3dtexture_channel_default.glsl", 0).get_data());
-				}
-			}
-			catch(Error e)
-			{
-				print("Couldn't load default shader for input type!\n");
-				return null;
-			}
-
-			Shader input_shader = new Shader();
-			input_shader.renderpasses.append_val(input_renderpass);
-
-			return input_shader;
-		}
-
-		public static Shader? get_default_shader()
-		{
-			Shader default_shader = new Shader();
-			Shader.Renderpass renderpass = new Shader.Renderpass();
-
-			try
-			{
-				string default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
-				renderpass.code = default_code;
-			}
-			catch(Error e)
-			{
-				print("Couldn't load default shader!\n");
-				return null;
-			}
-
-			renderpass.type = Shader.RenderpassType.IMAGE;
-			renderpass.name = "Image";
-
-			default_shader.renderpasses.append_val(renderpass);
-
-			return default_shader;
 		}
 
 		public static Shader? get_loading_shader()
