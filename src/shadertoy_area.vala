@@ -182,19 +182,12 @@ namespace Shady
 			ShaderCompiler.initialize_pool();
 			_compile_resources.window = get_window();
 
-			try
-			{
-				string vertex_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/vertex.glsl", 0).get_data());
-				string[] vertex_source_array = { vertex_source, null };
+			string vertex_source = SourceGenerator.generate_vertex_source();
+			string[] vertex_source_array = { vertex_source, null };
 
-				_compile_resources.vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-				glShaderSource(_compile_resources.vertex_shader, 1, vertex_source_array, null);
-				glCompileShader(_compile_resources.vertex_shader);
-			}
-			catch(Error e)
-			{
-				print("Couldn't load vertex shader\n");
-			}
+			_compile_resources.vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+			glShaderSource(_compile_resources.vertex_shader, 1, vertex_source_array, null);
+			glCompileShader(_compile_resources.vertex_shader);
 
 			GLuint[] tex_arr = {0};
 			glGenTextures(1, tex_arr);
@@ -262,23 +255,14 @@ namespace Shady
 			glAttachShader(_target_prop.program, _compile_resources.vertex_shader);
 			glAttachShader(_target_prop.program, _compile_resources.fragment_shader);
 
-			try
-			{
-				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
-				string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
+			Shader.Input input = new Shader.Input();
+			input.type = Shader.InputType.TEXTURE;
+			input.channel = 0;
+			Shader.Renderpass target_pass = ChannelArea.get_renderpass_from_input(input);
 
-				string target_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
+			string full_target_source = SourceGenerator.generate_renderpass_source(target_pass);
 
-				string target_channel_prefix = "uniform sampler2D iChannel0;\n";
-
-				string full_target_source = shader_prefix + target_channel_prefix + target_source + shader_suffix;
-
-				ShaderCompiler.compile_pass(-1, full_target_source, _target_prop, _compile_resources);
-			}
-			catch(Error e)
-			{
-				print("Couldn't load target shader sources\n");
-			}
+			ShaderCompiler.compile_pass(-1, full_target_source, _target_prop, _compile_resources);
 
 			image_prop1.program = glCreateProgram();
 			image_prop2.program = glCreateProgram();

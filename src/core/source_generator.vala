@@ -3,6 +3,7 @@ namespace Shady.Core
 	public class SourceGenerator
 	{
 		private const string _channel_string = "iChannel";
+		private const string _version_prefix = "#version 300 es\n\n";
 
 		public SourceGenerator()
 		{
@@ -37,7 +38,7 @@ namespace Shady.Core
 					}
 				}
 
-				return shader_prefix.split("\n").length + input_count;
+				return shader_prefix.split("\n").length + input_count + _version_prefix.split("\n").length;
 			}
 			catch (Error e)
 			{
@@ -79,13 +80,28 @@ namespace Shady.Core
 					}
 				}
 
-				return shader_prefix + channel_prefix + renderpass.code + shader_suffix;
+				return _version_prefix + shader_prefix + channel_prefix + renderpass.code + shader_suffix;
 			}
 			catch (Error e)
 			{
 				print("Couldn't load shader prefix or suffix\n");
 				return "";
 			}
+		}
+
+		public static string generate_vertex_source()
+		{
+			try
+			{
+				string vertex_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/vertex.glsl", 0).get_data());
+				return _version_prefix + vertex_source;
+			}
+			catch(Error e)
+			{
+				print("Couldn't load vertex shader\n");
+				return "";
+			}
+			
 		}
 	}
 }
