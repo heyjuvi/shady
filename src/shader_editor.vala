@@ -89,6 +89,7 @@ namespace Shady
 		private Gtk.TextIter _last_match_start;
 		private Gtk.TextIter _last_match_end;
 
+        private Core.GLSLCompiler _validator;
 		private Core.GLSLMinifier _minifier;
 
 		public ShaderEditor()
@@ -115,6 +116,7 @@ namespace Shady
 				print("Couldn't load default shader!\n");
 			}
 
+            _validator = new Core.GLSLCompiler();
 			_minifier = new Core.GLSLMinifier();
 
 			_curr_shader = ShaderArea.get_default_shader();
@@ -248,7 +250,7 @@ namespace Shady
 						_last_match_end = match_end;
 					}
 				}
-				catch(Error e)
+				catch (Error e)
 				{
 					print("Error in search changed\n");
 				}
@@ -276,7 +278,7 @@ namespace Shady
 						_last_match_end = match_end;
 					}
 				}
-				catch(Error e)
+				catch (Error e)
 				{
 					print("Error in forward search\n");
 				}
@@ -303,7 +305,7 @@ namespace Shady
 						_last_match_end = match_end;
 					}
 				}
-				catch(Error e)
+				catch (Error e)
 				{
 					print("Error in backward search\n");
 				}
@@ -329,9 +331,50 @@ namespace Shady
 			}
 		}
 
-		public void add_error_message(string buffer, int line, string name, string message)
+		public bool validate_shader()
 		{
-		    _shader_buffers[buffer].add_error_message(line, name, message);
+		    bool total_success = true;
+
+		    gather_shader();
+
+		    HashTable<string, string> sources = Core.SourceGenerator.generate_shader_source(_curr_shader);
+		    int compile_counter = (int) sources.get_keys().length();
+
+		    foreach (string buffer in sources.get_keys())
+		    {
+		        string buffer_source = sources[buffer];
+
+                Core.GLSLCompiler validator = new Core.GLSLCompiler();
+		        validator.compile(Core.GLSLCompiler.Stage.FRAGMENT, buffer_source, (spirv, errors, success) =>
+		        {
+		            print(@"\n\n\n\nhmm? $success\n\n\n\n\n\n\n");
+		            compile_counter--;
+
+		            if (!success)
+		            {
+		                print("hello1\n");
+		                total_success = false;
+
+		                Shader.Renderpass renderpass = _curr_shader.get_renderpass_by_name(buffer);
+		                foreach (Core.GLSLCompiler.CompileError error in errors)
+		                {
+		                    int real_line = (int) (error.line - Core.SourceGenerator.renderpass_prefix_line_count(renderpass));
+		                    add_error_message(buffer, real_line, error.to_string());
+		                }
+
+		                print("hello9\n");
+		            }
+		        });
+		    }
+
+		    while (compile_counter != 0);
+
+		    return total_success;
+		}
+
+		public void add_error_message(string buffer, int line, string message)
+		{
+		    _shader_buffers[buffer].add_error_message(line, @"buffer-$line", message);
 		}
 
 		public void clear_error_messages()

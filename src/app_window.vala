@@ -173,83 +173,22 @@ namespace Shady
 
 		public void compile()
 		{
-			scene.shadertoy_area.compilation_finished.connect(() =>
+			editor.clear_error_messages();
+
+			bool compilable = editor.validate_shader();
+			if (compilable)
 			{
-				compile_button_stack.visible_child_name = "compile_image";
-			});
+			    scene.shadertoy_area.compilation_finished.connect(() =>
+			    {
+				    compile_button_stack.visible_child_name = "compile_image";
+			    });
 
-			compile_button_stack.visible_child_name = "compile_spinner";
+			    compile_button_stack.visible_child_name = "compile_spinner";
 
-			scene.shadertoy_area.pass_compilation_terminated.connect((index, e) =>
-			{
-			    editor.clear_error_messages();
-
-				if (e != null && e is ShaderError.COMPILATION)
-				{
-					// append a line, so the loop below really adds all different
-					// errors, very hacky
-					//string errors_str = e.message;
-
-					string[] error_lines = e.message.split("\n");
-
-					string current_error = null;
-					int last_line = -1;
-					int last_row = -1;
-					foreach (string error_line in error_lines)
-					{
-						if (":" in error_line)
-						{
-							string[] parsed_message = error_line.split(":", 3);
-							//string error_number = parsed_message[0];
-							string position = parsed_message[1];
-							string error = parsed_message[2].split("error: ")[1];
-
-							if (current_error == null)
-							{
-								current_error = error;
-							}
-
-							try
-							{
-								int prefix_length = ((string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data())).split("\n").length;
-
-								string[] line_and_row = position.split("(", 2);
-								int line = int.parse(line_and_row[0]) - prefix_length + 1;
-								int row = int.parse(line_and_row[1][0:line_and_row[0].length]);
-
-								if (line != last_line)
-								{
-									if (last_line != -1)
-									{
-										print(@"Line: $last_line, Row: $last_row, Error: $current_error\n");
-										_editor.add_error_message("Image", last_line, @"error-$last_line-$last_row", current_error);
-									}
-
-									current_error = error;
-								}
-								else
-								{
-									current_error += "\n" + error;
-								}
-
-								last_line = line;
-								last_row = row;
-							}
-							catch(Error e)
-							{
-								print("Couldn't load shader prefix\n");
-							}
-						}
-					}
-
-					//print(@"Line: $last_line, Row: $last_row, Error: $current_error\n");
-					_editor.add_error_message("Image", last_line, @"error-$last_line-$last_row", current_error);
-				}
-			});
-
-            editor.gather_shader();
-			scene.compile(_editor.shader);
-			scene._fullscreen_shadertoy_area.compile(_editor.shader);
+                editor.gather_shader();
+			    scene.compile(_editor.shader);
+			    scene._fullscreen_shadertoy_area.compile(_editor.shader);
+			}
 		}
 
 		public void reset_time()

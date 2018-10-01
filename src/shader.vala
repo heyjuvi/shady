@@ -248,5 +248,18 @@ namespace Shady
 		public int views;
 
 		public Array<Renderpass> renderpasses = new Array<Renderpass>();
+
+		public Renderpass? get_renderpass_by_name(string name)
+		{
+		    for (int i = 0; i < renderpasses.length; i++)
+		    {
+		        if (renderpasses.index(i).name == name)
+		        {
+		            return renderpasses.index(i);
+		        }
+		    }
+
+		    return null;
+		}
 	}
 }

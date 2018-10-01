@@ -207,7 +207,6 @@ namespace Shady.Core
                 ChildWatch.add(child_pid, (pid, status) =>
                 {
                     callback(spirv_buffer.data, compile_errors.data, success);
-
 	                Process.close_pid(pid);
                 });
             }
