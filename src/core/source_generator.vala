@@ -3,7 +3,27 @@ namespace Shady.Core
 	public class SourceGenerator
 	{
 		private const string _channel_string = "iChannel";
-		private const string _version_prefix = "#version 300 es\n\n";
+
+		private const uint _version_prefix_id = 6;
+		private const string _version_prefix_array[16] = {"#version 100\n\n",
+		                                                  "#version 110\n\n",
+		                                                  "#version 120\n\n",
+		                                                  "#version 130\n\n",
+		                                                  "#version 140\n\n",
+		                                                  "#version 150\n\n",
+		                                                  "#version 300 es\n\n",
+		                                                  "#version 330\n\n",
+		                                                  "#version 310 es\n\n",
+		                                                  "#version 320 es\n\n",
+		                                                  "#version 400\n\n",
+		                                                  "#version 410\n\n",
+		                                                  "#version 420\n\n",
+		                                                  "#version 430\n\n",
+		                                                  "#version 440\n\n",
+		                                                  "#version 450\n\n",
+		                                                  "#version 460\n\n"};
+
+		private const string _line_directive = "#line 1\n";
 
 		public SourceGenerator()
 		{
@@ -19,32 +39,6 @@ namespace Shady.Core
 			}
 
 			return string_table;
-		}
-
-		public static uint renderpass_prefix_line_count(Shader.Renderpass renderpass)
-		{
-			try
-			{
-				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
-
-				uint input_count = 0;
-
-				for(int i=0;i<renderpass.inputs.length;i++)
-				{
-					Shader.Input input = renderpass.inputs.index(i);
-					if(input.type != Shader.InputType.NONE && input.type != Shader.InputType.INVALID)
-					{
-						input_count++;
-					}
-				}
-
-				return shader_prefix.split("\n").length + input_count + _version_prefix.split("\n").length;
-			}
-			catch (Error e)
-			{
-				print("Couldn't load shader prefix or suffix\n");
-				return 0;
-			}
 		}
 
 		public static string generate_renderpass_source(Shader.Renderpass renderpass)
@@ -80,7 +74,12 @@ namespace Shady.Core
 					}
 				}
 
-				return _version_prefix + shader_prefix + channel_prefix + renderpass.code + shader_suffix;
+				return _version_prefix_array[_version_prefix_id] +
+				       shader_prefix +
+				       channel_prefix +
+				       _line_directive +
+				       renderpass.code +
+				       shader_suffix;
 			}
 			catch (Error e)
 			{
@@ -94,7 +93,7 @@ namespace Shady.Core
 			try
 			{
 				string vertex_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/vertex.glsl", 0).get_data());
-				return _version_prefix + vertex_source;
+				return _version_prefix_array[_version_prefix_id] + vertex_source;
 			}
 			catch(Error e)
 			{

@@ -211,10 +211,8 @@ namespace Shady
 
 							try
 							{
-								int prefix_length = ((string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data())).split("\n").length;
-
 								string[] line_and_row = position.split("(", 2);
-								int line = int.parse(line_and_row[0]) - prefix_length + 1;
+								int line = int.parse(line_and_row[0]);
 								int row = int.parse(line_and_row[1][0:line_and_row[0].length]);
 
 								if (line != last_line)
