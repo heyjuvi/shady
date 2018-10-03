@@ -1,4 +1,24 @@
 <schemalist>
+	<enum id="org.hasi.shady.glslversion">
+		<value nick="GLSL 1.00 ES" value="0"/>
+		<value nick="GLSL 1.10" value="1"/>
+		<value nick="GLSL 1.20" value="2"/>
+		<value nick="GLSL 1.30" value="3"/>
+		<value nick="GLSL 1.40" value="4"/>
+		<value nick="GLSL 1.50" value="5"/>
+		<value nick="GLSL 3.00 ES" value="6"/>
+		<value nick="GLSL 3.30" value="7"/>
+		<value nick="GLSL 3.10 ES" value="8"/>
+		<value nick="GLSL 3.20 ES" value="9"/>
+		<value nick="GLSL 4.00" value="10"/>
+		<value nick="GLSL 4.10" value="11"/>
+		<value nick="GLSL 4.20" value="12"/>
+		<value nick="GLSL 4.30" value="13"/>
+		<value nick="GLSL 4.40" value="14"/>
+		<value nick="GLSL 4.50" value="15"/>
+		<value nick="GLSL 4.60" value="16"/>
+	</enum>
+
 	<schema id="org.hasi.shady" path="/org/hasi/shady/" gettext-domain="shady">
 		<key name="switched-layout" type="b">
 			<default>false</default>
@@ -15,6 +35,14 @@
 			<description>
 				Specifies, whether the current shader source should automatically
 				be compiled every few seconds
+			</description>
+		</key>
+
+		<key name="glsl-version" enum="org.hasi.shady.glslversion">
+			<default>"GLSL 3.00 ES"</default>
+			<summary>GLSL Version</summary>
+			<description>
+				Specifies the GLSL Version used to render the shader
 			</description>
 		</key>
 	</schema>

@@ -5,7 +5,7 @@ namespace Shady
 		private Gtk.CssProvider css_provider;
 
 		private AppWindow newest_app_window = null;
-		private AppPreferences app_preferences = null;
+		public static AppPreferences app_preferences{ get; private set; default = null; }
 
 		public App()
 		{

@@ -11,9 +11,6 @@ namespace Shady
 		private RenderResources.BufferProperties _target_prop = new RenderResources.BufferProperties();
 		private CompileResources _compile_resources = new CompileResources();
 
-		/* OpenGL ids */
-		private const string _channel_string = "iChannel";
-
 		/* Time variables */
 		private DateTime _curr_date;
 
@@ -105,8 +102,6 @@ namespace Shady
 				if(tex_ids != null && tex_ids.length > 0){
 
 					Shader? input_shader = get_shader_from_input(input);
-
-					string target_source = input_shader.renderpasses.index(0).code;
 
 					string full_target_source = SourceGenerator.generate_renderpass_source(input_shader.renderpasses.index(0));
 

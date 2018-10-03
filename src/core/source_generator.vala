@@ -4,25 +4,6 @@ namespace Shady.Core
 	{
 		private const string _channel_string = "iChannel";
 
-		private const uint _version_prefix_id = 6;
-		private const string _version_prefix_array[16] = {"#version 100\n\n",
-		                                                  "#version 110\n\n",
-		                                                  "#version 120\n\n",
-		                                                  "#version 130\n\n",
-		                                                  "#version 140\n\n",
-		                                                  "#version 150\n\n",
-		                                                  "#version 300 es\n\n",
-		                                                  "#version 330\n\n",
-		                                                  "#version 310 es\n\n",
-		                                                  "#version 320 es\n\n",
-		                                                  "#version 400\n\n",
-		                                                  "#version 410\n\n",
-		                                                  "#version 420\n\n",
-		                                                  "#version 430\n\n",
-		                                                  "#version 440\n\n",
-		                                                  "#version 450\n\n",
-		                                                  "#version 460\n\n"};
-
 		private const string _line_directive = "#line 1\n";
 
 		public SourceGenerator()
@@ -46,6 +27,7 @@ namespace Shady.Core
 			try
 			{
 				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
+				string shader_builtins = (string) (resources_lookup_data("/org/hasi/shady/data/shader/builtin_function_backport.glsl", 0).get_data());
 				string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
 
 				string channel_prefix = "";
@@ -62,20 +44,21 @@ namespace Shady.Core
 					   renderpass.inputs.index(i).type == Shader.InputType.VIDEO ||
 					   renderpass.inputs.index(i).type == Shader.InputType.MUSIC)
 					{
-						channel_prefix += "uniform sampler2D " + _channel_string + @"$index;\n";
+						channel_prefix += "uniform lowp sampler2D " + _channel_string + @"$index;\n";
 					}
 					else if(renderpass.inputs.index(i).type == Shader.InputType.3DTEXTURE)
 					{
-						channel_prefix += "uniform sampler3D " + _channel_string + @"$index;\n";
+						channel_prefix += "uniform lowp sampler3D " + _channel_string + @"$index;\n";
 					}
 					else if(renderpass.inputs.index(i).type == Shader.InputType.CUBEMAP)
 					{
-						channel_prefix += "uniform samplerCube " + _channel_string + @"$index;\n";
+						channel_prefix += "uniform lowp samplerCube " + _channel_string + @"$index;\n";
 					}
 				}
 
-				return _version_prefix_array[_version_prefix_id] +
+				return App.app_preferences.glsl_version.to_prefix_string() +
 				       shader_prefix +
+				       shader_builtins +
 				       channel_prefix +
 				       _line_directive +
 				       renderpass.code +
@@ -93,7 +76,7 @@ namespace Shady.Core
 			try
 			{
 				string vertex_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/vertex.glsl", 0).get_data());
-				return _version_prefix_array[_version_prefix_id] + vertex_source;
+				return App.app_preferences.glsl_version.to_prefix_string() + vertex_source;
 			}
 			catch(Error e)
 			{

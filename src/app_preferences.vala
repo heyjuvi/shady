@@ -3,8 +3,89 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/app-preferences.ui")]
 	public class AppPreferences : Gtk.Window
 	{
+		public enum GLSLVersion
+		{
+			GLSL_100_ES,
+			GLSL_110,
+			GLSL_120,
+			GLSL_130,
+			GLSL_140,
+			GLSL_150,
+			GLSL_300_ES,
+			GLSL_330,
+			GLSL_310_ES,
+			GLSL_320_ES,
+			GLSL_400,
+			GLSL_410,
+			GLSL_420,
+			GLSL_430,
+			GLSL_440,
+			GLSL_450,
+			GLSL_460,
+			INVALID;
+
+			public string to_string()
+			{
+				const string version_strings[17] = {"GLSL 1.00 ES (OpenGL ES 2.0) (WebGL 1.0)",
+													"GLSL 1.10 (OpenGL 2.0)",
+													"GLSL 1.20 (OpenGL 2.1)",
+													"GLSL 1.30 (OpenGL 3.0)",
+													"GLSL 1.40 (OpenGL 3.1)",
+													"GLSL 1.50 (OpenGL 3.2)",
+													"GLSL 3.00 ES (OpenGL ES 3.0) (WebGL 2.0)",
+													"GLSL 3.30 (OpenGL 3.3)",
+													"GLSL 3.10 ES (OpenGL ES 3.1)",
+													"GLSL 3.20 ES (OpenGL ES 3.2)",
+													"GLSL 4.00 (OpenGL 4.0)",
+													"GLSL 4.10 (OpenGL 4.1)",
+													"GLSL 4.20 (OpenGL 4.2)",
+													"GLSL 4.30 (OpenGL 4.3)",
+													"GLSL 4.40 (OpenGL 4.4)",
+													"GLSL 4.50 (OpenGL 4.5)",
+													"GLSL 4.60 (OpenGL 4.6)"};
+				if(this < version_strings.length)
+				{
+					return version_strings[this];
+				}
+				else
+				{
+					return "INVALID GLSL VERSION";
+				}
+			}
+			
+			public string to_prefix_string()
+			{
+				const string version_prefix_array[17] = {"#version 100\n\n",
+				                                         "#version 110\n\n",
+				                                         "#version 120\n\n",
+				                                         "#version 130\n\n",
+				                                         "#version 140\n\n",
+				                                         "#version 150\n\n",
+				                                         "#version 300 es\n\n",
+				                                         "#version 330\n\n",
+				                                         "#version 310 es\n\n",
+				                                         "#version 320 es\n\n",
+				                                         "#version 400\n\n",
+				                                         "#version 410\n\n",
+				                                         "#version 420\n\n",
+				                                         "#version 430\n\n",
+				                                         "#version 440\n\n",
+				                                         "#version 450\n\n",
+				                                         "#version 460\n\n"};
+				if(this < version_prefix_array.length)
+				{
+					return version_prefix_array[this];
+				}
+				else
+				{
+					return "";
+				}
+			}
+		}
+
 		public bool switched_layout{ get; private set; default = false; }
 		public bool auto_compile { get; private set; default = false; }
+		public GLSLVersion glsl_version { get; private set; default = GLSL_300_ES; }
 
 		[Signal (action=true)]
 		public signal void escape_pressed();
@@ -14,6 +95,12 @@ namespace Shady
 
 		[GtkChild]
 		private Gtk.Switch auto_compile_switch;
+
+		[GtkChild]
+		private Gtk.ListStore glsl_version_list;
+
+		[GtkChild]
+		private Gtk.ComboBoxText glsl_version_box;
 
 		private GLib.Settings _settings;
 
@@ -31,6 +118,25 @@ namespace Shady
 
 			switched_layout_switch.set_state(switched_layout);
 			auto_compile_switch.set_state(auto_compile);
+
+			glsl_version = (GLSLVersion) _settings.get_enum("glsl-version");
+
+			realize.connect(() =>
+			{
+				List<GLSLVersion> version_list = Core.ShaderCompiler.get_glsl_version_list(get_window());
+
+				version_list.foreach((version) =>
+				{
+					Gtk.TreeIter iter;
+					glsl_version_list.append(out iter);
+					glsl_version_list.set(iter, 0, version.to_string(), 1, version);
+
+					if(version == glsl_version)
+					{
+						glsl_version_box.set_active_iter(iter);
+					}
+				});
+			});
 		}
 
 		[GtkCallback]
@@ -47,6 +153,17 @@ namespace Shady
 			_settings.set_boolean("auto-compile", state);
 
 			return false;
+		}
+
+		[GtkCallback]
+		private void glsl_version_changed(Gtk.ComboBox box)
+		{
+			Gtk.TreeIter iter;
+			box.get_active_iter(out iter);
+			Value version;
+			glsl_version_list.get_value(iter,1,out version);
+			glsl_version = (GLSLVersion) version.get_int();
+			_settings.set_enum("glsl-version", glsl_version);
 		}
 
 		[GtkCallback]
