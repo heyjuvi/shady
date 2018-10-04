@@ -27,8 +27,20 @@ namespace Shady.Core
 			try
 			{
 				string shader_prefix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/prefix.glsl", 0).get_data());
-				string shader_builtins = (string) (resources_lookup_data("/org/hasi/shady/data/shader/builtin_function_backport.glsl", 0).get_data());
+				string shader_builtins_full = (string) (resources_lookup_data("/org/hasi/shady/data/shader/builtin_function_backport.glsl", 0).get_data());
+				string shader_builtins_shadertoy = (string) (resources_lookup_data("/org/hasi/shady/data/shader/builtin_function_backport_shadertoy.glsl", 0).get_data());
 				string shader_suffix = (string) (resources_lookup_data("/org/hasi/shady/data/shader/suffix.glsl", 0).get_data());
+
+				string shader_builtins = "";
+
+				if(App.app_preferences.backporting_mode == AppPreferences.BackportingMode.FULL)
+				{
+					shader_builtins = shader_builtins_full;
+				}
+				else if(App.app_preferences.backporting_mode == AppPreferences.BackportingMode.SHADERTOY)
+				{
+					shader_builtins = shader_builtins_shadertoy;
+				}
 
 				string channel_prefix = "";
 

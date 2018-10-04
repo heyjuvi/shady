@@ -187,13 +187,89 @@
 								<property name="visible">True</property>
 								<property name="can_focus">True</property>
 								<property name="width_request">200</property>
-                <property name="model">glsl_version_list</property>
+								<property name="model">glsl_version_list</property>
 
 								<signal name="changed" handler="glsl_version_changed"/>
 							</object>
 							<packing>
 								<property name="left-attach">1</property>
 								<property name="top-attach">1</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkLabel" id="backporting_label">
+								<property name="visible">True</property>
+								<property name="label">Backporting</property>
+								<property name="halign">end</property>
+								<property name="valign">start</property>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">2</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkBox" id="backporting_box">
+								<property name="visible">True</property>
+								<property name="can_focus">False</property>
+								<property name="orientation">vertical</property>
+								<property name="spacing">0</property>
+
+								<child>
+									<object class="GtkRadioButton" id="glsl_backporting_none">
+										<property name="visible">True</property>
+										<property name="can_focus">True</property>
+										<property name="group">glsl_backporting_none</property>
+										<property name="label">None</property>
+
+										<signal name="toggled" handler="backporting_none_toggled" />
+									</object>
+									<packing>
+										<property name="expand">False</property>
+										<property name="fill">True</property>
+										<property name="position">0</property>
+									</packing>
+								</child>
+
+								<child>
+									<object class="GtkRadioButton" id="glsl_backporting_full">
+										<property name="visible">True</property>
+										<property name="can_focus">True</property>
+										<property name="group">glsl_backporting_none</property>
+										<property name="label">Full</property>
+
+										<signal name="toggled" handler="backporting_full_toggled" />
+									</object>
+									<packing>
+										<property name="expand">False</property>
+										<property name="fill">True</property>
+										<property name="position">1</property>
+									</packing>
+								</child>
+
+								<child>
+									<object class="GtkRadioButton" id="glsl_backporting_shadertoy">
+										<property name="visible">True</property>
+										<property name="can_focus">True</property>
+										<property name="group">glsl_backporting_none</property>
+										<property name="label">Shadertoy compatible</property>
+
+										<signal name="toggled" handler="backporting_shadertoy_toggled" />
+									</object>
+									<packing>
+										<property name="expand">False</property>
+										<property name="fill">True</property>
+										<property name="position">2</property>
+									</packing>
+								</child>
+							</object>
+							<packing>
+								<property name="left-attach">1</property>
+								<property name="top-attach">2</property>
 								<property name="width">1</property>
 							</packing>
 						</child>
@@ -207,4 +283,3 @@
 		</child>
 	</template>
 </interface>
-

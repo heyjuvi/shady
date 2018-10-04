@@ -83,9 +83,17 @@ namespace Shady
 			}
 		}
 
+		public enum BackportingMode
+		{
+			NONE,
+			FULL,
+			SHADERTOY;
+		}
+
 		public bool switched_layout{ get; private set; default = false; }
 		public bool auto_compile { get; private set; default = false; }
 		public GLSLVersion glsl_version { get; private set; default = GLSL_300_ES; }
+		public BackportingMode backporting_mode { get; private set; default = BackportingMode.NONE; }
 
 		[Signal (action=true)]
 		public signal void escape_pressed();
@@ -101,6 +109,21 @@ namespace Shady
 
 		[GtkChild]
 		private Gtk.ComboBoxText glsl_version_box;
+
+		[GtkChild]
+		private Gtk.Box backporting_box;
+
+		[GtkChild]
+		private Gtk.Label backporting_label;
+
+		[GtkChild]
+		private Gtk.RadioButton glsl_backporting_none;
+
+		[GtkChild]
+		private Gtk.RadioButton glsl_backporting_full;
+
+		[GtkChild]
+		private Gtk.RadioButton glsl_backporting_shadertoy;
 
 		private GLib.Settings _settings;
 
@@ -137,6 +160,47 @@ namespace Shady
 					}
 				});
 			});
+
+			update_backporting_visibility();
+
+			backporting_mode = (BackportingMode) _settings.get_enum("backporting");
+
+			if(backporting_mode == BackportingMode.NONE)
+			{
+				glsl_backporting_none.set_active(true);
+			}
+			else if(backporting_mode == BackportingMode.FULL)
+			{
+				glsl_backporting_full.set_active(true);
+			}
+			else
+			{
+				glsl_backporting_shadertoy.set_active(true);
+			}
+		}
+
+		private void update_backporting_visibility()
+		{
+			if(!(glsl_version == GLSLVersion.GLSL_100_ES || glsl_version == GLSLVersion.GLSL_110 || glsl_version == GLSLVersion.GLSL_120))
+			{
+				backporting_mode = BackportingMode.NONE;
+				backporting_box.hide();
+				backporting_label.hide();
+			}
+			else
+			{
+				backporting_box.show();
+				backporting_label.show();
+			}
+
+			if(glsl_version == GLSLVersion.GLSL_100_ES)
+			{
+				glsl_backporting_shadertoy.sensitive = true;
+			}
+			else
+			{
+				glsl_backporting_shadertoy.sensitive = false;
+			}
 		}
 
 		[GtkCallback]
@@ -164,6 +228,8 @@ namespace Shady
 			glsl_version_list.get_value(iter,1,out version);
 			glsl_version = (GLSLVersion) version.get_int();
 			_settings.set_enum("glsl-version", glsl_version);
+
+			update_backporting_visibility();
 		}
 
 		[GtkCallback]
@@ -172,6 +238,27 @@ namespace Shady
 			hide();
 
 			return true;
+		}
+
+		[GtkCallback]
+		private void backporting_none_toggled(Gtk.ToggleButton button)
+		{
+			backporting_mode = BackportingMode.NONE;
+			_settings.set_enum("backporting", backporting_mode);
+		}
+
+		[GtkCallback]
+		private void backporting_full_toggled(Gtk.ToggleButton button)
+		{
+			backporting_mode = BackportingMode.FULL;
+			_settings.set_enum("backporting", backporting_mode);
+		}
+
+		[GtkCallback]
+		private void backporting_shadertoy_toggled(Gtk.ToggleButton button)
+		{
+			backporting_mode = BackportingMode.SHADERTOY;
+			_settings.set_enum("backporting", backporting_mode);
 		}
 	}
 }
