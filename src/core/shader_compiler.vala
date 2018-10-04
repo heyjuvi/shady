@@ -65,6 +65,39 @@ namespace Shady.Core
 			}
 		}
 
+		public static List<AppPreferences.GLSLVersion> get_glsl_version_list(Gdk.Window window)
+		{
+
+			Gdk.GLContext gl_context = window.create_gl_context();
+			gl_context.make_current();
+
+			GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+
+			List<AppPreferences.GLSLVersion> version_list = new List<AppPreferences.GLSLVersion>();
+
+			for(AppPreferences.GLSLVersion version=0;version<AppPreferences.GLSLVersion.INVALID;version+=1)
+			{
+				string source = version.to_prefix_string() + "void main(void){}\n";
+				string[] source_array = { source, null };
+
+				glShaderSource(fragment_shader, 1, source_array, null);
+				glCompileShader(fragment_shader);
+
+				GLint success[] = {0};
+
+				glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, success);
+
+				if(success[0] == GL_TRUE)
+				{
+					version_list.append(version);
+				}
+			}
+
+			Gdk.GLContext.clear_current();
+
+			return version_list;
+		}
+
 		private static void compile(ThreadData data)
 		{
 			data.context.make_current();

@@ -139,6 +139,8 @@
 		<file>data/shader/load.glsl</file>
 		<file>data/shader/suffix.glsl</file>
 		<file>data/shader/vertex.glsl</file>
+		<file>data/shader/builtin_function_backport.glsl</file>
+		<file>data/shader/builtin_function_backport_shadertoy.glsl</file>
 
 		<!-- shadertoy textures -->
 		<file>data/shadertoy_presets/textures/abstract_1.png</file>

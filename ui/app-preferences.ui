@@ -9,6 +9,15 @@
 
 		<signal name="delete_event" handler="hide_on_delete" />
 
+		<child>
+			<object class="GtkListStore" id="glsl_version_list">
+				<columns>
+					<column type="gchararray"/>
+					<column type="gint"/>
+				</columns>
+			</object>
+		</child>
+
 	  <accelerator key="Escape" modifiers="" signal="escape_pressed" />
 
 		<child type="titlebar">
@@ -145,6 +154,7 @@
 						<property name="column-spacing">12</property>
 						<property name="column-homogeneous">False</property>
 
+
 						<child>
 							<object class="GtkLabel">
 								<property name="visible">True</property>
@@ -176,31 +186,14 @@
 						</child>
 
 						<child>
-							<object class="GtkComboBoxText">
+							<object class="GtkComboBoxText" id="glsl_version_box">
 								<property name="visible">True</property>
 								<property name="can_focus">True</property>
 								<property name="width_request">200</property>
-								<property name="active">3</property>
+        						<property name="model">glsl_version_list</property>
 
-								<items>
-									<item>GLSL 1.00 ES (OpenGL ES 2.0) (WebGL 1.0)</item>
-									<item>GLSL 1.10 (OpenGL 2.0)</item>
-									<item>GLSL 1.20 (OpenGL 2.1)</item>
-									<item>GLSL 1.30 (OpenGL 3.0)</item>
-									<item>GLSL 1.40 (OpenGL 3.1)</item>
-									<item>GLSL 1.50 (OpenGL 3.2)</item>
-									<item>GLSL 3.00 ES (OpenGL ES 3.0) (WebGL 2.0)</item>
-									<item>GLSL 3.30 (OpenGL 3.3)</item>
-									<item>GLSL 3.10 ES (OpenGL ES 3.1)</item>
-									<item>GLSL 3.20 ES (OpenGL ES 3.2)</item>
-									<item>GLSL 4.00 (OpenGL 4.0)</item>
-									<item>GLSL 4.10 (OpenGL 4.1)</item>
-									<item>GLSL 4.20 (OpenGL 4.2)</item>
-									<item>GLSL 4.30 (OpenGL 4.3)</item>
-									<item>GLSL 4.40 (OpenGL 4.4)</item>
-									<item>GLSL 4.50 (OpenGL 4.5)</item>
-									<item>GLSL 4.60 (OpenGL 4.6)</item>
-								</items>
+								<signal name="changed" handler="glsl_version_changed"/>
+
 							</object>
 							<packing>
 								<property name="left-attach">1</property>
