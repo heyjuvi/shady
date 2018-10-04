@@ -204,8 +204,11 @@ namespace Shady.Core
 		            }
                 });
 
+                print(@"testfoo: $child_pid\n");
+
                 ChildWatch.add(child_pid, (pid, status) =>
                 {
+                	print("test\n");
                     callback(spirv_buffer.data, compile_errors.data, success);
 	                Process.close_pid(pid);
                 });

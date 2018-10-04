@@ -347,8 +347,8 @@ namespace Shady
                 Core.GLSLCompiler validator = new Core.GLSLCompiler();
 		        validator.compile(Core.GLSLCompiler.Stage.FRAGMENT, buffer_source, (spirv, errors, success) =>
 		        {
-		            print(@"\n\n\n\nhmm? $success\n\n\n\n\n\n\n");
 		            compile_counter--;
+		            print(@"\n\n\n\nhmm? $success $compile_counter\n\n\n\n\n\n\n");
 
 		            if (!success)
 		            {
@@ -358,8 +358,7 @@ namespace Shady
 		                Shader.Renderpass renderpass = _curr_shader.get_renderpass_by_name(buffer);
 		                foreach (Core.GLSLCompiler.CompileError error in errors)
 		                {
-		                    int real_line = (int) (error.line - Core.SourceGenerator.renderpass_prefix_line_count(renderpass));
-		                    add_error_message(buffer, real_line, error.to_string());
+		                    add_error_message(buffer, error.line, error.to_string());
 		                }
 
 		                print("hello9\n");
