@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <interface>
+  <object class="GtkListStore" id="glsl_version_list">
+		<columns>
+			<column type="gchararray" />
+			<column type="gint" />
+		</columns>
+	</object>
+
 	<template class="ShadyAppPreferences" parent="GtkWindow">
 		<property name="default_width">320</property>
 		<property name="default_height">240</property>
@@ -8,15 +15,6 @@
 	  <property name="modal">True</property>
 
 		<signal name="delete_event" handler="hide_on_delete" />
-
-		<child>
-			<object class="GtkListStore" id="glsl_version_list">
-				<columns>
-					<column type="gchararray"/>
-					<column type="gint"/>
-				</columns>
-			</object>
-		</child>
 
 	  <accelerator key="Escape" modifiers="" signal="escape_pressed" />
 
@@ -154,7 +152,6 @@
 						<property name="column-spacing">12</property>
 						<property name="column-homogeneous">False</property>
 
-
 						<child>
 							<object class="GtkLabel">
 								<property name="visible">True</property>
@@ -190,10 +187,9 @@
 								<property name="visible">True</property>
 								<property name="can_focus">True</property>
 								<property name="width_request">200</property>
-        						<property name="model">glsl_version_list</property>
+                <property name="model">glsl_version_list</property>
 
 								<signal name="changed" handler="glsl_version_changed"/>
-
 							</object>
 							<packing>
 								<property name="left-attach">1</property>
@@ -201,7 +197,6 @@
 								<property name="width">1</property>
 							</packing>
 						</child>
-
 					</object>
 					<packing>
 						<property name="title">GLSL</property>
@@ -212,3 +207,4 @@
 		</child>
 	</template>
 </interface>
+
