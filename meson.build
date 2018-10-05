@@ -1,5 +1,5 @@
-project('Shady', 'c', 'vala',
-        version: '3.25.90',
+project('Shady', 'c', 'cpp', 'vala',
+        version: '0.0',
         license: 'GPLv3+')
 
 add_project_arguments(['--target-glib=2.38'],

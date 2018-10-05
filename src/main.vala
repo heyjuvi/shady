@@ -17,6 +17,7 @@
  */
 
 using Shady;
+using GLSlang;
 
 int main(string[] args)
 {

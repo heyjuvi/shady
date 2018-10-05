@@ -2,13 +2,13 @@ add_project_arguments([
     '--vapidir', join_paths(meson.current_source_dir(), 'vapi'),
     '--pkg', 'shady-gl',     # those are handled extra, because they
     '--pkg', 'shady-egl',    # are in the custom vapi directory of
-    '--pkg', 'shady-epoxy'   # the project
-#    '--pkg', 'shady-glslang'
+    '--pkg', 'shady-epoxy',  # the project
+    '--pkg', 'shady-glslang'
   ],
   language: 'vala'
 )
 
-add_global_arguments('-std=c11', language : 'c')
+add_global_arguments('-std=c++11', language: 'cpp')
 
 glib_dep = dependency('glib-2.0')
 gtk_dep = dependency('gtk+-3.0')
@@ -19,7 +19,7 @@ json_glib_dep = dependency('json-glib-1.0')
 libxml2_dep = dependency('libxml-2.0')
 
 app_sources = files(
-  'core/glsl_compiler.vala',
+  'core/glslang_validator.vala',
   'core/glsl_minifier.vala',
   'core/glsl_reference_parser.vala',
   'core/source_generator.vala',
@@ -52,7 +52,8 @@ app_sources = files(
   'shader_scene.vala',
   'shadertoy_search.vala',
   'shadertoy_search_dialog.vala',
-  'shadertoy_shader_item.vala'
+  'shadertoy_shader_item.vala',
+  'glslang/glslang_bindings.cpp'
 )
 
 sources = [
@@ -62,7 +63,15 @@ sources = [
 
 cc = meson.get_compiler('c')
 lib_epoxy = cc.find_library('epoxy')
-lib_glslang = cc.find_library('glslang')
+
+cxx = meson.get_compiler('cpp')
+lib_hlsl = cxx.find_library('HLSL')
+lib_ogl_compiler = cxx.find_library('OGLCompiler')
+lib_os_dependent = cxx.find_library('OSDependent')
+lib_spirv = cxx.find_library('SPIRV')
+lib_spv_remapper = cxx.find_library('SPVRemapper')
+lib_glslang = cxx.find_library('glslang')
+lib_pthread = cxx.find_library('pthread')
 
 executable('shady',
   sources,
@@ -75,8 +84,13 @@ executable('shady',
     json_glib_dep,
     libxml2_dep,
     lib_epoxy,
-    lib_glslang
+    lib_hlsl,
+    lib_ogl_compiler,
+    lib_os_dependent,
+    lib_spirv,
+    lib_spv_remapper,
+    lib_glslang,
+    lib_pthread
   ],
   install: true,
 )
-

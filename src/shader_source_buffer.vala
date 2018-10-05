@@ -128,11 +128,15 @@ namespace Shady
 			_error_tooltip_window.can_focus = false;
             _error_tooltip_window.window_position = Gtk.WindowPosition.NONE;
             _error_tooltip_window.get_style_context().add_class("error_tooltip");
+            _error_tooltip_window.height_request = 0;
 
             view.set_tooltip_window(_error_tooltip_window);
 
             _error_tooltip_label = new Gtk.Label("");
             _error_tooltip_label.xalign = 0.0f;
+            //_error_tooltip_label.wrap = true;
+            //_error_tooltip_label.wrap_mode = Pango.WrapMode.WORD;
+            _error_tooltip_label.height_request = 0;
             _error_tooltip_label.show();
 
             _error_tooltip_window.add(_error_tooltip_label);

@@ -89,7 +89,7 @@ namespace Shady
 		private Gtk.TextIter _last_match_start;
 		private Gtk.TextIter _last_match_end;
 
-        private Core.GLSLCompiler _validator;
+        private Core.GLSlangValidator _validator;
 		private Core.GLSLMinifier _minifier;
 
 		public ShaderEditor()
@@ -116,7 +116,7 @@ namespace Shady
 				print("Couldn't load default shader!\n");
 			}
 
-            _validator = new Core.GLSLCompiler();
+            _validator = new Core.GLSlangValidator();
 			_minifier = new Core.GLSLMinifier();
 
 			_curr_shader = ShaderArea.get_default_shader();
@@ -340,33 +340,27 @@ namespace Shady
 		    HashTable<string, string> sources = Core.SourceGenerator.generate_shader_source(_curr_shader, true);
 		    int compile_counter = (int) sources.get_keys().length();
 
+            clear_error_messages();
+
 		    foreach (string buffer in sources.get_keys())
 		    {
 		        string buffer_source = sources[buffer];
 
-                Core.GLSLCompiler validator = new Core.GLSLCompiler();
-		        validator.compile(Core.GLSLCompiler.Stage.FRAGMENT, buffer_source, (spirv, errors, success) =>
+                Core.GLSlangValidator validator = new Core.GLSlangValidator();
+		        validator.validate(buffer_source, (errors, success) =>
 		        {
-		            compile_counter--;
-		            print(@"\n\n\n\nhmm? $success $compile_counter\n\n\n\n\n\n\n");
-
 		            if (!success)
 		            {
-		                print("hello1\n");
 		                total_success = false;
 
 		                Shader.Renderpass renderpass = _curr_shader.get_renderpass_by_name(buffer);
-		                foreach (Core.GLSLCompiler.CompileError error in errors)
+		                foreach (Core.GLSlangValidator.CompileError error in errors)
 		                {
-		                    add_error_message(buffer, error.line, error.to_string());
+		                    add_error_message(buffer, error.line, error.to_string_without_lines());
 		                }
-
-		                print("hello9\n");
 		            }
 		        });
 		    }
-
-		    while (compile_counter != 0);
 
 		    return total_success;
 		}
