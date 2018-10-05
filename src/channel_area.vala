@@ -103,7 +103,7 @@ namespace Shady
 
 					Shader? input_shader = get_shader_from_input(input);
 
-					string full_target_source = SourceGenerator.generate_renderpass_source(input_shader.renderpasses.index(0));
+					string full_target_source = SourceGenerator.generate_renderpass_source(input_shader.renderpasses.index(0), false);
 
 					ShaderCompiler.compile_pass(-1, full_target_source, _target_prop, _compile_resources);
 
@@ -127,7 +127,7 @@ namespace Shady
 		{
 			make_current();
 
-			string vertex_source = SourceGenerator.generate_vertex_source();
+			string vertex_source = SourceGenerator.generate_vertex_source(false);
 			string[] vertex_source_array = { vertex_source, null };
 
 			_compile_resources.vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -172,7 +172,7 @@ namespace Shady
 			input.channel = 0;
 			Shader.Renderpass target_pass = get_renderpass_from_input(input);
 
-			string full_target_source = SourceGenerator.generate_renderpass_source(target_pass);
+			string full_target_source = SourceGenerator.generate_renderpass_source(target_pass, false);
 
 			ShaderCompiler.compile_pass(-1, full_target_source, _target_prop, _compile_resources);
 

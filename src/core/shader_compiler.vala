@@ -312,7 +312,7 @@ namespace Shady.Core
 			}
 
 			Shader.Renderpass image_pass = new_shader.renderpasses.index(image_index);
-			string full_image_source = SourceGenerator.generate_renderpass_source(image_pass);
+			string full_image_source = SourceGenerator.generate_renderpass_source(image_pass, true);
 
 			bool success = compile_pass(image_index, full_image_source, image_prop, compile_resources);
 			if (!success)
@@ -323,7 +323,7 @@ namespace Shady.Core
 			for(int i=0;i<buffer_count;i++)
 			{
 				Shader.Renderpass buffer_pass = new_shader.renderpasses.index(buffer_indices[i]);
-				string full_buffer_source = SourceGenerator.generate_renderpass_source(buffer_pass);
+				string full_buffer_source = SourceGenerator.generate_renderpass_source(buffer_pass, true);
 
 				success = compile_pass(buffer_indices[i], full_buffer_source, buffer_props[i], compile_resources);
 				if (!success)

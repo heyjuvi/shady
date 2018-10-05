@@ -182,7 +182,7 @@ namespace Shady
 			ShaderCompiler.initialize_pool();
 			_compile_resources.window = get_window();
 
-			string vertex_source = SourceGenerator.generate_vertex_source();
+			string vertex_source = SourceGenerator.generate_vertex_source(true);
 			string[] vertex_source_array = { vertex_source, null };
 
 			_compile_resources.vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -247,6 +247,21 @@ namespace Shady
 			_target_prop.tex_targets = {GL_TEXTURE_2D};
 			_target_prop.fb = 0;
 
+			Shader.Input input = new Shader.Input();
+			input.type = Shader.InputType.TEXTURE;
+			input.channel = 0;
+			Shader.Renderpass target_pass = ChannelArea.get_renderpass_from_input(input);
+
+			string target_vertex_source = SourceGenerator.generate_vertex_source(false);
+			string[] target_vertex_source_array = { target_vertex_source, null };
+
+			GLuint target_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+			glShaderSource(target_vertex_shader, 1, target_vertex_source_array, null);
+			glCompileShader(target_vertex_shader);
+
+			GLuint vertex_shader_backup = _compile_resources.vertex_shader;
+			_compile_resources.vertex_shader = target_vertex_shader;
+
 			_target_prop.program = glCreateProgram();
 			_target_prop.context = get_context();
 
@@ -255,14 +270,11 @@ namespace Shady
 			glAttachShader(_target_prop.program, _compile_resources.vertex_shader);
 			glAttachShader(_target_prop.program, _compile_resources.fragment_shader);
 
-			Shader.Input input = new Shader.Input();
-			input.type = Shader.InputType.TEXTURE;
-			input.channel = 0;
-			Shader.Renderpass target_pass = ChannelArea.get_renderpass_from_input(input);
-
-			string full_target_source = SourceGenerator.generate_renderpass_source(target_pass);
+			string full_target_source = SourceGenerator.generate_renderpass_source(target_pass, false);
 
 			ShaderCompiler.compile_pass(-1, full_target_source, _target_prop, _compile_resources);
+
+			_compile_resources.vertex_shader = vertex_shader_backup;
 
 			image_prop1.program = glCreateProgram();
 			image_prop2.program = glCreateProgram();

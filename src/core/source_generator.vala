@@ -10,19 +10,19 @@ namespace Shady.Core
 		{
 		}
 
-		public static HashTable<string, string> generate_shader_source(Shader shader)
+		public static HashTable<string, string> generate_shader_source(Shader shader, bool set_version)
 		{
 			HashTable<string, string> string_table = new HashTable<string, string>(str_hash, str_equal);
 			for(int i=0;i<shader.renderpasses.length;i++)
 			{
 				Shader.Renderpass renderpass = shader.renderpasses.index(i);
-				string_table.insert(renderpass.name, generate_renderpass_source(renderpass));
+				string_table.insert(renderpass.name, generate_renderpass_source(renderpass, set_version));
 			}
 
 			return string_table;
 		}
 
-		public static string generate_renderpass_source(Shader.Renderpass renderpass)
+		public static string generate_renderpass_source(Shader.Renderpass renderpass, bool set_version)
 		{
 			try
 			{
@@ -68,13 +68,25 @@ namespace Shady.Core
 					}
 				}
 
-				return App.app_preferences.glsl_version.to_prefix_string() +
-				       shader_prefix +
-				       shader_builtins +
-				       channel_prefix +
-				       _line_directive +
-				       renderpass.code +
-				       shader_suffix;
+				if(set_version)
+				{
+					return App.app_preferences.glsl_version.to_prefix_string() +
+						   shader_prefix +
+						   shader_builtins +
+						   channel_prefix +
+						   _line_directive +
+						   renderpass.code +
+						   shader_suffix;
+				}
+				else
+				{
+					return shader_prefix +
+					       shader_builtins_full +
+					       channel_prefix +
+					       _line_directive +
+					       renderpass.code +
+					       shader_suffix;
+				}
 			}
 			catch (Error e)
 			{
@@ -83,12 +95,19 @@ namespace Shady.Core
 			}
 		}
 
-		public static string generate_vertex_source()
+		public static string generate_vertex_source(bool set_version)
 		{
 			try
 			{
 				string vertex_source = (string) (resources_lookup_data("/org/hasi/shady/data/shader/vertex.glsl", 0).get_data());
-				return App.app_preferences.glsl_version.to_prefix_string() + vertex_source;
+				if(set_version)
+				{
+					return App.app_preferences.glsl_version.to_prefix_string() + vertex_source;
+				}
+				else
+				{
+					return vertex_source;
+				}
 			}
 			catch(Error e)
 			{

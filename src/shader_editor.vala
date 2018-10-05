@@ -337,7 +337,7 @@ namespace Shady
 
 		    gather_shader();
 
-		    HashTable<string, string> sources = Core.SourceGenerator.generate_shader_source(_curr_shader);
+		    HashTable<string, string> sources = Core.SourceGenerator.generate_shader_source(_curr_shader, true);
 		    int compile_counter = (int) sources.get_keys().length();
 
 		    foreach (string buffer in sources.get_keys())
