@@ -142,7 +142,7 @@
 				</child>
 
 				<child>
-					<object class="GtkRadioButton" id="3dtexture_radio_button">
+					<object class="GtkRadioButton" id="_3dtexture_radio_button">
 						<property name="visible">True</property>
 						<property name="can_focus">True</property>
 						<property name="group">none_radio_button</property>

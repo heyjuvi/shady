@@ -5,6 +5,44 @@ namespace Shady
 	{
 		public signal void channel_type_changed(Shader.InputType channel_type);
 
+		[GtkChild]
+		private Gtk.RadioButton _3dtexture_radio_button;
+
+		[GtkChild]
+		private Gtk.RadioButton none_radio_button;
+
+		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
+
+		construct
+		{
+		    _settings.changed["glsl-version"].connect(() =>
+	        {
+	            AppPreferences.GLSLVersion glsl_version = (AppPreferences.GLSLVersion) _settings.get_enum("glsl-version");
+
+	            if (glsl_version == AppPreferences.GLSLVersion.GLSL_100_ES)
+	            {
+	                _3dtexture_radio_button.visible = false;
+	                none_radio_button.active = true;
+	            }
+	            else
+	            {
+	                _3dtexture_radio_button.visible = true;
+	            }
+	        });
+
+            AppPreferences.GLSLVersion glsl_version = (AppPreferences.GLSLVersion) _settings.get_enum("glsl-version");
+
+	        if (glsl_version == AppPreferences.GLSLVersion.GLSL_100_ES)
+            {
+                _3dtexture_radio_button.visible = false;
+                none_radio_button.active = true;
+            }
+            else
+            {
+                _3dtexture_radio_button.visible = true;
+            }
+		}
+
 		public ShaderChannelTypePopover()
 		{
 		}

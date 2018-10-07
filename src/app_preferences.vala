@@ -277,8 +277,10 @@ namespace Shady
 		{
 			Gtk.TreeIter iter;
 			box.get_active_iter(out iter);
+
 			Value version;
-			glsl_version_list.get_value(iter,1,out version);
+			glsl_version_list.get_value(iter, 1, out version);
+
 			glsl_version = (GLSLVersion) version.get_int();
 			_settings.set_enum("glsl-version", glsl_version);
 
