@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is modified from the variant from GtkSourceView
+
+ Original Authors:  Chong Kai Xiong, Simon Wenner
+ Copyright (C) 2005-2006  Chong Kai Xiong  <descender@phreaker.net>
+ Copyright (C) 2009-2010  Simon Wenner  <simon@wenner.ch>
+-->
+
+<!--
+ Defines all symbols of the OpenGL Shading Language (GLSL) version ES 3.10.
+ Specification (January 29, 2016):
+https://www.khronos.org/registry/OpenGL/specs/es/3.1/GLSL_ES_Specification_3.10.pdf
+-->
+<language id="shadertoy_glsl_310es" _name="OpenGL Shading Language (Shadertoy.com)" version="2.0" _section="Source">
+
+  <metadata>
+    <property name="globs">*.glslv;*.glslf</property>
+    <property name="line-comment-start">//</property>
+    <property name="block-comment-start">/*</property>
+    <property name="block-comment-end">*/</property>
+  </metadata>
+
+  <styles>
+    <style id="preprocessor"      name="Preprocessor"          map-to="def:preprocessor"/>
+    <style id="type"              name="Data Type"             map-to="def:type"/>
+    <style id="keyword"           name="Keyword"               map-to="def:keyword"/>
+    <style id="builtin-function"  name="Builtin Function"      map-to="def:builtin"/>
+    <style id="builtin-constant"  name="Builtin Constant"      map-to="def:constant"/>
+    <style id="builtin-variable"  name="Builtin Variable"      map-to="def:identifier"/>
+    <style id="swizzling"         name="Swizzling"             map-to="def:preprocessor"/>
+    <style id="floating-point"    name="Floating point number" map-to="def:floating-point"/>
+    <style id="future-use"        name="Reserved Keywords"/>
+  </styles>
+
+  <definitions>
+    <context id="preprocessor" style-ref="preprocessor">
+      <prefix>^[ \t]*#[ \t]*</prefix>
+      <keyword>define</keyword>
+      <keyword>undef</keyword>
+      <keyword>(if|elif)([ \t]+defined)?</keyword>
+      <keyword>ifdef</keyword>
+      <keyword>ifndef</keyword>
+      <keyword>else</keyword>
+      <keyword>endif</keyword>
+      <keyword>error</keyword>
+      <keyword>pragma</keyword>
+      <keyword>extension</keyword>
+      <keyword>version</keyword>
+      <keyword>line</keyword>
+    </context>
+
+    <context id="common-macros" style-ref="preprocessor">
+      <keyword>__VERSION__</keyword>
+      <keyword>__LINE__</keyword>
+      <keyword>__FILE__</keyword>
+      <keyword>GL_ES</keyword>
+    </context>
+
+    <context id="keywords" style-ref="keyword">
+      <keyword>break</keyword>
+      <keyword>continue</keyword>
+      <keyword>discard</keyword>
+      <keyword>do</keyword>
+      <keyword>for</keyword>
+      <keyword>if</keyword>
+      <keyword>else</keyword>
+      <keyword>return</keyword>
+      <keyword>while</keyword>
+      <keyword>switch</keyword>
+      <keyword>case</keyword>
+      <keyword>default</keyword>
+      <!-- qualifiers -->
+      <keyword>const</keyword>
+      <keyword>in</keyword>
+      <keyword>inout</keyword>
+      <keyword>out</keyword>
+      <keyword>uniform</keyword>
+      <keyword>buffer</keyword>
+      <keyword>shared</keyword>
+      <keyword>invariant</keyword>
+      <keyword>centroid</keyword>
+      <keyword>flat</keyword>
+      <keyword>smooth</keyword>
+      <keyword>layout</keyword>
+      <keyword>coherent</keyword>
+      <keyword>volatile</keyword>
+      <keyword>restrict</keyword>
+      <keyword>readonly</keyword>
+      <keyword>writeonly</keyword>
+      <!-- precision -->
+      <keyword>lowp</keyword>
+      <keyword>mediump</keyword>
+      <keyword>highp</keyword>
+      <keyword>precision</keyword>
+    </context>
+
+    <context id="primitives" style-ref="type">
+      <keyword>bool</keyword>
+      <keyword>float</keyword>
+      <keyword>int</keyword>
+      <keyword>uint</keyword>
+      <keyword>atomic_uint</keyword>
+      <keyword>struct</keyword>
+      <keyword>void</keyword>
+      <keyword>[biu]?vec[2-4]</keyword>
+      <keyword>mat[2-4]</keyword>
+      <keyword>mat[2-4]x[2-4]</keyword>
+      <keyword>[iu]?sampler[1-3]D</keyword>
+      <keyword>sampler[1-2]DShadow</keyword>
+      <keyword>[iu]?sampler[1-2]DArray</keyword>
+      <keyword>sampler[1-2]DArrayShadow</keyword>
+      <keyword>[iu]?samplerCube</keyword>
+      <keyword>samplerCubeShadow</keyword>
+      <keyword>[iu]?sampler2DMS</keyword>
+      <keyword>[iu]?image2DArray</keyword>
+      <keyword>[iu]?image[2-3]D</keyword>
+      <keyword>[iu]?imageCube</keyword>
+    </context>
+
+    <context id="reserved-keywords-for-future-use" style-ref="future-use">
+      <keyword>attribute</keyword>
+      <keyword>varying</keyword>
+      <keyword>resource</keyword>
+      <keyword>noperspective</keyword>
+      <keyword>sample</keyword>
+      <keyword>patch</keyword>
+      <keyword>subroutine</keyword>
+      <keyword>precise</keyword>
+      <keyword>common</keyword>
+      <keyword>partition</keyword>
+      <keyword>active</keyword>
+      <keyword>asm</keyword>
+      <keyword>class</keyword>
+      <keyword>union</keyword>
+      <keyword>enum</keyword>
+      <keyword>typedef</keyword>
+      <keyword>template</keyword>
+      <keyword>this</keyword>
+      <keyword>goto</keyword>
+      <keyword>inline</keyword>
+      <keyword>noinline</keyword>
+      <keyword>public</keyword>
+      <keyword>static</keyword>
+      <keyword>extern</keyword>
+      <keyword>external</keyword>
+      <keyword>interface</keyword>
+      <keyword>long</keyword>
+      <keyword>short</keyword>
+      <keyword>double</keyword>
+      <keyword>half</keyword>
+      <keyword>fixed</keyword>
+      <keyword>unsigned</keyword>
+      <keyword>superp</keyword>
+      <keyword>input</keyword>
+      <keyword>output</keyword>
+      <keyword>[hfd]vec[2-4]</keyword>
+      <keyword>sampler3DRect</keyword>
+      <keyword>[iu]?sampler2DRect</keyword>
+      <keyword>sampler2DRectShadow</keyword>
+      <keyword>[iu]?image1D</keyword>
+      <keyword>[iu]?imageBuffer</keyword>
+      <keyword>[iu]?image1DArray</keyword>
+      <keyword>[iu]?image2DRect</keyword>
+      <keyword>[iu]?imageCubeArray</keyword>
+      <keyword>[iu]?sampler1D</keyword>
+      <keyword>[iu]?sampler1DShadow</keyword>
+      <keyword>[iu]?sampler1DArray</keyword>
+      <keyword>[iu]?sampler1DArrayShadow</keyword>
+      <keyword>[iu]?samplerBuffer</keyword>
+      <keyword>[iu]?sampler2DMSArray</keyword>
+      <keyword>[iu]?image2DMS</keyword>
+      <keyword>[iu]?image2DMSArray</keyword>
+      <keyword>[iu]?samplerCubeArray</keyword>
+      <keyword>filter</keyword>
+      <keyword>sizeof</keyword>
+      <keyword>cast</keyword>
+      <keyword>namespace</keyword>
+      <keyword>using</keyword>
+      <keyword>dmat[2-4]</keyword>
+      <keyword>dmat[2-4]x[2-4]</keyword>
+    </context>
+
+    <context id="builtin-functions" style-ref="builtin-function">
+      <!-- Section 8.1 -->
+      <keyword>radians</keyword>
+      <keyword>degrees</keyword>
+      <keyword>sin</keyword>
+      <keyword>cos</keyword>
+      <keyword>tan</keyword>
+      <keyword>asin</keyword>
+      <keyword>acos</keyword>
+      <keyword>atan</keyword>
+      <keyword>sinh</keyword>
+      <keyword>cosh</keyword>
+      <keyword>tanh</keyword>
+      <keyword>asinh</keyword>
+      <keyword>acosh</keyword>
+      <keyword>atanh</keyword>
+      <!-- Section 8.2 -->
+      <keyword>pow</keyword>
+      <keyword>exp</keyword>
+      <keyword>log</keyword>
+      <keyword>exp2</keyword>
+      <keyword>log2</keyword>
+      <keyword>sqrt</keyword>
+      <keyword>inversesqrt</keyword>
+      <!-- Section 8.3 -->
+      <keyword>abs</keyword>
+      <keyword>sign</keyword>
+      <keyword>floor</keyword>
+      <keyword>trunc</keyword>
+      <keyword>round</keyword>
+      <keyword>roundEven</keyword>
+      <keyword>ceil</keyword>
+      <keyword>fract</keyword>
+      <keyword>mod</keyword>
+      <keyword>modf</keyword>
+      <keyword>min</keyword>
+      <keyword>max</keyword>
+      <keyword>clamp</keyword>
+      <keyword>mix</keyword>
+      <keyword>step</keyword>
+      <keyword>smoothstep</keyword>
+      <keyword>isnan</keyword>
+      <keyword>isinf</keyword>
+      <keyword>floatBitsToInt</keyword>
+      <keyword>floatBitsToUint</keyword>
+      <keyword>intBitsToFloat</keyword>
+      <keyword>uintBitsToFloat</keyword>
+      <keyword>frexp</keyword>
+      <keyword>ldexp</keyword>
+      <!-- Section 8.4 -->
+      <keyword>packSnorm2x16</keyword>
+      <keyword>unpackSnorm2x16</keyword>
+      <keyword>packUnorm2x16</keyword>
+      <keyword>unpackUnorm2x16</keyword>
+      <keyword>packHalf2x16</keyword>
+      <keyword>unpackHalf2x16</keyword>
+      <keyword>packUnorm4x8</keyword>
+      <keyword>packSnorm4x8</keyword>
+      <keyword>unpackUnorm4x8</keyword>
+      <keyword>unpackSnorm4x8</keyword>
+      <!-- Section 8.5 -->
+      <keyword>length</keyword>
+      <keyword>distance</keyword>
+      <keyword>dot</keyword>
+      <keyword>cross</keyword>
+      <keyword>normalize</keyword>
+      <keyword>faceforward</keyword>
+      <keyword>reflect</keyword>
+      <keyword>refract</keyword>
+      <!-- Section 8.6 -->
+      <keyword>matrixCompMult</keyword>
+      <keyword>outerProduct</keyword>
+      <keyword>transpose</keyword>
+      <keyword>determinant</keyword>
+      <keyword>inverse</keyword>
+      <!-- Section 8.7 -->
+      <keyword>lessThan</keyword>
+      <keyword>lessThanEqual</keyword>
+      <keyword>greaterThan</keyword>
+      <keyword>greaterThanEqual</keyword>
+      <keyword>equal</keyword>
+      <keyword>notEqual</keyword>
+      <keyword>any</keyword>
+      <keyword>all</keyword>
+      <keyword>not</keyword>
+      <!-- Section 8.8 -->
+      <keyword>bitfieldExtract</keyword>
+      <keyword>bitfieldInsert</keyword>
+      <keyword>bitfieldReverse</keyword>
+      <keyword>bitCount</keyword>
+      <keyword>findLSB</keyword>
+      <keyword>findMSB</keyword>
+      <keyword>uaddCarry</keyword>
+      <keyword>usubBorrow</keyword>
+      <keyword>umulExtended</keyword>
+      <keyword>imulExtended</keyword>
+      <!-- Section 8.9 -->
+      <keyword>textureSize</keyword>
+      <keyword>texture</keyword>
+      <keyword>textureProj</keyword>
+      <keyword>textureLod</keyword>
+      <keyword>textureOffset</keyword>
+      <keyword>texelFetch</keyword>
+      <keyword>texelFetchOffset</keyword>
+      <keyword>textureProjOffset</keyword>
+      <keyword>textureLodOffset</keyword>
+      <keyword>textureProjLod</keyword>
+      <keyword>textureProjLodOffset</keyword>
+      <keyword>textureGrad</keyword>
+      <keyword>textureGradOffset</keyword>
+      <keyword>textureProjGrad</keyword>
+      <keyword>textureProjGradOffset</keyword>
+      <keyword>textureGather</keyword>
+      <keyword>textureGatherOffset</keyword>
+      <!-- Section 8.10 -->
+      <keyword>atomicCounterIncrement</keyword>
+      <keyword>atomicCounterDecrement</keyword>
+      <keyword>atomicCounter</keyword>
+      <!-- Section 8.11 -->
+      <keyword>atomicAdd</keyword>
+      <keyword>atomicMin</keyword>
+      <keyword>atomicMax</keyword>
+      <keyword>atomicAnd</keyword>
+      <keyword>atomicOr</keyword>
+      <keyword>atomicXor</keyword>
+      <keyword>atomicExchange</keyword>
+      <keyword>atomicCompSwap</keyword>
+      <!-- Section 8.12 -->
+      <keyword>imageSize</keyword>
+      <keyword>imageLoad</keyword>
+      <keyword>imageStore</keyword>
+      <!-- Section 8.13 -->
+      <keyword>dFdx</keyword>
+      <keyword>dFdy</keyword>
+      <keyword>fwidth</keyword>
+    </context>
+
+    <context id="builtin-variables" style-ref="builtin-variable">
+      <!-- Section 7.2 (fragment language) -->
+      <keyword>gl_FragCoord</keyword>
+      <keyword>gl_FrontFacing</keyword>
+      <keyword>gl_FragDepth</keyword>
+      <keyword>gl_PointCoord</keyword>
+      <keyword>gl_HelperInvocation</keyword>
+    </context>
+
+    <context id="swizzlings">
+      <start>\.</start>
+      <end>.</end>
+      <include>
+        <context id="real-swizzlings" style-ref="swizzling">
+          <match>[xyzwrgba]{1,4}</match>
+        </context>
+      </include>
+    </context>
+
+    <context id="float" style-ref="floating-point">
+      <match extended="true">
+        (?&lt;![\w\.])
+        ((\.[0-9]+ | [0-9]+\.[0-9]*) ([Ee][+-]?[0-9]*)? |
+         ([0-9]+[Ee][+-]?[0-9]*))
+        [fF]?
+        (?![\w\.])
+      </match>
+    </context>
+
+    <context id="builtin-constants" style-ref="builtin-constant">
+      <!-- Section 7.3 -->
+      <keyword>gl_MaxVertexAttribs</keyword>
+      <keyword>gl_MaxVertexUniformVectors</keyword>
+      <keyword>gl_MaxVertexOutputVectors</keyword>
+      <keyword>gl_MaxFragmentInputVectors</keyword>
+      <keyword>gl_MaxFragmentUniformVectors</keyword>
+      <keyword>gl_MaxDrawBuffers</keyword>
+
+      <keyword>gl_MaxVertexTextureImageUnits</keyword>
+      <keyword>gl_MaxCombinedTextureImageUnits</keyword>
+      <keyword>gl_MaxTextureImageUnits</keyword>
+
+      <keyword>gl_MinProgramTexelOffset</keyword>
+      <keyword>gl_MaxProgramTexelOffset</keyword>
+
+      <keyword>gl_MaxImageUnits</keyword>
+      <keyword>gl_MaxVertexImageUniforms</keyword>
+      <keyword>gl_MaxFragmentImageUniforms</keyword>
+      <keyword>gl_MaxComputeImageUniforms</keyword>
+      <keyword>gl_MaxCombinedImageUniforms</keyword>
+      <keyword>gl_MaxCombinedShaderOutputResources</keyword>
+
+      <keyword>gl_MaxComputeWorkGroupCount</keyword>
+      <keyword>gl_MaxComputeWorkGroupSize</keyword>
+      <keyword>gl_MaxComputeUniformComponents</keyword>
+      <keyword>gl_MaxComputeTextureImageUnits</keyword>
+
+      <keyword>gl_MaxComputeAtomicCounters</keyword>
+      <keyword>gl_MaxComputeAtomicCounterBuffers</keyword>
+
+      <keyword>gl_MaxVertexAtomicCounters</keyword>
+      <keyword>gl_MaxFragmentAtomicCounters</keyword>
+      <keyword>gl_MaxCombinedAtomicCounters</keyword>
+      <keyword>gl_MaxAtomicCounterBindings</keyword>
+
+      <keyword>gl_MaxFragmentAtomicCounterBuffers</keyword>
+      <keyword>gl_MaxVertexAtomicCounterBuffers</keyword>
+      <keyword>gl_MaxCombinedAtomicCounterBuffers</keyword>
+      <keyword>gl_MaxAtomicCounterBufferSize
+    </context>
+
+    <context id="builtin-uniform-states" style-ref="builtin-constant">
+      <!-- Section 7.4 -->
+      <keyword>gl_DepthRange</keyword>
+    </context>
+
+    <context id="shadertoy_glsl_310es">
+      <include>
+        <context ref="def:c-like-comment"/>
+        <context ref="def:c-like-comment-multiline"/>
+        <context ref="def:c-like-close-comment-outside-comment"/>
+        <context ref="c:if0-comment"/>
+        <context ref="preprocessor"/>
+        <context ref="common-macros"/>
+        <context ref="keywords"/>
+        <context ref="primitives"/>
+        <context ref="c:boolean"/>
+        <context ref="c:decimal"/>
+        <context ref="c:octal"/>
+        <context ref="c:hexadecimal"/>
+        <context ref="float"/>
+        <context ref="builtin-functions"/>
+        <context ref="builtin-variables"/>
+        <context ref="builtin-constants"/>
+        <context ref="builtin-uniform-states"/>
+        <context ref="swizzlings"/>
+        <context ref="reserved-keywords-for-future-use"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>

@@ -1,17 +1,4 @@
-#if __VERSION__ <= 120
-float sinh(float x){return .5*(exp(x)-exp(-x));}
-float cosh(float x){return .5*(exp(x)+exp(-x));}
-float tanh(float x){return 1.-2./(exp(2.*x)+1.);}
-float asinh(float x){return log(x+sqrt(x*x+1.));}
-float acosh(float x){return log(x+sqrt(x*x-1.));}
-float atanh(float x){return .5*log((1.+x)/(1.-x));}
-/*
-float round(float x){return floor(x+.5);}
-vec2 round(vec2 x){return floor(x+.5);}
-vec3 round(vec3 x){return floor(x+.5);}
-vec4 round(vec4 x){return floor(x+.5);}
-*/
-mat3 transpose(mat3 m){return mat3(vec3(m[0].x,m[1].x,m[2].x),vec3(m[0].y,m[1].y,m[2].y),vec3(m[0].z,m[1].z,m[2].z));}
+#if __VERSION__ < 150
 float determinant(mat2 m){return m[0][0]*m[1][1]-m[1][0]*m[0][1];}
 float determinant(mat4 m){
   float b00=m[0][0]*m[1][1]-m[0][1]*m[1][0],
@@ -27,6 +14,21 @@ float determinant(mat4 m){
         b10=m[2][1]*m[3][3]-m[2][3]*m[3][1],
         b11=m[2][2]*m[3][3]-m[2][3]*m[3][2];
   return b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;}
+#endif
+#if __VERSION__ <= 120
+float sinh(float x){return .5*(exp(x)-exp(-x));}
+float cosh(float x){return .5*(exp(x)+exp(-x));}
+float tanh(float x){return 1.-2./(exp(2.*x)+1.);}
+float asinh(float x){return log(x+sqrt(x*x+1.));}
+float acosh(float x){return log(x+sqrt(x*x-1.));}
+float atanh(float x){return .5*log((1.+x)/(1.-x));}
+/*
+float round(float x){return floor(x+.5);}
+vec2 round(vec2 x){return floor(x+.5);}
+vec3 round(vec3 x){return floor(x+.5);}
+vec4 round(vec4 x){return floor(x+.5);}
+*/
+mat3 transpose(mat3 m){return mat3(vec3(m[0].x,m[1].x,m[2].x),vec3(m[0].y,m[1].y,m[2].y),vec3(m[0].z,m[1].z,m[2].z));}
 mat2 inverse(mat2 m){return mat2(m[1][1],-m[0][1],-m[1][0],m[0][0])/(m[0][0]*m[1][1]-m[1][0]*m[0][1]);}
 mat4 inverse(mat4 m){
   float a00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],

@@ -33,7 +33,29 @@
 		<file>data/images/views.png</file>
 
 	  <!-- language specs -->
-	  <file>data/lang_specs/shadertoy_glsl.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_100es.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_100es_full.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_100es_shadertoy.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_110.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_110_full.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_120.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_120_full.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_130.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_130_full.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_140.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_140_full.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_150.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_300es.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_330.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_310es.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_320es.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_400.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_410.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_420.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_430.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_440.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_450.lang</file>
+	  <file>data/lang_specs/shadertoy_glsl_460.lang</file>
 
 	  <!-- language refpages es3.0 -->
 	  <file>data/refpages/es3.0/abs.xml</file>

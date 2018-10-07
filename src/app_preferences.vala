@@ -81,6 +81,36 @@ namespace Shady
 					return "";
 				}
 			}
+
+			public string to_lang_name()
+			{
+				const string lang_names[17] = {"shadertoy_glsl_100es",
+											   "shadertoy_glsl_110",
+											   "shadertoy_glsl_120",
+											   "shadertoy_glsl_130",
+											   "shadertoy_glsl_140",
+											   "shadertoy_glsl_150",
+											   "shadertoy_glsl_300es",
+											   "shadertoy_glsl_330",
+											   "shadertoy_glsl_310es",
+											   "shadertoy_glsl_320es",
+											   "shadertoy_glsl_400",
+											   "shadertoy_glsl_410",
+											   "shadertoy_glsl_420",
+											   "shadertoy_glsl_430",
+											   "shadertoy_glsl_440",
+											   "shadertoy_glsl_450",
+											   "shadertoy_glsl_460"};
+
+				if(this < lang_names.length)
+				{
+					return lang_names[this];
+				}
+				else
+				{
+					return "";
+				}
+			}
 		}
 
 		public enum BackportingMode
@@ -88,6 +118,22 @@ namespace Shady
 			NONE,
 			FULL,
 			SHADERTOY;
+
+			public string to_lang_suffix()
+			{
+				const string lang_suffixes[3] = {"",
+				                                 "_full",
+				                                 "_shadertoy"};
+
+				if(this < lang_suffixes.length)
+				{
+					return lang_suffixes[this];
+				}
+				else
+				{
+					return "";
+				}
+			}
 		}
 
 		public bool switched_layout{ get; private set; default = false; }
@@ -181,7 +227,7 @@ namespace Shady
 
 		private void update_backporting_visibility()
 		{
-			if(!(glsl_version == GLSLVersion.GLSL_100_ES || glsl_version == GLSLVersion.GLSL_110 || glsl_version == GLSLVersion.GLSL_120))
+			if(!(glsl_version < GLSLVersion.GLSL_150))
 			{
 				backporting_mode = BackportingMode.NONE;
 				backporting_box.hide();
