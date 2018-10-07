@@ -57,6 +57,24 @@ namespace Shady
 			AppPreferences.BackportingMode backporting_mode = (AppPreferences.BackportingMode) settings.get_enum("backporting");
 
             Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
+
+			settings.changed.connect((key) =>
+			{
+				if (key == "glsl-version")
+				{
+					glsl_version = (AppPreferences.GLSLVersion) settings.get_enum("glsl-version");
+				}
+				else if(key == "backporting")
+				{
+					backporting_mode = (AppPreferences.BackportingMode) settings.get_enum("backporting");
+				}
+
+				string language_name = glsl_version.to_lang_name();
+				language_name += backporting_mode.to_lang_suffix();
+				Gtk.SourceLanguage source_language = source_language_manager.get_language(language_name);
+				buffer.set_language(source_language);
+			});
+
 			string language_name = glsl_version.to_lang_name();
 			language_name += backporting_mode.to_lang_suffix();
 			Gtk.SourceLanguage source_language = source_language_manager.get_language(language_name);

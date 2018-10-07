@@ -207,22 +207,9 @@ namespace Shady
 				});
 			});
 
-			update_backporting_visibility();
-
 			backporting_mode = (BackportingMode) _settings.get_enum("backporting");
 
-			if(backporting_mode == BackportingMode.NONE)
-			{
-				glsl_backporting_none.set_active(true);
-			}
-			else if(backporting_mode == BackportingMode.FULL)
-			{
-				glsl_backporting_full.set_active(true);
-			}
-			else
-			{
-				glsl_backporting_shadertoy.set_active(true);
-			}
+			update_backporting_visibility();
 		}
 
 		private void update_backporting_visibility()
@@ -246,7 +233,27 @@ namespace Shady
 			else
 			{
 				glsl_backporting_shadertoy.sensitive = false;
+
+				if(backporting_mode == BackportingMode.SHADERTOY)
+				{
+					backporting_mode = BackportingMode.NONE;
+				}
 			}
+
+			if(backporting_mode == BackportingMode.NONE)
+			{
+				glsl_backporting_none.set_active(true);
+			}
+			else if(backporting_mode == BackportingMode.FULL)
+			{
+				glsl_backporting_full.set_active(true);
+			}
+			else
+			{
+				glsl_backporting_shadertoy.set_active(true);
+			}
+
+			_settings.set_enum("backporting", backporting_mode);
 		}
 
 		[GtkCallback]
