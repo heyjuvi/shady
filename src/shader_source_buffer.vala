@@ -271,63 +271,66 @@ namespace Shady
 			for(AppPreferences.GLSLVersion version=0;version<AppPreferences.GLSLVersion.INVALID;version+=1)
 			{
 				string lang_suffix = "";
-				if(version < AppPreferences.GLSLVersion.GLSL_150)
+
+				AppPreferences.BackportingMode mode_array_none[1] = {AppPreferences.BackportingMode.NONE};
+				AppPreferences.BackportingMode mode_array_with_shadertoy[3] = {AppPreferences.BackportingMode.NONE,
+																			   AppPreferences.BackportingMode.FULL,
+																			   AppPreferences.BackportingMode.SHADERTOY};
+
+				AppPreferences.BackportingMode mode_array_without_shadertoy[2] = {AppPreferences.BackportingMode.NONE,
+																				  AppPreferences.BackportingMode.FULL};
+
+				AppPreferences.BackportingMode mode_array[3];
+
+				if(version == AppPreferences.GLSLVersion.GLSL_100_ES)
 				{
-					AppPreferences.BackportingMode mode_array_with_shadertoy[3] = {AppPreferences.BackportingMode.NONE,
-					                                                               AppPreferences.BackportingMode.FULL,
-					                                                               AppPreferences.BackportingMode.SHADERTOY};
+					mode_array = mode_array_with_shadertoy;
+				}
+				else if(version >= AppPreferences.GLSLVersion.GLSL_150)
+				{
+					mode_array = mode_array_none;
+				}
+				else
+				{
+					mode_array = mode_array_without_shadertoy;
+				}
 
-					AppPreferences.BackportingMode mode_array_without_shadertoy[2] = {AppPreferences.BackportingMode.NONE,
-					                                                                  AppPreferences.BackportingMode.FULL};
+				foreach(AppPreferences.BackportingMode mode in mode_array)
+				{
+					lang_suffix = mode.to_lang_suffix();
+					string lang_filename = version.to_lang_name() + lang_suffix + ".lang";
+					File shadertoy_glsl_resource = File.new_for_uri("resource:///org/hasi/shady/data/lang_specs/" + lang_filename);
+					File shadertoy_glsl_cache = File.new_for_path(Environment.get_home_dir());
 
-					AppPreferences.BackportingMode mode_array[3];
+					shadertoy_glsl_cache = shadertoy_glsl_cache.get_child(".cache").get_child("shady");
 
-					if(version == AppPreferences.GLSLVersion.GLSL_100_ES)
+					if (!shadertoy_glsl_cache.query_exists())
 					{
-						mode_array = mode_array_with_shadertoy;
-					}
-					else
-					{
-						mode_array = mode_array_without_shadertoy;
-					}
-
-					foreach(AppPreferences.BackportingMode mode in mode_array)
-					{
-						lang_suffix = mode.to_lang_suffix();
-						string lang_filename = version.to_lang_name() + lang_suffix + ".lang";
-						File shadertoy_glsl_resource = File.new_for_uri("resource:///org/hasi/shady/data/lang_specs/" + lang_filename);
-						File shadertoy_glsl_cache = File.new_for_path(Environment.get_home_dir());
-
-						shadertoy_glsl_cache = shadertoy_glsl_cache.get_child(".cache").get_child("shady");
-
-						if (!shadertoy_glsl_cache.query_exists())
-						{
-							try
-							{
-								shadertoy_glsl_cache.make_directory_with_parents();
-							}
-							catch (Error e)
-							{
-								print(@"Error while creating ~/.cache/shady: $(e.message)");
-							}
-						}
-
 						try
 						{
-							string shadertoy_glsl_search_path = shadertoy_glsl_cache.get_path();
-
-							shadertoy_glsl_cache = shadertoy_glsl_cache.get_child(lang_filename);
-							shadertoy_glsl_resource.copy(shadertoy_glsl_cache, FileCopyFlags.OVERWRITE);
-
-							Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
-							string[] current_search_path = source_language_manager.search_path;
-							current_search_path += shadertoy_glsl_search_path;
-							source_language_manager.search_path = current_search_path;
+							shadertoy_glsl_cache.make_directory_with_parents();
 						}
 						catch (Error e)
 						{
-							print(@"Could not initialize resources for shader source buffer: $(e.message)\n");
+							print(@"Error while creating ~/.cache/shady: $(e.message)");
 						}
+					}
+
+					try
+					{
+						string shadertoy_glsl_search_path = shadertoy_glsl_cache.get_path();
+
+						shadertoy_glsl_cache = shadertoy_glsl_cache.get_child(lang_filename);
+						shadertoy_glsl_resource.copy(shadertoy_glsl_cache, FileCopyFlags.OVERWRITE);
+
+						Gtk.SourceLanguageManager source_language_manager = Gtk.SourceLanguageManager.get_default();
+						string[] current_search_path = source_language_manager.search_path;
+						current_search_path += shadertoy_glsl_search_path;
+						source_language_manager.search_path = current_search_path;
+					}
+					catch (Error e)
+					{
+						print(@"Could not initialize resources for shader source buffer: $(e.message)\n");
 					}
 				}
 			}
