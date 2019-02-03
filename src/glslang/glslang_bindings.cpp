@@ -84,18 +84,28 @@ const TBuiltInResource DefaultTBuiltInResource = {
 	/* .MaxTransformFeedbackInterleavedComponents = */ 64,
 	/* .MaxCullDistances = */ 8,
 	/* .MaxCombinedClipAndCullDistances = */ 8,
-	/* .MaxSamples = */ 4
-	///* .limits = */{
-	//	/* .nonInductiveForLoops = */ 1,
-	//	/* .whileLoops = */ 1,
-	//	/* .doWhileLoops = */ 1,
-	//	/* .generalUniformIndexing = */ 1,
-	//	/* .generalAttributeMatrixVectorIndexing = */ 1,
-	//	/* .generalVaryingIndexing = */ 1,
-	//	/* .generalSamplerIndexing = */ 1,
-	//	/* .generalVariableIndexing = */ 1,
-	//	/* .generalConstantMatrixVectorIndexing = */ 1
-	//}
+	/* .MaxSamples = */ 4,
+	/* .maxMeshOutputVerticesNV = */ 256,
+	/* .maxMeshOutputPrimitivesNV = */ 512,
+	/* .maxMeshWorkGroupSizeX_NV = */ 32,
+	/* .maxMeshWorkGroupSizeY_NV = */ 1,
+	/* .maxMeshWorkGroupSizeZ_NV = */ 1,
+	/* .maxTaskWorkGroupSizeX_NV = */ 32,
+	/* .maxTaskWorkGroupSizeY_NV = */ 1,
+	/* .maxTaskWorkGroupSizeZ_NV = */ 1,
+	/* .maxMeshViewCountNV = */ 4,
+	
+	/* .limits = */ {
+		/* .nonInductiveForLoops = */ 1,
+		/* .whileLoops = */ 1,
+		/* .doWhileLoops = */ 1,
+		/* .generalUniformIndexing = */ 1,
+		/* .generalAttributeMatrixVectorIndexing = */ 1,
+		/* .generalVaryingIndexing = */ 1,
+		/* .generalSamplerIndexing = */ 1,
+		/* .generalVariableIndexing = */ 1,
+		/* .generalConstantMatrixVectorIndexing = */ 1
+	}
 };
 
 int glslang_initialize()
