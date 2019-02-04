@@ -44,6 +44,48 @@
 			</description>
 		</key>
 
+		<key name="tiling" type="b">
+			<default>true</default>
+			<summary>Render shadertoy area in tiles</summary>
+			<description>
+				Specifies whether the shadertoy area should be divided in tiles
+				for rendering to prevent GPU overload
+			</description>
+		</key>
+
+		<key name="adaptive-tiling" type="b">
+			<default>true</default>
+			<summary>Adaptive tiling size</summary>
+			<description>
+				The size of the rendering tiles is set automatically to keep the GUI responsive
+			</description>
+		</key>
+
+		<key name="num-tilings" type="(ii)">
+			<default>(1,1)</default>
+			<summary>Number of tiles</summary>
+			<description>
+				Number of tiles in x and y direction
+			</description>
+		</key>
+
+		<key name="virtual-resolution" type="b">
+			<default>false</default>
+			<summary>Render in virtual Resolution</summary>
+			<description>
+				When enabled, the shadertoy area is rendered with higher or lower resolution
+				for higher quality or better performance
+			</description>
+		</key>
+
+		<key name="virtual-resolution-factor" type="d">
+			<default>1.0</default>
+			<summary>Virtual resolution factor</summary>
+			<description>
+				Specifies how much the render-resolution should differ from the native resolution
+			</description>
+		</key>
+
 		<key name="glsl-version" enum="org.hasi.shady.glslversion">
 			<default>"GLSL 3.00 ES"</default>
 			<summary>GLSL Version</summary>

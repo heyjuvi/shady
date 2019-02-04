@@ -136,8 +136,6 @@ namespace Shady
 			}
 		}
 
-		public bool switched_layout{ get; private set; default = false; }
-		public bool auto_compile { get; private set; default = false; }
 		public GLSLVersion glsl_version { get; private set; default = GLSL_300_ES; }
 		public BackportingMode backporting_mode { get; private set; default = BackportingMode.NONE; }
 
@@ -149,6 +147,12 @@ namespace Shady
 
 		[GtkChild]
 		private Gtk.Switch auto_compile_switch;
+
+		[GtkChild]
+		private Gtk.Switch virtual_resolution_switch;
+
+		[GtkChild]
+		private Gtk.Switch tiling_switch;
 
 		[GtkChild]
 		private Gtk.ListStore glsl_version_list;
@@ -182,11 +186,10 @@ namespace Shady
 			    hide();
 			});
 
-			switched_layout = _settings.get_boolean("switched-layout");
-			auto_compile = _settings.get_boolean("auto-compile");
-
-			switched_layout_switch.set_state(switched_layout);
-			auto_compile_switch.set_state(auto_compile);
+			switched_layout_switch.set_state(_settings.get_boolean("switched-layout"));
+			auto_compile_switch.set_state(_settings.get_boolean("auto-compile"));
+			virtual_resolution_switch.set_state(_settings.get_boolean("virtual-resolution"));
+			tiling_switch.set_state(_settings.get_boolean("tiling"));
 
 			glsl_version = (GLSLVersion) _settings.get_enum("glsl-version");
 
@@ -268,6 +271,22 @@ namespace Shady
 		private bool auto_compile_switch_state_set(bool state)
 		{
 			_settings.set_boolean("auto-compile", state);
+
+			return false;
+		}
+
+		[GtkCallback]
+		private bool tiling_switch_state_set(bool state)
+		{
+			_settings.set_boolean("tiling", state);
+
+			return false;
+		}
+
+		[GtkCallback]
+		private bool virtual_resolution_switch_state_set(bool state)
+		{
+			_settings.set_boolean("virtual-resolution", state);
 
 			return false;
 		}

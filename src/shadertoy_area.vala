@@ -40,6 +40,8 @@ namespace Shady
 		private GLuint _tile_render_buf;
 		private uint _render_timeout;
 
+		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
+
 		/* Buffer properties structs*/
 		private RenderResources.BufferProperties _target_prop = new RenderResources.BufferProperties();
 
@@ -48,8 +50,10 @@ namespace Shady
 
 		/* Constants */
 		private const double _time_slider_factor = 2.0;
-		private const int _x_image_parts = 4;
-		private const int _y_image_parts = 4;
+		private int _x_image_parts = 4;
+		private int _y_image_parts = 4;
+
+		private bool _adaptive_tiling = true;
 
 		/* OpenGL ids */
 
@@ -76,6 +80,9 @@ namespace Shady
 		{
 			realize.connect(() =>
 			{
+				_settings.get_value("num-tilings").get("(ii)", out _x_image_parts, out _y_image_parts);
+				_adaptive_tiling = _settings.get_boolean("adaptive-tiling");
+
 				init_gl(get_default_shader());
 			});
 

@@ -150,6 +150,111 @@
 						<property name="margin">12</property>
 						<property name="row-spacing">12</property>
 						<property name="column-spacing">12</property>
+						<property name="column-homogeneous">True</property>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">Tiling</property>
+								<property name="halign">start</property>
+
+								<attributes>
+									<attribute name="weight" value="bold"/>
+								</attributes>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">0</property>
+								<property name="width">2</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">Tiling</property>
+								<property name="halign">end</property>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">1</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkSwitch" id="tiling_switch">
+								<property name="visible">True</property>
+								<property name="can-focus">True</property>
+								<property name="halign">start</property>
+
+								<signal name="state_set" handler="tiling_switch_state_set" />
+							</object>
+							<packing>
+								<property name="left_attach">1</property>
+								<property name="top_attach">1</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">Resolution</property>
+								<property name="halign">start</property>
+
+								<attributes>
+									<attribute name="weight" value="bold"/>
+								</attributes>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">2</property>
+								<property name="width">2</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkLabel">
+								<property name="visible">True</property>
+								<property name="label">Virtual resolution</property>
+								<property name="halign">end</property>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">3</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+
+						<child>
+							<object class="GtkSwitch" id="virtual_resolution_switch">
+								<property name="visible">True</property>
+								<property name="can-focus">True</property>
+								<property name="halign">start</property>
+
+								<signal name="state_set" handler="virtual_resolution_switch_state_set" />
+							</object>
+							<packing>
+								<property name="left_attach">1</property>
+								<property name="top_attach">3</property>
+								<property name="width">1</property>
+							</packing>
+						</child>
+					</object>
+					<packing>
+						<property name="title">Rendering</property>
+						<property name="name">rendering</property>
+					</packing>
+				</child>
+
+				<child>
+					<object class="GtkGrid">
+						<property name="visible">True</property>
+						<property name="can_focus">False</property>
+						<property name="margin">12</property>
+						<property name="row-spacing">12</property>
+						<property name="column-spacing">12</property>
 						<property name="column-homogeneous">False</property>
 
 						<child>
