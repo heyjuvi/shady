@@ -85,6 +85,7 @@ namespace Shady
 
 							    new_window.present();
 
+                                new_window.compile();
 							    new_window.reset_time();
 							    new_window.play();
 							}

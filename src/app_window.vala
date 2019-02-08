@@ -170,8 +170,6 @@ namespace Shady
 		public void set_shader(Shader? shader)
 		{
 		    _editor.set_shader(shader);
-
-		    //compile();
 		}
 
 		public void compile()
