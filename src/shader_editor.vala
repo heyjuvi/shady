@@ -134,7 +134,8 @@ namespace Shady
             {
 			    _channels[i] = new ShaderChannel();
 			    _channels[i].channel_name = @"iChannel$i";
-			    _channels[i].id = i;
+			    _channels[i].id = 0;
+			    //_channels[i].id = i;
 			    _channels[i].channel_input_changed.connect(channel_input_changed);
 			    channels_box.pack_start(_channels[i], false, true);
 			}
