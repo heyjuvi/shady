@@ -21,4 +21,17 @@ namespace Shady
 			return "";
 		}
 	}
+
+	public static void write_file_for_string(File file, string str)
+	{
+	    try
+		{
+			DataOutputStream dis = new DataOutputStream(file.replace(null, false, FileCreateFlags.REPLACE_DESTINATION));
+
+			dis.put_string(str);
+		}
+		catch (Error e)
+		{
+		}
+	}
 }

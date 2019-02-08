@@ -66,6 +66,56 @@ namespace Shady
 
 				return INVALID;
 			}
+
+			public string to_string()
+			{
+			    if (this == NONE)
+			    {
+			        return "none";
+			    }
+			    else if (this == KEYBOARD)
+			    {
+			        return "keyboard";
+			    }
+			    else if (this == WEBCAM)
+			    {
+			        return "webcam";
+			    }
+			    else if (this == MICROPHONE)
+			    {
+			        return "microphone";
+			    }
+			    else if (this == SOUNDCLOUD)
+			    {
+			        return "soundcloud";
+			    }
+			    else if (this == BUFFER)
+			    {
+			        return "buffer";
+			    }
+			    else if (this == TEXTURE)
+			    {
+			        return "texture";
+			    }
+			    else if (this == 3DTEXTURE)
+			    {
+			        return "3dtexture";
+			    }
+			    else if (this == CUBEMAP)
+			    {
+			        return "cubemap";
+			    }
+			    else if (this == VIDEO)
+			    {
+			        return "video";
+			    }
+			    else if (this == MUSIC)
+			    {
+			        return "music";
+			    }
+
+			    return "invalid";
+			}
 		}
 
 		public class Input
@@ -100,11 +150,6 @@ namespace Shady
 			    name = other.name;
 			    resource = other.resource;
 			    resource_index = other.resource_index;
-			}
-
-			public string to_string()
-			{
-			    return @"{ \"id\": $id, \"channel\": $channel, \"type\": \"$type\", \"sampler\": \"$sampler\", \"hash\": \"$hash\", \"name\": \"$name\", \"resource\": \"$resource\", \"resource_index\": $resource_index";
 			}
 		}
 
@@ -198,11 +243,6 @@ namespace Shady
 			public FilterMode filter = FilterMode.MIPMAP;
 			public WrapMode wrap = WrapMode.REPEAT;
 			public bool v_flip = false;
-
-			public string to_string()
-			{
-			    return @"{ \"filter\": \"$filter\", \"wrap\": \"$wrap\", \"v_flip\": $v_flip }";
-			}
 		}
 
 		public enum RenderpassType
@@ -228,6 +268,24 @@ namespace Shady
 				}
 
 				return INVALID;
+			}
+
+			public string to_string()
+			{
+				if (this == SOUND)
+				{
+					return "sound";
+				}
+				else if (this == IMAGE)
+				{
+					return "image";
+				}
+				else if (this == BUFFER)
+				{
+					return "buffer";
+				}
+
+				return "invalid";
 			}
 		}
 

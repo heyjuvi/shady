@@ -454,6 +454,8 @@ namespace Shady
 				action_widget.set_buffer_active(buffer_name, false);
 			});
 
+			//action_widget.set_buffer_active(buffer_name, true);
+
 			_shader_buffers.insert(buffer_name, shader_buffer);
 			int num = notebook.insert_page(shader_buffer, shader_buffer_label, insert_index);
 
@@ -554,7 +556,8 @@ namespace Shady
 						}
 						else
 						{
-						    add_buffer(renderpass.name, get_insert_index_for_buffer(renderpass.name), true);
+						    // triggers the enabling, not sure, wether this could be solved more elegant
+						    action_widget.set_buffer_active(renderpass.name, true);
 						}
 
 						set_buffer(renderpass.name, renderpass.code);
@@ -576,6 +579,12 @@ namespace Shady
 			    renderpass.name = buffer_name;
 			    renderpass.code = _buffer_default_code;
 			    renderpass.type = Shader.RenderpassType.BUFFER;
+
+			    Shader.Output output = new Shader.Output();
+
+			    output.id = _shader_buffers_order[buffer_name];
+
+			    renderpass.outputs.append_val(output);
 
 			    _curr_shader.renderpasses.append_val(renderpass);
 			}
@@ -623,7 +632,7 @@ namespace Shady
 			    }
 			}
 
-			 curr_renderpass.inputs.append_val(channel_input);
+			curr_renderpass.inputs.append_val(channel_input);
 		}
 
 		[GtkCallback]

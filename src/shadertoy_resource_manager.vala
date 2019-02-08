@@ -227,6 +227,19 @@ namespace Shady
 			}
 		}
 
+		public static Shader.Input? get_texture_by_name(string name)
+		{
+		    foreach (var texture in TEXTURES)
+		    {
+		        if (texture.name == name)
+		        {
+		            return texture;
+		        }
+		    }
+
+		    return null;
+		}
+
 		public static Shader.Input? load_3dtexture(string _3dtexture_id)
 		{
 			File 3dtexture_json_file = File.new_for_uri(@"resource://$(3DTEXTURE_PREFIX)/$(_3dtexture_id).json");
@@ -255,6 +268,19 @@ namespace Shady
 			}
 		}
 
+		public static Shader.Input? get_3dtexture_by_name(string name)
+		{
+		    foreach (var 3dtexture in 3DTEXTURES)
+		    {
+		        if (3dtexture.name == name)
+		        {
+		            return 3dtexture;
+		        }
+		    }
+
+		    return null;
+		}
+
 		public static Shader.Input? load_cubemap(string cubemap_id)
 		{
 			File cubemap_json_file = File.new_for_uri(@"resource://$(CUBEMAP_PREFIX)/$(cubemap_id).json");
@@ -281,6 +307,19 @@ namespace Shady
 
 				return null;
 			}
+		}
+
+		public static Shader.Input? get_cubemap_by_name(string name)
+		{
+		    foreach (var cubemap in CUBEMAPS)
+		    {
+		        if (cubemap.name == name)
+		        {
+		            return cubemap;
+		        }
+		    }
+
+		    return null;
 		}
 	}
 }

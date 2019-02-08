@@ -1,0 +1,36 @@
+{
+  "name": string,
+  "description": string,
+  "renderpasses": [
+    {
+      "type": ("sound" | "image", | "buffer"),
+      "name": string,
+      "code": string,
+      "inputs": [
+        {
+          "type": ("keyboard" | "webcam" | "microphone" | "soundcloud" | "buffer" | "texture" | "3dtexture" | "cubemap" | "video" | "music"),
+          "id": int, /* only necessary, if type is buffer */
+          "channel": (0 | 1 | 2 | 3),
+          "resource": string, /* - resource name, if type is texture, 3dtexture, cubemap, video or music
+                                   for example "Abstract 1"
+                                 - uri, if type is soundcloud, buffer, texture, 3dtexture, cubemap, video or music
+                                 - leave out, if type is buffer, keyboard, webcam or microphone
+                               */
+          "sampler": {
+            "filter": ("linear" | "nearest" | "mipmap"),
+            "wrap": ("clamp" | "repeat"),
+            "vflip": bool
+          }
+        },
+        ...
+      ],
+      "outputs": [
+        {
+          "id": int
+        },
+        ...
+      ]
+    },
+    ...
+  ]
+}

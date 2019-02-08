@@ -61,27 +61,33 @@ namespace Shady
 						case Gtk.ResponseType.ACCEPT:
 							var file = open_dialog.get_file();
 
-							if (!newest_app_window.edited)
-							{
-								newest_app_window.destroy();
+							Core.ShyFile open_file = new Core.ShyFile.for_file(file);
+							Shader? new_shader = open_file.read_shader();
+
+                            if (new_shader != null)
+                            {
+							    if (!newest_app_window.edited)
+							    {
+								    newest_app_window.destroy();
+							    }
+
+							    // for some reason the window is display below the
+							    // previous one
+							    var new_window = new AppWindow(this, app_preferences);
+
+							    remove_window(newest_app_window);
+							    add_window(new_window);
+
+							    newest_app_window = new_window;
+
+							    new_window.set_shader(new_shader);
+							    new_window.shader_filename = file.get_path();
+
+							    new_window.present();
+
+							    new_window.reset_time();
+							    new_window.play();
 							}
-
-							// for some reason the window is display below the
-							// previous one
-							var new_window = new AppWindow(this, app_preferences);
-
-							// TODO: opening files must be solved with an appropriate file format
-							remove_window(newest_app_window);
-							add_window(new_window);
-
-							newest_app_window = new_window;
-
-							new_window.editor.set_buffer("Image", read_file_as_string(file));
-							new_window.present();
-
-							new_window.reset_time();
-							new_window.compile();
-							new_window.play();
 
 							break;
 
@@ -156,7 +162,7 @@ namespace Shady
 				this.quit();
 			});
 
-			add_action(quit_action);
+			this.add_action(quit_action);
 		}
 
 		protected override void startup()

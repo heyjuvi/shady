@@ -26,6 +26,7 @@ app_sources = files(
   'core/render_resources.vala',
   'core/compile_resources.vala',
   'core/shader_compiler.vala',
+  'core/shy_file.vala',
   'main.vala',
   'io_sugar.vala',
   'app.vala',
