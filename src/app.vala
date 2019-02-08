@@ -123,14 +123,15 @@ namespace Shady
 							// previous one
 							var new_window = new AppWindow(this, app_preferences);
 							new_window.set_shader(shadertoy_search_dialog.selected_shader);
-							new_window.reset_time();
-							new_window.compile();
-							new_window.play();
 
 							remove_window(newest_app_window);
 							add_window(new_window);
 
 							new_window.present();
+
+                            new_window.reset_time();
+							new_window.compile();
+							new_window.play();
 
 							newest_app_window = new_window;
 
