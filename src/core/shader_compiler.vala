@@ -218,6 +218,8 @@ namespace Shady.Core
 
 				for(int i=0; i<buffer_count; i++)
 				{
+					buffer_props[i] = new RenderResources.BufferProperties();
+
 					buffer_props[i].fb = fbs[i];
 
 					GLuint[] output_tex_ids = TextureManager.query_output_texture(buffer_outputs[i]);

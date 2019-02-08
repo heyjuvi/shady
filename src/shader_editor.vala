@@ -569,7 +569,8 @@ namespace Shady
 		{
 		    if (active)
 		    {
-			    add_buffer(buffer_name, get_insert_index_for_buffer(buffer_name));
+				int index = get_insert_index_for_buffer(buffer_name);
+			    add_buffer(buffer_name, index);
 			    set_buffer(buffer_name, _buffer_default_code);
 
 			    Shader.Renderpass renderpass = new Shader.Renderpass();
@@ -577,6 +578,12 @@ namespace Shady
 			    renderpass.name = buffer_name;
 			    renderpass.code = _buffer_default_code;
 			    renderpass.type = Shader.RenderpassType.BUFFER;
+
+				Shader.Output output = new Shader.Output();
+				//#TODO: indices arent strictly increasing, need to alter indices of older renderpasses
+				output.id = index;
+				output.channel = -1;
+				renderpass.outputs.append_val(output);
 
 			    _curr_shader.renderpasses.append_val(renderpass);
 			}
