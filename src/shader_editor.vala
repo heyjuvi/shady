@@ -3,6 +3,8 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/shader-editor.ui")]
 	public class ShaderEditor : Gtk.Overlay
 	{
+	    public static HashTable<string, int> SHADER_BUFFERS_ORDER;
+
 	    // TODO: bad solution?
 	    private bool _edited;
 		public bool edited
@@ -78,7 +80,6 @@ namespace Shady
 		private ShaderChannel[] _channels;
 
 		private HashTable<string, ShaderSourceBuffer> _shader_buffers;
-		private HashTable<string, int> _shader_buffers_order;
 
 		private string _default_code;
 		private string _buffer_default_code;
@@ -92,19 +93,23 @@ namespace Shady
         private Core.GLSlangValidator _validator;
 		private Core.GLSLMinifier _minifier;
 
+		static construct
+		{
+		    SHADER_BUFFERS_ORDER = new HashTable<string, int>(str_hash, str_equal);
+
+		    SHADER_BUFFERS_ORDER.insert("Image", 0);
+		    SHADER_BUFFERS_ORDER.insert("Common", 1);
+		    SHADER_BUFFERS_ORDER.insert("Sound", 2);
+		    SHADER_BUFFERS_ORDER.insert("Buf A", 3);
+		    SHADER_BUFFERS_ORDER.insert("Buf B", 4);
+		    SHADER_BUFFERS_ORDER.insert("Buf C", 5);
+		    SHADER_BUFFERS_ORDER.insert("Buf D", 6);
+		    SHADER_BUFFERS_ORDER.insert("Cubemap A", 7);
+		}
+
 		public ShaderEditor()
 		{
 		    _shader_buffers = new HashTable<string, ShaderSourceBuffer>(str_hash, str_equal);
-		    _shader_buffers_order = new HashTable<string, int>(str_hash, str_equal);
-
-		    _shader_buffers_order.insert("Image", 0);
-		    _shader_buffers_order.insert("Common", 1);
-		    _shader_buffers_order.insert("Sound", 2);
-		    _shader_buffers_order.insert("Buf A", 3);
-		    _shader_buffers_order.insert("Buf B", 4);
-		    _shader_buffers_order.insert("Buf C", 5);
-		    _shader_buffers_order.insert("Buf D", 6);
-		    _shader_buffers_order.insert("Cubemap A", 7);
 
 			try
 			{
@@ -523,8 +528,8 @@ namespace Shady
 		            insert_index = i + 1;
 		            break;
 		        }
-		        else if (_shader_buffers_order[shader_buffer_before.buffer_name] < _shader_buffers_order[buffer_name] &&
-		                 _shader_buffers_order[buffer_name] < _shader_buffers_order[shader_buffer_after.buffer_name])
+		        else if (SHADER_BUFFERS_ORDER[shader_buffer_before.buffer_name] < SHADER_BUFFERS_ORDER[buffer_name] &&
+		                 SHADER_BUFFERS_ORDER[buffer_name] < SHADER_BUFFERS_ORDER[shader_buffer_after.buffer_name])
 		        {
 		            insert_index = i + 1;
 		            break;
@@ -583,7 +588,7 @@ namespace Shady
 
 			    Shader.Output output = new Shader.Output();
 
-			    output.id = _shader_buffers_order[buffer_name];
+			    output.id = SHADER_BUFFERS_ORDER[buffer_name];
 
 			    renderpass.outputs.append_val(output);
 

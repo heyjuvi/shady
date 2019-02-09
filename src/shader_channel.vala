@@ -23,6 +23,7 @@ namespace Shady
 		private Shader.Input _last_texture_input = new Shader.Input();
 		private Shader.Input _last_cubemap_input = new Shader.Input();
 		private Shader.Input _last_3dtexture_input = new Shader.Input();
+		private Shader.Input _last_buffer_input = new Shader.Input();
 
 		private Shader.Input _channel_input = new Shader.Input();
 		public Shader.Input channel_input
@@ -86,6 +87,7 @@ namespace Shady
 		private ShaderChannelInputPopover _texture_popover;
 		private ShaderChannelInputPopover _cubemap_popover;
 		private ShaderChannelInputPopover _3dtexture_popover;
+		private ShaderChannelBufferPopover _buffer_popover;
 
 		private Gtk.Popover _current_popover;
 
@@ -101,8 +103,9 @@ namespace Shady
 			_texture_popover = new ShaderChannelInputPopover(Shader.InputType.TEXTURE, value_button);
 			_cubemap_popover = new ShaderChannelInputPopover(Shader.InputType.CUBEMAP, value_button);
 			_3dtexture_popover = new ShaderChannelInputPopover(Shader.InputType.3DTEXTURE, value_button);
+			_buffer_popover = new ShaderChannelBufferPopover(value_button);
 
-			_current_popover = _texture_popover;
+			_current_popover = null;
 
 			_texture_popover.input_selected.connect((input) =>
 			{
@@ -140,6 +143,18 @@ namespace Shady
 				channel_input_changed(_channel_input);
 			});
 
+			_buffer_popover.buffer_selected.connect((input) =>
+			{
+			    _channel_input.assign_content(input);
+				_last_buffer_input.assign_content(input);
+
+				update_type();
+				update_sampler();
+				update_shader();
+
+				channel_input_changed(_channel_input);
+			});
+
 			_channel_area.show();
 		}
 
@@ -164,26 +179,32 @@ namespace Shady
 
 				if (_channel_input.type == Shader.InputType.SOUNDCLOUD)
 				{
-					_soundcloud_popover.hide();
+					_soundcloud_popover.popdown();
 					_current_popover = _soundcloud_popover;
 				}
 				else if (_channel_input.type == Shader.InputType.TEXTURE)
 				{
-					_texture_popover.hide();
+					_texture_popover.popdown();
 					_current_popover = _texture_popover;
 					_channel_input.assign_content(_last_texture_input);
 				}
 				else if (_channel_input.type == Shader.InputType.CUBEMAP)
 				{
-					_cubemap_popover.hide();
+					_cubemap_popover.popdown();
 					_current_popover = _cubemap_popover;
 					_channel_input.assign_content(_last_cubemap_input);
 				}
 				else if (_channel_input.type == Shader.InputType.3DTEXTURE)
 				{
-					_3dtexture_popover.hide();
+					_3dtexture_popover.popdown();
 					_current_popover = _3dtexture_popover;
 					_channel_input.assign_content(_last_3dtexture_input);
+				}
+				else if (_channel_input.type == Shader.InputType.BUFFER)
+				{
+				    _buffer_popover.popdown();
+				    _current_popover = _buffer_popover;
+				    _channel_input.assign_content(_last_buffer_input);
 				}
 			}
 			else

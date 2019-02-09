@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<interface>
+	<template class="ShadyShaderChannelBufferPopover" parent="GtkPopover">
+		<property name="visible">False</property>
+		<property name="can_focus">False</property>
+
+		<style>
+			<class name="popover_padding" />
+		</style>
+
+		<child>
+			<object class="GtkBox">
+				<property name="visible">True</property>
+				<property name="can_focus">False</property>
+				<property name="orientation">vertical</property>
+
+				<child>
+					<object class="GtkRadioButton" id="buf_a_radio_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+					  <property name="active">True</property>
+						<property name="label">Buf A</property>
+
+						<signal name="toggled" handler="buf_a_radio_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">0</property>
+					</packing>
+				</child>
+
+				<child>
+					<object class="GtkRadioButton" id="buf_b_radio_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="group">buf_a_radio_button</property>
+						<property name="label">Buf B</property>
+
+						<signal name="toggled" handler="buf_b_radio_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">1</property>
+					</packing>
+				</child>
+
+				<child>
+					<object class="GtkRadioButton" id="buf_c_radio_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="group">buf_a_radio_button</property>
+						<property name="label">Buf C</property>
+
+						<signal name="toggled" handler="buf_c_radio_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">2</property>
+					</packing>
+				</child>
+
+				<child>
+					<object class="GtkRadioButton" id="buf_d_radio_button">
+						<property name="visible">True</property>
+						<property name="can_focus">True</property>
+						<property name="group">buf_a_radio_button</property>
+						<property name="label">Buf D</property>
+
+						<signal name="toggled" handler="buf_d_radio_button_toggled" />
+					</object>
+					<packing>
+						<property name="expand">False</property>
+						<property name="fill">True</property>
+						<property name="position">3</property>
+					</packing>
+				</child>
+			</object>
+		</child>
+	</template>
+</interface>
+

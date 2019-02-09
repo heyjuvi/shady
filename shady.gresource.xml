@@ -9,6 +9,7 @@
 	  <file preprocess="xml-stripblanks">ui/shader-source-buffer-add-popover.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-channel.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-channel-type-popover.ui</file>
+	  <file preprocess="xml-stripblanks">ui/shader-channel-buffer-popover.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-channel-soundcloud-popover.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-channel-input-popover.ui</file>
 		<file preprocess="xml-stripblanks">ui/shader-channel-input-item.ui</file>

@@ -43,6 +43,7 @@ app_sources = files(
   'shader_source_buffer_add_popover.vala',
   'shader_channel.vala',
   'shader_channel_type_popover.vala',
+  'shader_channel_buffer_popover.vala',
   'shader_channel_soundcloud_popover.vala',
   'shader_channel_input_popover.vala',
   'shader_channel_input_item.vala',
