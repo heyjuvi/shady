@@ -54,6 +54,7 @@ namespace Shady
 
 				open_dialog.local_only = false;
 				open_dialog.set_modal(true);
+				open_dialog.set_filter(Core.ShyFile.FILE_FILTER);
 				open_dialog.response.connect((dialog, response_id) =>
 				{
 					switch (response_id)

@@ -134,6 +134,23 @@ namespace Shady
 	    private Shader?[] _found_shaders;
 	    private bool _canceled;
 
+	    private static ThreadPool<LoadShaderThread> _search_pool;
+
+	    static construct
+	    {
+	        try
+			{
+				_search_pool = new ThreadPool<LoadShaderThread>.with_owned_data((load_shader_thread) =>
+				{
+					load_shader_thread.run();
+				}, (int) GLib.get_num_processors() - 1, false);
+			}
+			catch (Error e)
+			{
+				print("Could not initialize ThreadPool for Shadertoy search!\n");
+			}
+	    }
+
 	    public ShadertoySearch()
 	    {
 	        _found_shaders = null;
@@ -235,7 +252,8 @@ namespace Shady
 					});
 
 					//Thread thread = new Thread<int>("shader_thread", load_thread.run);
-					new Thread<int>("shader_thread", load_thread.run);
+					//new Thread<int>("shader_thread", load_thread.run);
+					_search_pool.add(load_thread);
 
 					index++;
 				}

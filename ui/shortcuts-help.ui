@@ -17,8 +17,24 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">True</property>
-                <property name="title" context="shortcut window">Open shader</property>
+                <property name="title" context="shortcut window">Open</property>
                 <property name="accelerator">&lt;Primary&gt;o</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Save</property>
+                <property name="accelerator">&lt;Primary&gt;s</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">True</property>
+                <property name="title" context="shortcut window">Save as</property>
+                <property name="accelerator">&lt;Primary&gt;&lt;Shift&gt;s</property>
               </object>
             </child>
 
@@ -111,3 +127,4 @@
     </child>
   </object>
 </interface>
+

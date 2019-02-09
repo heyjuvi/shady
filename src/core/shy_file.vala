@@ -4,6 +4,20 @@ namespace Shady.Core
 {
     public class ShyFile
     {
+        public static string FILE_EXTENSION = ".shy";
+
+        public static Gtk.FileFilter FILE_FILTER
+        {
+            owned get
+            {
+                Gtk.FileFilter filter = new Gtk.FileFilter();
+                filter.set_name("Shady shader file (*.shy)");
+                filter.add_pattern("*.[Ss][Hh][Yy]");
+
+                return filter;
+            }
+        }
+
         private File _file;
 
         public ShyFile.for_path(string path)

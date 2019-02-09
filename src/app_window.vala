@@ -52,6 +52,9 @@ namespace Shady
 		public signal void search_toggled();
 
 		[Signal (action=true)]
+		public signal void save_as_toggled();
+
+		[Signal (action=true)]
 		public signal void escape_pressed();
 
 		[GtkChild]
@@ -90,6 +93,8 @@ namespace Shady
 			{
 			    _editor.show_search();
 			});
+
+			save_as_toggled.connect(save_with_dialog);
 
 			escape_pressed.connect(() =>
 			{
@@ -262,40 +267,7 @@ namespace Shady
 		{
 		    if (_shader_filename == null)
 		    {
-		        var save_dialog = new Gtk.FileChooserDialog("Choose a filename",
-			                                                this as Gtk.Window,
-			                                                Gtk.FileChooserAction.SAVE,
-			                                                "_Cancel",
-			                                                Gtk.ResponseType.CANCEL,
-			                                                "_Save",
-			                                                Gtk.ResponseType.ACCEPT);
-
-			    save_dialog.local_only = false;
-			    save_dialog.set_modal(true);
-			    save_dialog.response.connect((dialog, response_id) =>
-			    {
-				    switch (response_id)
-				    {
-					    case Gtk.ResponseType.ACCEPT:
-						    var file = save_dialog.get_file();
-
-						    editor.gather_shader();
-
-						    Core.ShyFile save_file = new Core.ShyFile.for_path(file.get_path());
-		                    save_file.write_shader(editor.shader);
-
-		                    shader_filename = file.get_path();
-
-						    break;
-
-					    case Gtk.ResponseType.CANCEL:
-						    break;
-				    }
-
-				    save_dialog.destroy();
-			    });
-
-			    save_dialog.show();
+		        save_with_dialog();
 			}
 			else
 			{
@@ -304,6 +276,50 @@ namespace Shady
 			    Core.ShyFile save_file = new Core.ShyFile.for_path(shader_filename);
 		        save_file.write_shader(editor.shader);
 			}
+		}
+
+		private void save_with_dialog()
+		{
+		    var save_dialog = new Gtk.FileChooserDialog("Choose a filename",
+		                                                this as Gtk.Window,
+		                                                Gtk.FileChooserAction.SAVE,
+		                                                "_Cancel",
+		                                                Gtk.ResponseType.CANCEL,
+		                                                "_Save",
+		                                                Gtk.ResponseType.ACCEPT);
+
+		    save_dialog.local_only = false;
+		    save_dialog.set_modal(true);
+		    save_dialog.set_filter(Core.ShyFile.FILE_FILTER);
+		    save_dialog.response.connect((dialog, response_id) =>
+		    {
+			    switch (response_id)
+			    {
+				    case Gtk.ResponseType.ACCEPT:
+					    var file = save_dialog.get_file();
+
+					    editor.gather_shader();
+
+					    shader_filename = file.get_path();
+
+					    if (!shader_filename.has_suffix(Core.ShyFile.FILE_EXTENSION))
+					    {
+					        shader_filename += Core.ShyFile.FILE_EXTENSION;
+					    }
+
+					    Core.ShyFile save_file = new Core.ShyFile.for_path(shader_filename);
+	                    save_file.write_shader(editor.shader);
+
+					    break;
+
+				    case Gtk.ResponseType.CANCEL:
+					    break;
+			    }
+
+			    save_dialog.destroy();
+		    });
+
+		    save_dialog.show();
 		}
 	}
 }
