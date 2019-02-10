@@ -85,8 +85,8 @@ namespace Shady
 
 		private int64 _time_delta_accum = 0;
 
-		private Mutex _compile_mutex = Mutex();
-		private Cond _compile_cond = Cond();
+		//private Mutex _compile_mutex = Mutex();
+		//private Cond _compile_cond = Cond();
 
 		private Mutex _size_mutex = Mutex();
 
@@ -376,6 +376,91 @@ namespace Shady
 			});
 		}
 
+		private void render_size_update(RenderResources.BufferProperties img_prop, RenderResources.BufferProperties[] buf_props)
+		{
+			make_current();
+
+			glBindRenderbuffer(GL_RENDERBUFFER, _tile_render_buf);
+
+			uint width=_width/_x_image_parts;
+			uint height=_height/_x_image_parts;
+
+			if(width < _width - (_x_image_parts-1) * width){
+				width = _width - (_x_image_parts-1) * width;
+			}
+			if(height < _height - (_y_image_parts-1) * height){
+				height = _height - (_y_image_parts-1) * height;
+			}
+
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)width, (int)height);
+
+			img_prop.cur_x_img_part = 0;
+			img_prop.cur_y_img_part = 0;
+
+			for(int i=0; i<buf_props.length; i++)
+			{
+				buf_props[i].cur_x_img_part = 0;
+				buf_props[i].cur_y_img_part = 0;
+			}
+
+			glBindTexture(GL_TEXTURE_2D, img_prop.tex_id_out_back);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, img_prop.tex_id_out_back, 0);
+
+			//TODO: fix multipass again, include in texture manager somehow?
+			/*
+			for(int i=0;i<_buffer_buffer.length;i++)
+			{
+				_buffer_buffer[i].width=_width;
+				_buffer_buffer[i].height=_height;
+				
+				for(int j=0;j<2;j++)
+				{
+					glBindTexture(GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j]);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j], 0);
+
+					glClearColor(0,0,0,1);
+					glClear(GL_COLOR_BUFFER_BIT);
+				}
+			}
+			*/
+
+			_size_updated = false;
+		}
+
+		private void detect_tile_size(RenderResources.BufferProperties img_prop, double time_delta)
+		{
+			double target_tile_size = Math.sqrt((_target_time*(double)_width*(double)_height)/((double)time_delta*(double)_x_image_parts*(double)_y_image_parts));
+			_x_image_parts = (uint)(_width/target_tile_size + 0.5);
+			_y_image_parts = (uint)(_height/target_tile_size + 0.5);
+
+			if(_x_image_parts < 1)
+			{
+				_x_image_parts = 1;
+			}
+			else if(_x_image_parts > _width)
+			{
+				_x_image_parts = _width;
+			}
+
+			if(_y_image_parts < 1)
+			{
+				_y_image_parts = 1;
+			}
+			else if(_y_image_parts > _height)
+			{
+				_y_image_parts = _height;
+			}
+
+			img_prop.cur_x_img_part = 0;
+			img_prop.cur_y_img_part = 0;
+		}
+
 		private bool render_image()
 		{
 			_render_resources.buffer_switch_mutex.lock();
@@ -389,59 +474,7 @@ namespace Shady
 
 				if(_size_updated)
 				{
-					make_current();
-
-    				glBindRenderbuffer(GL_RENDERBUFFER,_tile_render_buf);
-
-					uint width=_width/_x_image_parts;
-					uint height=_height/_x_image_parts;
-
-					if(width<_width-(_x_image_parts-1)*width){
-						width=_width-(_x_image_parts-1)*width;
-					}
-					if(height<_height-(_y_image_parts-1)*height){
-						height=_height-(_y_image_parts-1)*height;
-					}
-
-					glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)width, (int)height);
-
-					img_prop.cur_x_img_part = 0;
-					img_prop.cur_y_img_part = 0;
-
-					for(int i=0; i<buf_props.length; i++)
-					{
-						buf_props[i].cur_x_img_part = 0;
-						buf_props[i].cur_y_img_part = 0;
-					}
-
-					glBindTexture(GL_TEXTURE_2D, img_prop.tex_id_out_back);
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, img_prop.tex_id_out_back, 0);
-
-					//TODO: fix multipass again, include in texture manager somehow?
-					/*
-					for(int i=0;i<_buffer_buffer.length;i++)
-					{
-						_buffer_buffer[i].width=_width;
-						_buffer_buffer[i].height=_height;
-						
-						for(int j=0;j<2;j++)
-						{
-							glBindTexture(GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j]);
-							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-							glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
-							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j], 0);
-
-							glClearColor(0,0,0,1);
-							glClear(GL_COLOR_BUFFER_BIT);
-						}
-					}
-					*/
-
-					_size_updated = false;
+					render_size_update(img_prop, buf_props);
 				}
 
 				if(img_prop.cur_x_img_part == 0 && img_prop.cur_y_img_part == 0)
@@ -479,30 +512,7 @@ namespace Shady
 
 				if(time_delta > _upper_time_threshold || time_delta < _lower_time_threshold)
 				{
-					double target_tile_size=Math.sqrt((_target_time*(double)_width*(double)_height)/((double)time_delta*(double)_x_image_parts*(double)_y_image_parts));
-					_x_image_parts=(uint)(_width/target_tile_size+0.5);
-					_y_image_parts=(uint)(_height/target_tile_size+0.5);
-
-					if(_x_image_parts < 1)
-					{
-						_x_image_parts = 1;
-					}
-					else if(_x_image_parts > _width)
-					{
-						_x_image_parts = _width;
-					}
-
-					if(_y_image_parts < 1)
-					{
-						_y_image_parts = 1;
-					}
-					else if(_y_image_parts > _height)
-					{
-						_y_image_parts = _height;
-					}
-
-					img_prop.cur_x_img_part = 0;
-					img_prop.cur_y_img_part = 0;
+					detect_tile_size(img_prop, time_delta);
 				}
 
 				if(img_prop.cur_x_img_part == 0 && img_prop.cur_y_img_part == 0)

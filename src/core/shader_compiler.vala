@@ -28,7 +28,7 @@ namespace Shady.Core
 					_compile_pool = new ThreadPool<ThreadData>.with_owned_data((data) =>
 					{
 						compile(data);
-					}, (int) GLib.get_num_processors(), false);
+					}, (int) GLib.get_num_processors() - 1, false);
 				}
 				catch(Error e){
 					print("Could not initialize ThreadPool\n");
@@ -68,8 +68,16 @@ namespace Shady.Core
 		public static List<AppPreferences.GLSLVersion> get_glsl_version_list(Gdk.Window window)
 		{
 
-			Gdk.GLContext gl_context = window.create_gl_context();
-			gl_context.make_current();
+			try
+			{
+				Gdk.GLContext gl_context = window.create_gl_context();
+				gl_context.make_current();
+			}
+			catch(Error e)
+			{
+				print("Couldn't create context\n");
+				return new List<AppPreferences.GLSLVersion>();
+			}
 
 			GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -452,6 +460,7 @@ namespace Shady.Core
 			}
 		}
 
+		/*
 		private static void dummy_render_gl(RenderResources resources)
 		{
 			RenderResources.BufferProperties buf_prop = resources.get_image_prop(RenderResources.Purpose.COMPILE);
@@ -484,5 +493,6 @@ namespace Shady.Core
 				glFinish();
 			}
 		}
+		*/
 	}
 }

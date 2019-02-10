@@ -33,8 +33,8 @@ namespace Shady.Core
 			});
 		}
 
-		static TextureBufferUnit[] _texture_buffer = {};
-		static TextureBufferUnit[] _buffer_buffer = {};
+		private static TextureBufferUnit[] _texture_buffer = {};
+		private static TextureBufferUnit[] _buffer_buffer = {};
 
 		public static GLuint[] query_input_texture(Shader.Input input, uint64 window, out int width, out int height, out int depth, out uint target)
 		{

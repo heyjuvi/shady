@@ -93,70 +93,53 @@ namespace Shady.Core
 
             string[] split_info_log = info_log.split("\n");
 
-            try
-            {
-                for (int i = 0; i < split_info_log.length; i++)
-                {
-                    if (split_info_log[i].has_prefix(COMPILE_ERROR_PREFIX))
-                    {
-                        if (!("compilation errors" in split_info_log[i]))
-                        {
-                            CompileError compile_error = new CompileError();
+			for (int i = 0; i < split_info_log.length; i++)
+			{
+				if (split_info_log[i].has_prefix(COMPILE_ERROR_PREFIX))
+				{
+					if (!("compilation errors" in split_info_log[i]))
+					{
+						CompileError compile_error = new CompileError();
 
-                            string token, reason;
+						string token, reason;
 
-                            take_line_apart(split_info_log[i], out compile_error.line, out token, out reason);
+						take_line_apart(split_info_log[i], out compile_error.line, out token, out reason);
 
-                            int line_number = compile_error.line;
+						int line_number = compile_error.line;
 
-                            bool error_ended = false;
-                            while (!error_ended)
-                            {
-                                compile_error.tokens.append_val(token);
-                                compile_error.reasons.append_val(reason);
+						bool error_ended = false;
+						while (!error_ended)
+						{
+							compile_error.tokens.append_val(token);
+							compile_error.reasons.append_val(reason);
 
-                                if (i != split_info_log.length &&
-                                    split_info_log[i + 1].has_prefix(COMPILE_ERROR_PREFIX) &&
-                                    !("compilation errors" in split_info_log[i + 1]))
-                                {
-                                    take_line_apart(split_info_log[i], out line_number, out token, out reason);
+							if (i != split_info_log.length &&
+								split_info_log[i + 1].has_prefix(COMPILE_ERROR_PREFIX) &&
+								!("compilation errors" in split_info_log[i + 1]))
+							{
+								take_line_apart(split_info_log[i], out line_number, out token, out reason);
 
-                                    if (line_number == compile_error.line)
-                                    {
-                                        i++;
-                                    }
-                                    else
-                                    {
-                                        error_ended = true;
-                                    }
-                                }
-                                else
-                                {
-                                    error_ended = true;
-                                }
-                            }
+								if (line_number == compile_error.line)
+								{
+									i++;
+								}
+								else
+								{
+									error_ended = true;
+								}
+							}
+							else
+							{
+								error_ended = true;
+							}
+						}
 
-                            compile_errors.append_val(compile_error);
-                        }
+						compile_errors.append_val(compile_error);
+					}
 
-                        success = false;
-                    }
-                }
-            }
-            catch (IOChannelError e)
-            {
-                success = false;
-                print("Error: %s\n", e.message);
-
-                return false;
-            }
-            catch (ConvertError e)
-            {
-                success = false;
-                print("Error: %s\n", e.message);
-
-                return false;
-            }
+					success = false;
+				}
+			}
 
             callback(compile_errors.data, success);
 

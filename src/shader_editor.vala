@@ -344,7 +344,7 @@ namespace Shady
 		    gather_shader();
 
 		    HashTable<string, string> sources = Core.SourceGenerator.generate_shader_source(_curr_shader, true);
-		    int compile_counter = (int) sources.get_keys().length();
+		    //int compile_counter = (int) sources.get_keys().length();
 
             clear_error_messages();
 
@@ -359,7 +359,7 @@ namespace Shady
 		            {
 		                total_success = false;
 
-		                Shader.Renderpass renderpass = _curr_shader.get_renderpass_by_name(buffer);
+		                //Shader.Renderpass renderpass = _curr_shader.get_renderpass_by_name(buffer);
 		                foreach (Core.GLSlangValidator.CompileError error in errors)
 		                {
 		                    add_error_message(buffer, error.line, error.to_string_without_lines());

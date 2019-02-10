@@ -151,7 +151,7 @@ namespace Shady.Core
             string xml_data = read_file_as_string(File.new_for_uri(@"resource:///org/hasi/shady/data/refpages/es3.0/$name.xml"));
             if (xml_data == "")
             {
-                return null;
+                return (GLSLReference) null;
             }
 
             Xml.Doc *doc = Xml.Parser.read_memory(xml_data,
@@ -162,7 +162,7 @@ namespace Shady.Core
             if (doc == null)
             {
                 // bad
-                return null;
+                return (GLSLReference) null;
             }
 
             Xml.Node *root = doc->get_root_element();
@@ -171,7 +171,7 @@ namespace Shady.Core
                 delete doc;
 
                 // bad
-                return null;
+                return (GLSLReference) null;
             }
 
             GLSLReference reference = new GLSLReference();
@@ -191,7 +191,7 @@ namespace Shady.Core
                 }
 
                 string node_name = iter->name;
-                string node_content = iter->get_content();
+                //string node_content = iter->get_content();
                 HashTable<string, string> node_properties = new HashTable<string, string>(str_hash, str_equal);
                 //print(node_content);
 
