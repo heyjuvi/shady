@@ -16,6 +16,43 @@ namespace Shady
 		public signal void pass_compilation_terminated(int pass_index, ShaderError? e);
 
 		/* Properties */
+		public bool paused
+		{
+			get { return _paused; }
+			set
+			{
+				if (value == true)
+				{
+					_pause_time = get_monotonic_time();
+					Source.remove(_render_timeout);
+				}
+				else
+				{
+					_start_time += get_monotonic_time() - _pause_time;
+					_render_timeout = Timeout.add(_timeout_interval, render_image);
+				}
+
+				_paused = value;
+			}
+		}
+
+		public double time_slider
+		{
+			get {return _time_slider; }
+			set
+			{
+				if(value == 0.0)
+				{
+					Source.remove(_render_timeout);
+				}
+				else if(_time_slider == 0.0)
+				{
+					_render_timeout = Timeout.add(_timeout_interval, render_image);
+				}
+				_time_slider = value;
+			}
+		}
+
 		private GLuint _tile_render_buf;
 		private uint _render_timeout;
 
@@ -65,6 +102,12 @@ namespace Shady
 				init_gl(get_default_shader());
 			});
 
+			resize.connect((width, height) =>
+			{
+				update_size(width, height);
+				update_rendering();
+			});
+
 			button_press_event.connect((widget, event) =>
 			{
 				if (event.button == BUTTON_PRIMARY)
@@ -72,6 +115,8 @@ namespace Shady
 					_button_pressed = true;
 					_button_pressed_x = event.x;
 					_button_pressed_y = _height - event.y - 1;
+
+					_render_timeout = Timeout.add(_timeout_interval, render_image);
 				}
 
 				return false;
@@ -84,6 +129,8 @@ namespace Shady
 					_button_pressed = false;
 					_button_released_x = event.x;
 					_button_released_y = _height - event.y - 1;
+
+					Source.remove(_render_timeout);
 				}
 
 				return false;
@@ -108,7 +155,10 @@ namespace Shady
 
 			unrealize.connect(() =>
 			{
-				Source.remove(_render_timeout);
+				if(!_paused)
+				{
+					Source.remove(_render_timeout);
+				}
 
 				//_compile_mutex.lock();
 				//_compile_cond.wait(_compile_mutex);
@@ -129,12 +179,20 @@ namespace Shady
 				{
 					_y_image_parts = 8;
 				}
+				update_rendering();
 			});
 
 			_compile_resources.pass_compilation_terminated.connect((pass_index, e) =>
 			{
 				pass_compilation_terminated(pass_index,e);
 			});
+		}
+
+		public void reset_time()
+		{
+			_start_time = _curr_time;
+			_pause_time = _curr_time;
+			update_rendering();
 		}
 
 		public void compile(Shader shader)
@@ -307,6 +365,15 @@ namespace Shady
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |
 					   EventMask.POINTER_MOTION_MASK);
+		}
+
+		private void update_rendering()
+		{
+			Timeout.add(_timeout_interval, () =>
+			{
+				render_image();
+				return false;
+			});
 		}
 
 		private bool render_image()

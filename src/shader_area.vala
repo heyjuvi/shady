@@ -13,26 +13,8 @@ namespace Shady
 		public double time { get; protected set; }
 
 		/* Properties */
-		public double time_slider { get; set; default = 0.0; }
-
+		protected double _time_slider = 0.0;
 		protected bool _paused = false;
-		public bool paused
-		{
-			get { return _paused; }
-			set
-			{
-				if (value == true)
-				{
-					_pause_time = get_monotonic_time();
-				}
-				else
-				{
-					_start_time += get_monotonic_time() - _pause_time;
-				}
-
-				_paused = value;
-			}
-		}
 
 		/* Constants */
 		private const double _time_slider_factor = 2.0;
@@ -75,26 +57,7 @@ namespace Shady
 
 		private Mutex _size_mutex = Mutex();
 
-		public ShaderArea()
-		{
-			resize.connect((width, height) =>
-			{
-				_size_mutex.lock();
-
-				_width = width;
-				_height = height;
-
-				_size_updated = true;
-
-				if(!_initialized)
-				{
-					_initialized = true;
-					initialized();
-				}
-
-				_size_mutex.unlock();
-			});
-		}
+		public ShaderArea(){}
 
 		public static Shader? get_default_shader()
 		{
@@ -120,13 +83,32 @@ namespace Shady
 			return default_shader;
 		}
 
+		protected void update_size(int width, int height)
+		{
+			_size_mutex.lock();
+
+			_width = width;
+			_height = height;
+
+			_size_updated = true;
+
+			if(!_initialized)
+			{
+				_initialized = true;
+				initialized();
+			}
+
+			_size_mutex.unlock();
+		}
+
+
 		protected void update_uniform_values()
 		{
 			_delta_time = -_curr_time;
 			_curr_time = get_monotonic_time();
 			_delta_time += _curr_time;
 
-			if (!paused)
+			if (!_paused)
 			{
 				time = (_curr_time - _start_time) / 1000000.0f;
 				_delta = _delta_time / 1000000.0f;
@@ -134,7 +116,7 @@ namespace Shady
 			else
 			{
 				time = (_pause_time - _start_time) / 1000000.0f;
-				_pause_time += (int)(time_slider * _time_slider_factor * _delta_time);
+				_pause_time += (int)(_time_slider * _time_slider_factor * _delta_time);
 				_delta = 0.0f;
 			}
 
@@ -255,12 +237,6 @@ namespace Shady
 			string full_target_source = SourceGenerator.generate_renderpass_source(target_pass, false);
 
 			ShaderCompiler.compile_pass(-1, full_target_source, buf_prop, comp_resources);
-		}
-
-		public void reset_time()
-		{
-			_start_time = _curr_time;
-			_pause_time = _curr_time;
 		}
 
 		protected void init_time()

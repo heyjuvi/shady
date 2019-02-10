@@ -22,6 +22,11 @@ namespace Shady
 				init_gl(get_default_shader());
 			});
 
+			resize.connect((width, height) =>
+			{
+				update_size(width, height);
+			});
+
 			render.connect(() =>
 			{
 				_size_mutex.lock();
