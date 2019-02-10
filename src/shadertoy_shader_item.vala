@@ -91,7 +91,11 @@ namespace Shady
 
 			_shadertoy_area = new ShadertoyArea();
 			_shadertoy_area.set_size_request(152, 140);
-			_shadertoy_area.paused = true;
+
+            _shadertoy_area.initialized.connect(() =>
+			{
+				_shadertoy_area.paused = true;
+			});
 
 			shader_container.pack_start(_shadertoy_area, false, false);
 
@@ -108,7 +112,6 @@ namespace Shady
 		{
 			if (event.detail != Gdk.NotifyType.INFERIOR)
 			{
-				_shadertoy_area.reset_time();
 				_shadertoy_area.paused = false;
 			}
 
@@ -120,7 +123,6 @@ namespace Shady
 		{
 			if (event.detail != Gdk.NotifyType.INFERIOR)
 			{
-				_shadertoy_area.reset_time();
 				_shadertoy_area.paused = true;
 			}
 

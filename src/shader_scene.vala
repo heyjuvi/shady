@@ -88,6 +88,7 @@ namespace Shady
 
 			_fullscreen_window.realize();
 		    _fullscreen_window.add(_fullscreen_shadertoy_area);
+		    _fullscreen_shadertoy_area.paused = true;
 		}
 
 		public void compile(Shader shader)
@@ -99,6 +100,7 @@ namespace Shady
 		public void enter_fullscreen()
 		{
 		    _fullscreen_window.show_all();
+		    _fullscreen_shadertoy_area.paused = false;
 		    _fullscreen_window.fullscreen();
 		}
 
@@ -108,6 +110,7 @@ namespace Shady
 		    // TODO: BUG UNDER GNOME WAYLOAND, FULLSCREEN WINDOW WiLL NEVER
 		    // EVER UNFULLSCREEN AGAIN! EVEN AFTER CLOSING THE APPLICATION!
 		    _fullscreen_window.hide();
+		    _fullscreen_shadertoy_area.paused = true;
 		}
 
 		[GtkCallback]
