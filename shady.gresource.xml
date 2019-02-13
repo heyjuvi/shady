@@ -155,6 +155,7 @@
 		<!-- shaders -->
 		<file>data/shader/prefix.glsl</file>
 		<file>data/shader/default.glsl</file>
+		<file>data/shader/none_channel_default.glsl</file>
 		<file>data/shader/texture_channel_default.glsl</file>
 		<file>data/shader/3dtexture_channel_default.glsl</file>
 		<file>data/shader/cubemap_channel_default.glsl</file>
@@ -258,13 +259,15 @@
 		<file>data/shadertoy_presets/cubemaps/uffizi_gallery.json</file>
 
 		<!-- shadertoy videos -->
-		<!--<file>data/shadertoy_presets/videos/1961_commercial.ogv</file>
+		<!--
+		<file>data/shadertoy_presets/videos/1961_commercial.ogv</file>
 		<file>data/shadertoy_presets/videos/1961_commercial.json</file>
 		<file>data/shadertoy_presets/videos/britney_spears.webm</file>
 		<file>data/shadertoy_presets/videos/britney_spears.json</file>
 		<file>data/shadertoy_presets/videos/claude_van_damme.webm</file>
 		<file>data/shadertoy_presets/videos/claude_van_damme.json</file>
 		<file>data/shadertoy_presets/videos/google_logo.ogv</file>
-		<file>data/shadertoy_presets/videos/google_logo.json</file>-->
+		<file>data/shadertoy_presets/videos/google_logo.json</file>
+		-->
 	</gresource>
 </gresources>

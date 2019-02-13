@@ -76,6 +76,10 @@ namespace Shady
 				{
 					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/3dtexture_channel_default.glsl", 0).get_data());
 				}
+				else if (input.type == Shader.InputType.NONE)
+				{
+					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/none_channel_default.glsl", 0).get_data());
+				}
 			}
 			catch(Error e)
 			{
