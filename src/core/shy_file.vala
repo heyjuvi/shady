@@ -79,17 +79,17 @@ namespace Shady.Core
 
                             if (input.type == Shader.InputType.TEXTURE)
                             {
-                                input = ShadertoyResourceManager.get_texture_by_name(resource);
+                                input.assign_content(ShadertoyResourceManager.get_texture_by_name(resource));
                             }
 
                             if (input.type == Shader.InputType.3DTEXTURE)
                             {
-                                input = ShadertoyResourceManager.get_3dtexture_by_name(resource);
+                                input.assign_content(ShadertoyResourceManager.get_3dtexture_by_name(resource));
                             }
 
                             if (input.type == Shader.InputType.CUBEMAP)
                             {
-                                input = ShadertoyResourceManager.get_cubemap_by_name(resource);
+                                input.assign_content(ShadertoyResourceManager.get_cubemap_by_name(resource));
                             }
 
                             if (input.type == Shader.InputType.VIDEO)

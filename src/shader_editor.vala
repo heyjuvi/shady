@@ -78,6 +78,7 @@ namespace Shady
 	    private Gtk.Box channels_box;
 
 		private ShaderChannel[] _channels;
+		private bool _channels_initialized;
 
 		private HashTable<string, ShaderSourceBuffer> _shader_buffers;
 
@@ -134,14 +135,23 @@ namespace Shady
 			_edited = false;
 
 			_channels = new ShaderChannel[4];
+			_channels_initialized = false;
 
             for (int i = 0; i < 4; i++)
             {
 			    _channels[i] = new ShaderChannel();
 			    _channels[i].channel_name = @"iChannel$i";
-			    _channels[i].id = 0;
-			    //_channels[i].id = i;
+			    _channels[i].id = i;
+
 			    _channels[i].channel_input_changed.connect(channel_input_changed);
+
+			    _channels[i].channel_area.initialized.connect(() =>
+			    {
+			        _channels_initialized = true;
+
+			        update_channels();
+			    });
+
 			    channels_box.pack_start(_channels[i], false, true);
 			}
 
@@ -550,6 +560,8 @@ namespace Shady
 
 			if (shader != null)
 			{
+			    _curr_shader = shader;
+
 				for (int i = 0; i < shader.renderpasses.length; i++)
 				{
 					if (shader.renderpasses.index(i) is Shader.Renderpass)
@@ -569,6 +581,15 @@ namespace Shady
 						set_buffer(renderpass.name, renderpass.code);
 					}
 				}
+
+				switch_buffer("Image");
+
+				// ensure the channel configuration has been set, even if the selected buffer was
+				// already Image
+				if (_channels_initialized)
+                {
+		            update_channels();
+		        }
 			}
 		}
 
@@ -625,16 +646,8 @@ namespace Shady
 
 		        if (channel_input.channel == channel_index)
 		        {
-			        if (channel_input.type == Shader.InputType.NONE)
-			        {
-			            curr_renderpass.inputs.remove_index(i);
-			            return;
-			        }
-			        else
-			        {
-			            curr_renderpass.inputs.index(i).assign(channel_input);
-			            return;
-			        }
+			        curr_renderpass.inputs.index(i).assign(channel_input);
+			        return;
 			    }
 			}
 
@@ -649,11 +662,21 @@ namespace Shady
 		    _curr_buffer = buffer as ShaderSourceBuffer;
 		    buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
 
+            if (_channels_initialized)
+            {
+		        update_channels();
+		    }
+		}
+
+		private void update_channels()
+		{
 		    Shader.Renderpass? curr_renderpass = find_current_renderpass();
 		    if (curr_renderpass == null)
 			{
 				return;
 			}
+
+			int[] channels_in_use = {};
 
 		    for (int i = 0; i < curr_renderpass.inputs.length; i++)
 		    {
@@ -662,6 +685,19 @@ namespace Shady
 		            channel_index < 4)
 		        {
 		            _channels[channel_index].channel_input = curr_renderpass.inputs.index(i);
+
+		            //print(@"iChannel$channel_index@name: $(_channels[channel_index].channel_input.name)\n");
+		            //print(@"iChannel$channel_index@channel: $(_channels[channel_index].channel_input.channel)\n");
+
+		            channels_in_use += channel_index;
+		        }
+		    }
+
+		    for (int i = 0; i < 4; i++)
+		    {
+		        if (!(i in channels_in_use))
+		        {
+			        _channels[i].channel_input = Shader.Input.NO_INPUT;
 		        }
 		    }
 		}

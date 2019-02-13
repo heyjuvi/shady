@@ -3,10 +3,10 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/shader-channel.ui")]
 	public class ShaderChannel : Gtk.Box
 	{
+	    // TODO: can these be made obsolete by connecting to the property
+	    //       signals directly?
 		public signal void channel_type_changed(Shader.InputType channel_type);
 		public signal void channel_input_changed(Shader.Input channel_input);
-
-		public Shader.InputType channel_type { get; set; default = Shader.InputType.NONE; }
 
 		public string channel_name
 		{
@@ -25,6 +25,8 @@ namespace Shady
 		private Shader.Input _last_3dtexture_input = new Shader.Input();
 		private Shader.Input _last_buffer_input = new Shader.Input();
 
+        // TODO: setting the channel input is not safe until the widget has
+        //       been realized, DANGER
 		private Shader.Input _channel_input = new Shader.Input();
 		public Shader.Input channel_input
 		{
@@ -57,10 +59,31 @@ namespace Shady
 
 				v_flip_switch.active = _channel_input.sampler.v_flip;
 
-				update_type();
-				update_shader();
+			    if (value.type == Shader.InputType.TEXTURE)
+			    {
+			        _last_texture_input = _channel_input;
+			    }
+			    else if (value.type == Shader.InputType.TEXTURE)
+			    {
+			        _last_cubemap_input = _channel_input;
+			    }
+			    else if (value.type == Shader.InputType.3DTEXTURE)
+			    {
+			        _last_3dtexture_input = _channel_input;
+			    }
+			    else if (value.type == Shader.InputType.BUFFER)
+			    {
+			        _last_buffer_input = _channel_input;
+			    }
+
+			    // TODO: triggers other updates... is this wanted?
+			    channel_type_popover.channel_type = _channel_input.type;
+
+			    update_shader();
 			}
 		}
+
+		public ChannelArea channel_area { get; private set; }
 
 		[GtkChild]
 		private Gtk.Label name_label;
@@ -83,6 +106,9 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Switch v_flip_switch;
 
+		[GtkChild]
+		private ShaderChannelTypePopover channel_type_popover;
+
 		private ShaderChannelSoundcloudPopover _soundcloud_popover;
 		private ShaderChannelInputPopover _texture_popover;
 		private ShaderChannelInputPopover _cubemap_popover;
@@ -91,13 +117,11 @@ namespace Shady
 
 		private Gtk.Popover _current_popover;
 
-		private ChannelArea _channel_area;
-
 		public ShaderChannel()
 		{
-			_channel_area = new ChannelArea();
+			channel_area = new ChannelArea();
 
-			shader_container.pack_start(_channel_area, true, true);
+			shader_container.pack_start(channel_area, true, true);
 
 			_soundcloud_popover = new ShaderChannelSoundcloudPopover(value_button);
 			_texture_popover = new ShaderChannelInputPopover(Shader.InputType.TEXTURE, value_button);
@@ -155,7 +179,7 @@ namespace Shady
 				channel_input_changed(_channel_input);
 			});
 
-			_channel_area.show();
+			channel_area.show();
 		}
 
 		private void update_sampler()
@@ -215,7 +239,7 @@ namespace Shady
 
 		private void update_shader()
 		{
-			_channel_area.compile_shader_input(_channel_input);
+			channel_area.compile_shader_input(_channel_input);
 		}
 
 		[GtkCallback]

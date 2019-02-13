@@ -5,11 +5,93 @@ namespace Shady
 	{
 		public signal void channel_type_changed(Shader.InputType channel_type);
 
+		private Shader.InputType _channel_type = Shader.InputType.NONE;
+		public Shader.InputType channel_type
+		{
+		    get { return _channel_type; }
+		    set
+		    {
+		        if (value == Shader.InputType.NONE)
+		        {
+		            none_radio_button.active = true;
+		        }
+		        else if (value == Shader.InputType.KEYBOARD)
+			    {
+			        keyboard_radio_button.active = true;
+			    }
+			    else if (value == Shader.InputType.WEBCAM)
+			    {
+			        webcam_radio_button.active = true;
+			    }
+			    else if (value == Shader.InputType.MICROPHONE)
+			    {
+			        microphone_radio_button.active = true;
+			    }
+			    else if (value == Shader.InputType.SOUNDCLOUD)
+			    {
+			        soundcloud_radio_button.active = true;
+			    }
+			    else if (value == Shader.InputType.BUFFER)
+			    {
+			        buffer_radio_button.active = true;
+			    }
+			    else if (value == Shader.InputType.TEXTURE)
+			    {
+			        texture_radio_button.active = true;
+			    }
+			    else if (value == Shader.InputType.3DTEXTURE)
+			    {
+			        _3dtexture_radio_button.active = true;
+			    }
+			    else if (value == Shader.InputType.CUBEMAP)
+			    {
+			        cubemap_radio_button.active = true;
+			    }
+			    else if (value == Shader.InputType.VIDEO)
+			    {
+			        video_radio_button.active = true;
+			    }
+			    else if (value == Shader.InputType.MUSIC)
+			    {
+			        music_radio_button.active = true;
+			    }
+
+		        _channel_type = value;
+		    }
+		}
+
+		[GtkChild]
+		private Gtk.RadioButton none_radio_button;
+
+		[GtkChild]
+		private Gtk.RadioButton keyboard_radio_button;
+
+		[GtkChild]
+		private Gtk.RadioButton webcam_radio_button;
+
+		[GtkChild]
+		private Gtk.RadioButton microphone_radio_button;
+
+		[GtkChild]
+		private Gtk.RadioButton soundcloud_radio_button;
+
+		[GtkChild]
+		private Gtk.RadioButton buffer_radio_button;
+
+		[GtkChild]
+		private Gtk.RadioButton texture_radio_button;
+
 		[GtkChild]
 		private Gtk.RadioButton _3dtexture_radio_button;
 
 		[GtkChild]
-		private Gtk.RadioButton none_radio_button;
+		private Gtk.RadioButton cubemap_radio_button;
+
+		[GtkChild]
+		private Gtk.RadioButton video_radio_button;
+
+		[GtkChild]
+		private Gtk.RadioButton music_radio_button;
 
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
 

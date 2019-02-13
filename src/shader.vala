@@ -120,15 +120,17 @@ namespace Shady
 
 		public class Input
 		{
+		    public static Input NO_INPUT = new Input();
+
 			public int id = -1;
 			public int channel = -1;
-			public InputType type;
+			public InputType type = InputType.NONE;
 			public Sampler sampler = new Sampler();
-			public string hash;
-			public int n_channels;
-			public string name;
-			public string resource;
-			public int resource_index;
+			public string hash = "";
+			public int n_channels = 0;
+			public string name = "";
+			public string resource = "";
+			public int resource_index = 0;
 
 			public void assign(Input other)
 			{
