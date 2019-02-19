@@ -137,11 +137,15 @@ namespace Shady
 			glUniform1i(buf_prop.frame_loc, (int)(time*60));
 			glUniform1f(buf_prop.fps_loc, (float)fps);
 			glUniform3f(buf_prop.res_loc, _width, _height, 0);
-			float[] channel_res = {(float)buf_prop.tex_widths[0],(float)buf_prop.tex_heights[0],(float)buf_prop.tex_depths[0],
-								   (float)buf_prop.tex_widths[1],(float)buf_prop.tex_heights[1],(float)buf_prop.tex_depths[1],
-								   (float)buf_prop.tex_widths[2],(float)buf_prop.tex_heights[2],(float)buf_prop.tex_depths[2],
-								   (float)buf_prop.tex_widths[3],(float)buf_prop.tex_heights[3],(float)buf_prop.tex_depths[3]};
-			glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
+
+			if(buf_prop.tex_widths != null){
+				float[] channel_res = {(float)buf_prop.tex_widths[0],(float)buf_prop.tex_heights[0],(float)buf_prop.tex_depths[0],
+									   (float)buf_prop.tex_widths[1],(float)buf_prop.tex_heights[1],(float)buf_prop.tex_depths[1],
+									   (float)buf_prop.tex_widths[2],(float)buf_prop.tex_heights[2],(float)buf_prop.tex_depths[2],
+									   (float)buf_prop.tex_widths[3],(float)buf_prop.tex_heights[3],(float)buf_prop.tex_depths[3]};
+				glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
+			}
+
 			glUniform1f(buf_prop.samplerate_loc, _samplerate);
 
 			if (_button_pressed)

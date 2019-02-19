@@ -139,6 +139,7 @@ namespace Shady
 			    type = other.type;
 			    sampler = other.sampler;
 			    hash = other.hash;
+				n_channels = other.n_channels;
 			    name = other.name;
 			    resource = other.resource;
 			    resource_index = other.resource_index;

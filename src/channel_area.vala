@@ -51,7 +51,10 @@ namespace Shady
 		public static Shader.Renderpass? get_renderpass_from_input(Shader.Input input)
 		{
 			Shader.Renderpass input_renderpass = new Shader.Renderpass();
-			input_renderpass.inputs.append_val(input);
+			Shader.Input input_copy = new Shader.Input();
+			input_copy.assign(input);
+			input_copy.channel=0;
+			input_renderpass.inputs.append_val(input_copy);
 			input_renderpass.type = Shader.RenderpassType.IMAGE;
 
 			/*
