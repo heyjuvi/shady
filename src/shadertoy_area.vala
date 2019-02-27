@@ -85,9 +85,6 @@ namespace Shady
 
 		private int64 _time_delta_accum = 0;
 
-		//private Mutex _compile_mutex = Mutex();
-		//private Cond _compile_cond = Cond();
-
 		private Mutex _size_mutex = Mutex();
 
 		public ShadertoyArea()
@@ -98,6 +95,8 @@ namespace Shady
 
 				ShaderCompiler.initialize_pool();
 				_compile_resources.window = get_window();
+				_compile_resources.width = _width;
+				_compile_resources.height = _height;
 
 				init_gl(get_default_shader());
 			});
@@ -160,14 +159,13 @@ namespace Shady
 					Source.remove(_render_timeout);
 				}
 
-				//_compile_mutex.lock();
-				//_compile_cond.wait(_compile_mutex);
-				//_compile_mutex.unlock();
+				//TODO: wait for compilation to finish
 			});
 
 			_compile_resources.compilation_finished.connect(() =>
 			{
 				compilation_finished();
+
 				_x_image_parts = _width/_default_tile_size;
 				_y_image_parts = _height/_default_tile_size;
 
@@ -224,42 +222,8 @@ namespace Shady
 			return loading_shader;
 		}
 
-		private void init_gl(Shader default_shader)
+		private void init_tile_renderbuffer()
 		{
-			make_current();
-
-			string vertex_source = SourceGenerator.generate_vertex_source(true);
-			string[] vertex_source_array = { vertex_source, null };
-
-			_compile_resources.vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-			glShaderSource(_compile_resources.vertex_shader, 1, vertex_source_array, null);
-			glCompileShader(_compile_resources.vertex_shader);
-
-			GLuint[] tex_arr = {0};
-			glGenTextures(1, tex_arr);
-
-			RenderResources.BufferProperties image_prop1 = _render_resources.get_image_prop(RenderResources.Purpose.RENDER);
-			RenderResources.BufferProperties image_prop2 = _render_resources.get_image_prop(RenderResources.Purpose.COMPILE);
-
-			image_prop1.tex_id_out_back = tex_arr[0];
-			image_prop2.tex_id_out_back = tex_arr[0];
-
-			glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-
-			glGenTextures(1, tex_arr);
-			image_prop1.tex_id_out_front = tex_arr[0];
-			image_prop2.tex_id_out_front = tex_arr[0];
-
-			glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-
 			GLuint[] rb_arr = {0};
     		glGenRenderbuffers(1,rb_arr);
 			_tile_render_buf=rb_arr[0];
@@ -277,84 +241,37 @@ namespace Shady
 			}
 
     		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)width, (int)height);
+		}
+
+		private void init_gl(Shader default_shader)
+		{
+			make_current();
+
+			ShaderCompiler.compile_vertex_shader(_compile_resources);
+
+			ShaderCompiler.init_compile_resources(_compile_resources);
+
+			compile(default_shader);
+
+			//TODO: properly wait for compilation to finish
+			Thread.usleep(10000);
+
+			RenderResources.BufferProperties img_prop = _render_resources.get_image_prop(RenderResources.Purpose.RENDER);
 
 			GLuint vertex_shader_backup = _compile_resources.vertex_shader;
+			init_target_pass(_target_prop, _compile_resources, img_prop.tex_id_out_front);
 
-			init_target_pass(_target_prop, _compile_resources, image_prop1.tex_id_out_front);
+			//TODO: prevent fb from being generated
+			_target_prop.fb=0;
 
 			_compile_resources.vertex_shader = vertex_shader_backup;
-			//_target_prop.tex_ids = {image_prop1.tex_id_out_front};
 
-			image_prop1.program = glCreateProgram();
-			image_prop2.program = glCreateProgram();
-
-			glAttachShader(image_prop1.program, _compile_resources.vertex_shader);
-			glAttachShader(image_prop1.program, _compile_resources.fragment_shader);
-
-			glAttachShader(image_prop2.program, _compile_resources.vertex_shader);
-			glAttachShader(image_prop2.program, _compile_resources.fragment_shader);
-
-			compile(default_shader);
-
-			//_compile_mutex.lock();
-			//_compile_cond.wait(_compile_mutex);
-			//_compile_mutex.unlock();
-
-			compile(default_shader);
-
-			//_compile_mutex.lock();
-			//_compile_cond.wait(_compile_mutex);
-			//_compile_mutex.unlock();
-
-			init_vertex_buffers(_target_prop);
-
-			//glBindBuffer(GL_ARRAY_BUFFER, 0);
-			//glBindVertexArray(0);
+			init_tile_renderbuffer();
 
 			GLuint[] fb_arr = {0};
 
 			glGenFramebuffers(1, fb_arr);
 			_resize_fb = fb_arr[0];
-
-			//_render_context1.make_current();
-			//image_prop1.context = _render_context1;
-			image_prop1.context = get_context();
-
-			glGenFramebuffers(1, fb_arr);
-			image_prop1.fb = fb_arr[0];
-
-			//glGenVertexArrays(1, vao_arr);
-			//glBindVertexArray(vao_arr[0]);
-			image_prop1.vao = _target_prop.vao;
-
-			//glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-
-			GLuint attrib1 = glGetAttribLocation(image_prop1.program, "v");
-
-			glEnableVertexAttribArray(attrib1);
-			glVertexAttribPointer(attrib1, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
-
-			//glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-			//_render_context2.make_current();
-			image_prop2.context = get_context();
-
-			glGenFramebuffers(1, fb_arr);
-			image_prop2.fb = fb_arr[0];
-
-			//glGenVertexArrays(1, vao_arr);
-			//glBindVertexArray(vao_arr[0]);
-			image_prop2.vao = _target_prop.vao;
-
-			//glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-
-			GLuint attrib2 = glGetAttribLocation(image_prop2.program, "v");
-
-			glEnableVertexAttribArray(attrib2);
-			glVertexAttribPointer(attrib2, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
-
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindVertexArray(0);
 
 			init_time();
 
@@ -376,9 +293,13 @@ namespace Shady
 			});
 		}
 
+		//TODO: merge with init_tile_renderbuffer
 		private void render_size_update(RenderResources.BufferProperties img_prop, RenderResources.BufferProperties[] buf_props)
 		{
 			make_current();
+
+			_compile_resources.width = _width;
+			_compile_resources.height = _height;
 
 			glBindRenderbuffer(GL_RENDERBUFFER, _tile_render_buf);
 
@@ -461,6 +382,28 @@ namespace Shady
 			img_prop.cur_y_img_part = 0;
 		}
 
+		private void swap_buffer_textures(RenderResources.BufferProperties[] buf_props, RenderResources.BufferProperties img_prop){
+			for(int i=0; i<buf_props.length; i++)
+			{
+				if(buf_props[i].cur_x_img_part == 0 && buf_props[i].cur_y_img_part == 0)
+				{
+					uint tmp = buf_props[i].tex_id_out_back;
+					buf_props[i].tex_id_out_back = buf_props[i].tex_id_out_front;
+					buf_props[i].tex_id_out_front = tmp;
+
+					for(int j=0; j<buf_props[i].tex_out_refs.length[0]; j++)
+					{
+						buf_props[buf_props[i].tex_out_refs[j,0]].tex_ids[buf_props[i].tex_out_refs[j,1]] = tmp;
+					}
+
+					for(int j=0; j<buf_props[i].tex_out_refs_img.length; j++)
+					{
+						img_prop.tex_ids[buf_props[i].tex_out_refs_img[j]] = tmp;
+					}
+				}
+			}
+		}
+
 		private bool render_image()
 		{
 			_render_resources.buffer_switch_mutex.lock();
@@ -487,25 +430,7 @@ namespace Shady
 					render_gl(buf_props[i]);
 				}
 
-				for(int i=0; i<buf_props.length; i++)
-				{
-					if(buf_props[i].cur_x_img_part == 0 && buf_props[i].cur_y_img_part == 0)
-					{
-						uint tmp = buf_props[i].tex_id_out_back;
-						buf_props[i].tex_id_out_back = buf_props[i].tex_id_out_front;
-						buf_props[i].tex_id_out_front = tmp;
-
-						for(int j=0; j<buf_props[i].tex_out_refs.length[0]; j++)
-						{
-							buf_props[buf_props[i].tex_out_refs[j,0]].tex_ids[buf_props[i].tex_out_refs[j,1]] = tmp;
-						}
-
-						for(int j=0; j<buf_props[i].tex_out_refs_img.length; j++)
-						{
-							img_prop.tex_ids[buf_props[i].tex_out_refs_img.index(j)] = tmp;
-						}
-					}
-				}
+				swap_buffer_textures(buf_props, img_prop);
 
 				int64 time_delta = render_gl(img_prop);
 				_time_delta_accum += time_delta;
@@ -558,7 +483,7 @@ namespace Shady
 
 		private int64 render_gl(RenderResources.BufferProperties buf_prop)
 		{
-			make_current();
+			buf_prop.context.make_current();
 
 			if(buf_prop.fb!=0)
 			{

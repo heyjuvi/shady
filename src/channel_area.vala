@@ -138,9 +138,9 @@ namespace Shady
 			glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
 
-			init_target_pass(_target_prop, _compile_resources, tex_arr[0]);
+			ShaderCompiler.init_compile_resources(_compile_resources);
 
-			init_vertex_buffers(_target_prop);
+			init_target_pass(_target_prop, _compile_resources, tex_arr[0]);
 
 			init_time();
 
@@ -150,12 +150,6 @@ namespace Shady
 		private void render_gl(RenderResources.BufferProperties buf_prop)
 		{
 			buf_prop.context.make_current();
-
-			if(buf_prop.fb!=0)
-			{
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, buf_prop.fb);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buf_prop.tex_id_out_back, 0);
-			}
 
 			glViewport(0, 0, _width, _height);
 

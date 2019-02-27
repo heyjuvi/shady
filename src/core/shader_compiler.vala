@@ -113,7 +113,14 @@ namespace Shady.Core
 			bool success = compile_blocking(data.shader, data.render_resources, data.compile_resources);
 			if (success)
 			{
-				//dummy_render_gl(data.render_resources);
+				RenderResources.BufferProperties img_prop = data.render_resources.get_image_prop(RenderResources.Purpose.COMPILE);
+				dummy_render_gl(img_prop);
+
+				RenderResources.BufferProperties[] buf_props = data.render_resources.get_buffer_props(RenderResources.Purpose.COMPILE);
+				foreach (RenderResources.BufferProperties buf_prop in buf_props)
+				{
+					dummy_render_gl(buf_prop);
+				}
 			}
 
 			Gdk.GLContext.clear_current();
@@ -140,7 +147,7 @@ namespace Shady.Core
 			int buffer_count = 0;
 			Array<Shader.Input> image_inputs = new Array<Shader.Input>();
 
-			for(int i=0; i<new_shader.renderpasses.length;i++)
+			for(int i=0; i<new_shader.renderpasses.length; i++)
 			{
 				if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
 				{
@@ -156,6 +163,8 @@ namespace Shady.Core
 
 			if(image_index != -1)
 			{
+				init_fb_texs(compile_resources, image_prop, compile_resources.width, compile_resources.height);
+
 				int num_samplers = (int)image_inputs.length;
 
 				image_prop.sampler_ids = new GLuint[num_samplers];
@@ -256,6 +265,8 @@ namespace Shady.Core
 					buffer_props[i].cur_x_img_part = 0;
 					buffer_props[i].cur_y_img_part = 0;
 
+					buffer_props[i].context = Gdk.GLContext.get_current();
+
 					buffer_props[i].tex_channels = new int[num_samplers];
 					buffer_props[i].tex_ids = new uint[num_samplers];
 					buffer_props[i].tex_targets = new uint[num_samplers];
@@ -306,16 +317,28 @@ namespace Shady.Core
 							{
 								buffer_props[i].tex_out_refs[ref_index,0] = j;
 								buffer_props[i].tex_out_refs[ref_index,1] = k;
+								ref_index++;
 							}
 						}
 					}
 
-					buffer_props[i].tex_out_refs_img = new Array<int>();
+					int num_refs_img = 0;
+					for(int k=0;k<image_prop.tex_ids.length;k++)
+					{
+						if(image_prop.tex_ids[k] == buffer_props[i].tex_id_out_front)
+						{
+							num_refs_img++;
+						}
+					}
+
+					buffer_props[i].tex_out_refs_img = new int[num_refs_img];
+					int ref_index_img=0;
 					for(int j=0;j<image_prop.tex_ids.length;j++)
 					{
 						if(image_prop.tex_ids[j] == buffer_props[i].tex_id_out_front)
 						{
-							buffer_props[i].tex_out_refs_img.append_val(j);
+							buffer_props[i].tex_out_refs_img[ref_index_img]=j;
+							ref_index_img++;
 						}
 					}
 				}
@@ -397,6 +420,18 @@ namespace Shady.Core
 				return false;
 			}
 
+			buf_prop.context = Gdk.GLContext.get_current();
+
+			GLuint[] fb_arr = {0};
+
+			glGenFramebuffers(1, fb_arr);
+			buf_prop.fb = fb_arr[0];
+
+			buf_prop.program = glCreateProgram();
+
+			glAttachShader(buf_prop.program, compile_resources.vertex_shader);
+			glAttachShader(buf_prop.program, compile_resources.fragment_shader);
+
 			glLinkProgram(buf_prop.program);
 
 			buf_prop.res_loc = glGetUniformLocation(buf_prop.program, "iResolution");
@@ -419,6 +454,9 @@ namespace Shady.Core
 			buf_prop.samplerate_loc = glGetUniformLocation(buf_prop.program, "iSampleRate");
 			buf_prop.offset_loc = glGetUniformLocation(buf_prop.program, "SHADY_COORDINATE_OFFSET");
 
+			init_vao(buf_prop);
+			bind_vertex_buffer(buf_prop, compile_resources);
+
 			Idle.add(() =>
 			{
 				compile_resources.pass_compilation_terminated(pass_index, null);
@@ -426,6 +464,86 @@ namespace Shady.Core
 			});
 
 			return true;
+		}
+
+		public static void init_compile_resources(CompileResources compile_resources)
+		{
+			compile_vertex_shader(compile_resources);
+			init_vbo(compile_resources);
+
+			compile_resources.fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+		}
+
+		public static void compile_vertex_shader(CompileResources compile_resources)
+		{
+			string vertex_source = SourceGenerator.generate_vertex_source(true);
+			string[] vertex_source_array = { vertex_source, null };
+
+			compile_resources.vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+			glShaderSource(compile_resources.vertex_shader, 1, vertex_source_array, null);
+			glCompileShader(compile_resources.vertex_shader);
+		}
+
+		public static void init_fb_texs(CompileResources compile_resources, RenderResources.BufferProperties buf_prop, int width, int height)
+		{
+			GLuint[] tex_arr = {0};
+			glGenTextures(1, tex_arr);
+
+			buf_prop.tex_id_out_back = tex_arr[0];
+
+			glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+
+			glGenTextures(1, tex_arr);
+			buf_prop.tex_id_out_front = tex_arr[0];
+
+			glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+		}
+
+		public static void init_vao(RenderResources.BufferProperties buf_prop)
+		{
+			GLuint[] vao_arr = {0};
+
+			glGenVertexArrays(1, vao_arr);
+			buf_prop.vao = vao_arr[0];
+		}
+
+		public static void init_vbo(CompileResources compile_resources)
+		{
+			GLuint[] vbo = {0};
+			glGenBuffers(1, vbo);
+
+			compile_resources.vbo=vbo[0];
+
+			GLfloat[] vertices = { -1, -1,
+								    3, -1,
+								   -1,  3 };
+
+			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+			glBufferData(GL_ARRAY_BUFFER, vertices.length * sizeof (GLfloat), (GLvoid[]) vertices, GL_STATIC_DRAW);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+
+		public static void bind_vertex_buffer(RenderResources.BufferProperties buf_prop, CompileResources compile_resources)
+		{
+			glBindVertexArray(buf_prop.vao);
+			glBindBuffer(GL_ARRAY_BUFFER, compile_resources.vbo);
+
+			GLuint attrib0 = glGetAttribLocation(buf_prop.program, "v");
+
+			glEnableVertexAttribArray(attrib0);
+			glVertexAttribPointer(attrib0, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindVertexArray(0);
 		}
 
 		public static void init_sampler(Shader.Input input, GLuint sampler_id)
@@ -460,39 +578,18 @@ namespace Shady.Core
 			}
 		}
 
-		/*
-		private static void dummy_render_gl(RenderResources resources)
+		private static void dummy_render_gl(RenderResources.BufferProperties buf_prop)
 		{
-			RenderResources.BufferProperties buf_prop = resources.get_image_prop(RenderResources.Purpose.COMPILE);
+			glViewport(0, 0, 256, 256);
 
-			if (buf_prop.context!=null)
-			{
-				buf_prop.context.make_current();
+			glUseProgram(buf_prop.program);
 
-				glViewport(0, 0, 256, 256);
+			glBindVertexArray(buf_prop.vao);
 
-				glUseProgram(buf_prop.program);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
 
-				glUniform4f(buf_prop.date_loc, 0.0f, 0.0f, 0.0f, 0.0f);
-				glUniform1f(buf_prop.time_loc, 0.0f);
-				glUniform1f(buf_prop.delta_loc, 0.0f);
-				glUniform1i(buf_prop.frame_loc, 0);
-				glUniform1f(buf_prop.fps_loc, 0.0f);
-				glUniform3f(buf_prop.res_loc, 256, 256, 0);
-				float[] channel_res = new float[12];
-				glUniform3fv(buf_prop.channel_res_loc, 4, channel_res);
-				glUniform1f(buf_prop.samplerate_loc, 0.0f);
-
-				glUniform4f(buf_prop.mouse_loc, 0.0f, 0.0f, 0.0f, 0.0f);
-
-				glBindVertexArray(buf_prop.vao);
-
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-
-				glFlush();
-				glFinish();
-			}
+			glFlush();
+			glFinish();
 		}
-		*/
 	}
 }

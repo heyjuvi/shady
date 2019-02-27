@@ -169,33 +169,6 @@ namespace Shady
 			}
 		}
 
-		protected void init_vertex_buffers(RenderResources.BufferProperties buf_prop)
-		{
-			GLuint[] vao_arr = {0};
-
-			glGenVertexArrays(1, vao_arr);
-			glBindVertexArray(vao_arr[0]);
-			buf_prop.vao = vao_arr[0];
-
-			GLuint[] vbo = {0};
-			glGenBuffers(1, vbo);
-
-			GLfloat[] vertices = { -1, -1,
-								    3, -1,
-								   -1,  3 };
-
-			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-			glBufferData(GL_ARRAY_BUFFER, vertices.length * sizeof (GLfloat), (GLvoid[]) vertices, GL_STATIC_DRAW);
-
-			GLuint attrib0 = glGetAttribLocation(buf_prop.program, "v");
-
-			glEnableVertexAttribArray(attrib0);
-			glVertexAttribPointer(attrib0, 2, GL_FLOAT, (GLboolean) GL_FALSE, 0, null);
-
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindVertexArray(0);
-		}
-
 		protected void init_target_pass(RenderResources.BufferProperties buf_prop, CompileResources comp_resources, GLuint tex_id)
 		{
 			buf_prop.sampler_ids = new GLuint[1];
@@ -223,16 +196,6 @@ namespace Shady
 			glShaderSource(target_vertex_shader, 1, target_vertex_source_array, null);
 			glCompileShader(target_vertex_shader);
 
-			comp_resources.vertex_shader = target_vertex_shader;
-
-			buf_prop.program = glCreateProgram();
-			buf_prop.context = get_context();
-
-			comp_resources.fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-
-			glAttachShader(buf_prop.program, comp_resources.vertex_shader);
-			glAttachShader(buf_prop.program, comp_resources.fragment_shader);
-
 			Shader.Input input = new Shader.Input();
 			input.type = Shader.InputType.TEXTURE;
 			input.channel = 0;
@@ -240,7 +203,12 @@ namespace Shady
 
 			string full_target_source = SourceGenerator.generate_renderpass_source(target_pass, false);
 
+			comp_resources.vertex_shader = target_vertex_shader;
+
 			ShaderCompiler.compile_pass(-1, full_target_source, buf_prop, comp_resources);
+
+			ShaderCompiler.init_vao(buf_prop);
+			ShaderCompiler.bind_vertex_buffer(buf_prop, comp_resources);
 		}
 
 		protected void init_time()

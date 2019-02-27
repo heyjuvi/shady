@@ -10,6 +10,9 @@ namespace Shady.Core
 			public GLuint fb;
 			public GLuint vao;
 
+			public GLuint tex_id_out_front;
+			public GLuint tex_id_out_back;
+
 			public Gdk.GLContext context;
 
 			public GLuint[] tex_ids;
@@ -17,11 +20,8 @@ namespace Shady.Core
 			public GLuint[] tex_targets;
 			public int[] tex_channels;
 
-			public GLuint tex_id_out_front;
-			public GLuint tex_id_out_back;
-
 			public int[,] tex_out_refs;
-			public Array<int> tex_out_refs_img;
+			public int[] tex_out_refs_img;
 
 			public int[] tex_widths;
 			public int[] tex_heights;

@@ -11,10 +11,15 @@ namespace Shady.Core
 		public GLuint vertex_shader;
 		public GLuint fragment_shader;
 
+		public GLuint vbo;
+
 		public Mutex mutex;
 		public Cond cond;
 
 		public Gdk.Window window;
+
+		public int width;
+		public int height;
 
 		public CompileResources()
 		{
