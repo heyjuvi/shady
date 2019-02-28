@@ -253,8 +253,9 @@ namespace Shady
 
 			compile(default_shader);
 
-			//TODO: properly wait for compilation to finish
-			Thread.usleep(10000);
+			_compile_resources.ready_mutex.lock();
+			_compile_resources.cond.wait(_compile_resources.ready_mutex);
+			_compile_resources.ready_mutex.unlock();
 
 			RenderResources.BufferProperties img_prop = _render_resources.get_image_prop(RenderResources.Purpose.RENDER);
 

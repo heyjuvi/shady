@@ -127,10 +127,12 @@ namespace Shady.Core
 
 			data.render_resources.switch_buffer();
 
+			data.compile_resources.ready_mutex.lock();
 			data.compile_resources.cond.signal();
+			data.compile_resources.ready_mutex.unlock();
 			data.compile_resources.mutex.unlock();
 
-			Idle.add(() =>
+			Timeout.add(1,() =>
 			{
 				data.compile_resources.compilation_finished();
 				return false;
@@ -396,7 +398,7 @@ namespace Shady.Core
 						print(@"$((char)c)");
 					}
 
-					Idle.add(() =>
+					Timeout.add(1,() =>
 					{
 						compile_resources.pass_compilation_terminated(pass_index, new ShaderError.COMPILATION((string) log));
 						return false;
@@ -404,18 +406,12 @@ namespace Shady.Core
 				}
 				else
 				{
-					Idle.add(() =>
+					Timeout.add(1,() =>
 					{
 						compile_resources.pass_compilation_terminated(pass_index, new ShaderError.COMPILATION("Something went substantially wrong..."));
 						return false;
 					});
 				}
-
-				Idle.add(() =>
-				{
-					compile_resources.compilation_finished();
-					return false;
-				});
 
 				return false;
 			}
@@ -457,7 +453,7 @@ namespace Shady.Core
 			init_vao(buf_prop);
 			bind_vertex_buffer(buf_prop, compile_resources);
 
-			Idle.add(() =>
+			Timeout.add(1,() =>
 			{
 				compile_resources.pass_compilation_terminated(pass_index, null);
 				return false;
