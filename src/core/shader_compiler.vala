@@ -51,6 +51,15 @@ namespace Shady.Core
 				return;
 			}
 
+			RenderResources.BufferProperties img_prop = render_resources.get_image_prop(RenderResources.Purpose.COMPILE);
+			RenderResources.BufferProperties[] buf_props = render_resources.get_buffer_props(RenderResources.Purpose.COMPILE);
+
+			img_prop.context = thread_context;
+			for(int i=0;i<buf_props.length;i++)
+			{
+				buf_props[i].context = thread_context;
+			}
+
 			ThreadData data = new ThreadData(){shader=shader, context = thread_context, render_resources=render_resources, compile_resources=compile_resources};
 			if (compile_resources.mutex.trylock())
 			{
@@ -267,8 +276,6 @@ namespace Shady.Core
 					buffer_props[i].cur_x_img_part = 0;
 					buffer_props[i].cur_y_img_part = 0;
 
-					buffer_props[i].context = Gdk.GLContext.get_current();
-
 					buffer_props[i].tex_channels = new int[num_samplers];
 					buffer_props[i].tex_ids = new uint[num_samplers];
 					buffer_props[i].tex_targets = new uint[num_samplers];
@@ -415,8 +422,6 @@ namespace Shady.Core
 
 				return false;
 			}
-
-			buf_prop.context = Gdk.GLContext.get_current();
 
 			GLuint[] fb_arr = {0};
 

@@ -205,6 +205,7 @@ namespace Shady
 
 			comp_resources.vertex_shader = target_vertex_shader;
 
+			buf_prop.context = get_context();
 			ShaderCompiler.compile_pass(-1, full_target_source, buf_prop, comp_resources);
 
 			ShaderCompiler.init_vao(buf_prop);
