@@ -51,10 +51,7 @@ namespace Shady
 		public static Shader.Renderpass? get_renderpass_from_input(Shader.Input input)
 		{
 			Shader.Renderpass input_renderpass = new Shader.Renderpass();
-			Shader.Input input_copy = new Shader.Input();
-			input_copy.assign(input);
-			input_copy.channel=0;
-			input_renderpass.inputs.append_val(input_copy);
+			input_renderpass.inputs.append_val(input);
 			input_renderpass.type = Shader.RenderpassType.IMAGE;
 
 			/*
@@ -100,13 +97,23 @@ namespace Shady
 				int width, height, depth, channel;
 				GLuint tex_target;
 
-				ShaderCompiler.init_sampler(input, _target_prop.sampler_ids[0]);
+				Shader.Input input_copy = new Shader.Input();
+				input_copy.assign(input);
+				input_copy.channel=0;
 
-				GLuint[] tex_ids = TextureManager.query_input_texture(input, (uint64) get_window(), out width, out height, out depth, out tex_target);
+				ShaderCompiler.init_sampler(input_copy, _target_prop.sampler_ids[0]);
+
+				if(input.type == Shader.InputType.BUFFER){
+					input_copy.type = Shader.InputType.TEXTURE;
+					input_copy.resource_index = 22 + input_copy.id - 3;
+					input_copy.sampler.v_flip = true;
+				}
+
+				GLuint[] tex_ids = TextureManager.query_input_texture(input_copy, (uint64) get_window(), out width, out height, out depth, out tex_target);
 
 				if(tex_ids != null && tex_ids.length > 0){
 
-					Shader? input_shader = get_shader_from_input(input);
+					Shader? input_shader = get_shader_from_input(input_copy);
 
 					string full_target_source = SourceGenerator.generate_renderpass_source(input_shader.renderpasses.index(0), false);
 
@@ -116,7 +123,7 @@ namespace Shady
 					_target_prop.tex_ids[0] = tex_ids[0];
 					_target_prop.tex_targets[0] = tex_target;
 
-					channel = input.channel;
+					channel = input_copy.channel;
 
 					_target_prop.tex_channels[0] = channel;
 

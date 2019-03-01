@@ -119,13 +119,14 @@ namespace Shady.Core
 			return {};
 		}
 
-		public static GLuint[] query_output_texture(Shader.Output output)
+		public static GLuint[] query_output_texture(Shader.Output output, uint64 window)
 		{
 			int i;
 			for(i=0;i<_buffer_buffer.length;i++)
 			{
 				if(_buffer_buffer[i].type == Shader.InputType.BUFFER &&
-				   _buffer_buffer[i].input_id == output.id)
+				   _buffer_buffer[i].input_id == output.id &&
+				   _buffer_buffer[i].window_id == window)
 				{
 					return _buffer_buffer[i].tex_ids;
 				}
@@ -151,7 +152,8 @@ namespace Shady.Core
 					tex_ids = tex_ids,
 					type = input.type,
 					v_flip = input.sampler.v_flip,
-					index = i
+					index = i,
+					window_id = window
 				};
 
 				_buffer_buffer += tex_unit;
@@ -181,6 +183,9 @@ namespace Shady.Core
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
 				glBindTexture(target, tex_ids[0]);
+
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 
 				Gdk.Pixbuf buf = ShadertoyResourceManager.TEXTURE_PIXBUFS[input.resource_index];
 
@@ -218,6 +223,9 @@ namespace Shady.Core
 				glGenTextures(1,tex_ids);
 				glBindTexture(target, tex_ids[0]);
 
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+
 				ShadertoyResourceManager.Voxmap voxmap = ShadertoyResourceManager.3DTEXTURE_VOXMAPS[input.resource_index];
 
 				width = voxmap.width;
@@ -252,6 +260,9 @@ namespace Shady.Core
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
 				glBindTexture(target, tex_ids[0]);
+
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 
 				Gdk.Pixbuf buf = ShadertoyResourceManager.CUBEMAP_PIXBUFS_ARRAY[input.resource_index,0];
 
@@ -331,6 +342,9 @@ namespace Shady.Core
 				{
 					glBindTexture(target, tex_ids[i]);
 					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 				}
 			}
 			else
@@ -344,6 +358,9 @@ namespace Shady.Core
 
 				glBindTexture(target, tex_ids[0]);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 			}
 
 			return tex_ids;

@@ -262,9 +262,6 @@ namespace Shady
 			GLuint vertex_shader_backup = _compile_resources.vertex_shader;
 			init_target_pass(_target_prop, _compile_resources, img_prop.tex_id_out_front);
 
-			//TODO: prevent fb from being generated
-			_target_prop.fb=0;
-
 			_compile_resources.vertex_shader = vertex_shader_backup;
 
 			init_tile_renderbuffer();

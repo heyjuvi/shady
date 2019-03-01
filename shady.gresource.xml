@@ -211,6 +211,14 @@
 		<file>data/shadertoy_presets/textures/stars.json</file>
 		<file>data/shadertoy_presets/textures/wood.png</file>
 		<file>data/shadertoy_presets/textures/wood.json</file>
+		<file>data/shadertoy_presets/textures/buffer00.png</file>
+		<file>data/shadertoy_presets/textures/buffer00.json</file>
+		<file>data/shadertoy_presets/textures/buffer01.png</file>
+		<file>data/shadertoy_presets/textures/buffer01.json</file>
+		<file>data/shadertoy_presets/textures/buffer02.png</file>
+		<file>data/shadertoy_presets/textures/buffer02.json</file>
+		<file>data/shadertoy_presets/textures/buffer03.png</file>
+		<file>data/shadertoy_presets/textures/buffer03.json</file>
 		<file>data/shadertoy_presets/3dtextures/gray_noise3d.bin</file>
 		<file>data/shadertoy_presets/3dtextures/gray_noise3d.json</file>
 		<file>data/shadertoy_presets/3dtextures/rgba_noise3d.bin</file>

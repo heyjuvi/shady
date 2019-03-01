@@ -90,6 +90,18 @@ namespace Shady.Core
 			}
 		}
 
+		public void set_buffer_props(Purpose purpose, BufferProperties[] buffer_props)
+		{
+			if (!_buffer_switch && purpose == Purpose.RENDER || _buffer_switch && purpose == Purpose.COMPILE)
+			{
+				_buffer_props1 = buffer_props;
+			}
+			else
+			{
+				_buffer_props2 = buffer_props;
+			}
+		}
+
 		public void switch_buffer()
 		{
 			buffer_switch_mutex.lock();

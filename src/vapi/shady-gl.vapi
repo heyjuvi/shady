@@ -11211,7 +11211,7 @@ namespace GL {
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glGetTexParameterfv")]
 	public static void glGetTexParameterfv (GL.GLenum target, GL.GLenum pname, [CCode (array_length = false)] GL.GLfloat[] @params);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glGetTexParameteriv")]
-	public static void glGetTexParameteriv (GL.GLenum target, GL.GLenum pname, [CCode (array_length = false)] GL.GLint[] @params);
+	public static void glGetTexParameteriv (GL.GLenum target, GL.GLenum pname, [CCode (array_length = false)] GL.GLint[] params);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glGetTexParameterxvOES")]
 	public static void glGetTexParameterxvOES (GL.GLenum target, GL.GLenum pname, [CCode (array_length = false)] GL.GLfixed[] @params);
 	[CCode (cheader_filename = "epoxy/gl.h", cname = "glGetTextureHandleNV")]

@@ -29,7 +29,11 @@ namespace Shady
 			"rock_tiles",
 			"rusty_metal",
 			"stars",
-			"wood"
+			"wood",
+			"buffer00",
+			"buffer01",
+			"buffer02",
+			"buffer03"
 		};
 
 		public static string[] 3DTEXTURE_IDS =

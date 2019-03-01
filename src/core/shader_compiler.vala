@@ -52,13 +52,15 @@ namespace Shady.Core
 			}
 
 			RenderResources.BufferProperties img_prop = render_resources.get_image_prop(RenderResources.Purpose.COMPILE);
-			RenderResources.BufferProperties[] buf_props = render_resources.get_buffer_props(RenderResources.Purpose.COMPILE);
+			RenderResources.BufferProperties[] buf_props = allocate_buffers(shader);
 
 			img_prop.context = thread_context;
 			for(int i=0;i<buf_props.length;i++)
 			{
 				buf_props[i].context = thread_context;
 			}
+
+			render_resources.set_buffer_props(RenderResources.Purpose.COMPILE, buf_props);
 
 			ThreadData data = new ThreadData(){shader=shader, context = thread_context, render_resources=render_resources, compile_resources=compile_resources};
 			if (compile_resources.mutex.trylock())
@@ -109,6 +111,8 @@ namespace Shady.Core
 					version_list.append(version);
 				}
 			}
+
+			glDeleteShader(fragment_shader);
 
 			Gdk.GLContext.clear_current();
 
@@ -178,6 +182,8 @@ namespace Shady.Core
 
 				int num_samplers = (int)image_inputs.length;
 
+				glDeleteSamplers(image_prop.sampler_ids.length, image_prop.sampler_ids);
+
 				image_prop.sampler_ids = new GLuint[num_samplers];
 				glGenSamplers(num_samplers, image_prop.sampler_ids);
 
@@ -226,8 +232,6 @@ namespace Shady.Core
 
 			if(buffer_count>0)
 			{
-				buffer_props = new RenderResources.BufferProperties[buffer_count];
-
 				GLuint[] fbs = new GLuint[buffer_count];
 				glGenFramebuffers(buffer_count, fbs);
 
@@ -246,23 +250,19 @@ namespace Shady.Core
 
 				for(int i=0; i<buffer_count; i++)
 				{
-					buffer_props[i] = new RenderResources.BufferProperties();
-
 					buffer_props[i].fb = fbs[i];
 
-					GLuint[] output_tex_ids = TextureManager.query_output_texture(buffer_outputs[i]);
+					GLuint[] output_tex_ids = TextureManager.query_output_texture(buffer_outputs[i], (uint64) compile_resources.window);
 					buffer_props[i].tex_id_out_front = output_tex_ids[0];
 					buffer_props[i].tex_id_out_back = output_tex_ids[1];
 
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbs[i]);
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output_tex_ids[1], 0);
 
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
 					glClearColor(0,0,0,1);
 					glClear(GL_COLOR_BUFFER_BIT);
-
-					buffer_props[i].program = glCreateProgram();
-					glAttachShader(buffer_props[i].program, compile_resources.vertex_shader);
-					glAttachShader(buffer_props[i].program, compile_resources.fragment_shader);
 
 					int num_samplers = (int)buffer_inputs[i].length;
 
@@ -356,6 +356,12 @@ namespace Shady.Core
 			Shader.Renderpass image_pass = new_shader.renderpasses.index(image_index);
 			string full_image_source = SourceGenerator.generate_renderpass_source(image_pass, true);
 
+			GLuint[] fb_arr = {image_prop.fb};
+			glDeleteFramebuffers(1, fb_arr);
+
+			glGenFramebuffers(1, fb_arr);
+			image_prop.fb = fb_arr[0];
+
 			bool success = compile_pass(image_index, full_image_source, image_prop, compile_resources);
 			if (!success)
 			{
@@ -423,11 +429,7 @@ namespace Shady.Core
 				return false;
 			}
 
-			GLuint[] fb_arr = {0};
-
-			glGenFramebuffers(1, fb_arr);
-			buf_prop.fb = fb_arr[0];
-
+			glDeleteProgram(buf_prop.program);
 			buf_prop.program = glCreateProgram();
 
 			glAttachShader(buf_prop.program, compile_resources.vertex_shader);
@@ -467,6 +469,24 @@ namespace Shady.Core
 			return true;
 		}
 
+		private static RenderResources.BufferProperties[] allocate_buffers(Shader shader)
+		{
+			int buffer_count = 0;
+			for(int i=0; i<shader.renderpasses.length; i++)
+			{
+				if(shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
+				{
+					buffer_count++;
+				}
+			}
+			RenderResources.BufferProperties[] buffer_props = new RenderResources.BufferProperties[buffer_count];
+			for(int i=0; i<buffer_count; i++)
+			{
+				buffer_props[i] = new RenderResources.BufferProperties();
+			}
+			return buffer_props;
+		}
+
 		public static void init_compile_resources(CompileResources compile_resources)
 		{
 			compile_vertex_shader(compile_resources);
@@ -487,7 +507,8 @@ namespace Shady.Core
 
 		public static void init_fb_texs(CompileResources compile_resources, RenderResources.BufferProperties buf_prop, int width, int height)
 		{
-			GLuint[] tex_arr = {0};
+			GLuint[] tex_arr = {buf_prop.tex_id_out_back};
+			glDeleteTextures(1, tex_arr);
 			glGenTextures(1, tex_arr);
 
 			buf_prop.tex_id_out_back = tex_arr[0];
@@ -498,7 +519,10 @@ namespace Shady.Core
 			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 
+			tex_arr = {buf_prop.tex_id_out_front};
+			glDeleteTextures(1, tex_arr);
 			glGenTextures(1, tex_arr);
+
 			buf_prop.tex_id_out_front = tex_arr[0];
 
 			glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
@@ -510,8 +534,9 @@ namespace Shady.Core
 
 		public static void init_vao(RenderResources.BufferProperties buf_prop)
 		{
-			GLuint[] vao_arr = {0};
+			GLuint[] vao_arr = {buf_prop.vao};
 
+			glDeleteVertexArrays(1, vao_arr);
 			glGenVertexArrays(1, vao_arr);
 			buf_prop.vao = vao_arr[0];
 		}
