@@ -36,12 +36,8 @@ namespace Shady.Core
 		private static TextureBufferUnit[] _texture_buffer = {};
 		private static TextureBufferUnit[] _buffer_buffer = {};
 
-		public static GLuint[] query_input_texture(Shader.Input input, uint64 window, out int width, out int height, out int depth, out uint target)
+		public static GLuint[] query_input_texture(Shader.Input input, uint64 window, ref int width, ref int height, ref int depth, out uint target)
 		{
-
-			width = 0;
-			height = 0;
-			depth = 0;
 			target = -1;
 
 			int i;
@@ -50,7 +46,9 @@ namespace Shady.Core
 			{
 				for(i=0;i<_buffer_buffer.length;i++)
 				{
-				    if(_buffer_buffer[i].type == Shader.InputType.BUFFER && _buffer_buffer[i].input_id == input.id)
+				    if(_buffer_buffer[i].type == Shader.InputType.BUFFER &&
+					   _buffer_buffer[i].input_id == input.id &&
+					   _buffer_buffer[i].window_id == window)
 					{
 						width = _buffer_buffer[i].width;
 						height = _buffer_buffer[i].height;
@@ -61,7 +59,7 @@ namespace Shady.Core
 				}
 				if(i == _buffer_buffer.length)
 				{
-					GLuint[] tex_ids = init_input_texture(input, out width, out height, out depth, out target);
+					GLuint[] tex_ids = init_input_texture(input, ref width, ref height, ref depth, out target);
 					TextureBufferUnit tex_unit = TextureBufferUnit()
 					{
 						width = width,
@@ -72,7 +70,8 @@ namespace Shady.Core
 						tex_ids = tex_ids,
 						type = input.type,
 						v_flip = input.sampler.v_flip,
-						index = i
+						index = i,
+						window_id = window
 					};
 
 					_buffer_buffer += tex_unit;
@@ -97,7 +96,7 @@ namespace Shady.Core
 				}
 				if(i == _texture_buffer.length)
 				{
-					GLuint[] tex_ids = init_input_texture(input, out width, out height, out depth, out target);
+					GLuint[] tex_ids = init_input_texture(input, ref width, ref height, ref depth, out target);
 					TextureBufferUnit tex_unit = TextureBufferUnit()
 					{
 						width = width,
@@ -119,7 +118,7 @@ namespace Shady.Core
 			return {};
 		}
 
-		public static GLuint[] query_output_texture(Shader.Output output, uint64 window)
+		public static GLuint[] query_output_texture(Shader.Output output, uint64 window, int width, int height)
 		{
 			int i;
 			for(i=0;i<_buffer_buffer.length;i++)
@@ -138,10 +137,10 @@ namespace Shady.Core
 				input.id = output.id;
 				input.type = Shader.InputType.BUFFER;
 
-				int width, height, depth;
+				int depth = 0;
 				uint target;
 
-				GLuint[] tex_ids = init_input_texture(input, out width, out height, out depth, out target);
+				GLuint[] tex_ids = init_input_texture(input, ref width, ref height, ref depth, out target);
 				TextureBufferUnit tex_unit = TextureBufferUnit()
 				{
 					width = width,
@@ -162,12 +161,8 @@ namespace Shady.Core
 			return {};
 		}
 
-		private static GLuint[] init_input_texture(Shader.Input input, out int width, out int height, out int depth, out uint target)
+		private static GLuint[] init_input_texture(Shader.Input input, ref int width, ref int height, ref int depth, out uint target)
 		{
-			width=0;
-			height=0;
-			depth=0;
-
 			target = -1;
 
 			GLuint[] tex_ids = {};
@@ -335,9 +330,6 @@ namespace Shady.Core
 				tex_ids = {0, 0};
 				glGenTextures(2,tex_ids);
 
-				//width = _width;
-				//height = _height;
-
 				for(int i=0;i<2;i++)
 				{
 					glBindTexture(target, tex_ids[i]);
@@ -345,22 +337,24 @@ namespace Shady.Core
 
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+
+					glGenerateMipmap(GL_TEXTURE_2D);
 				}
 			}
-			else
+			else if(input.type == Shader.InputType.NONE)
 			{
 				target = GL_TEXTURE_2D;
 				tex_ids = {0};
 				glGenTextures(1,tex_ids);
 
-				//width = _width;
-				//height = _height;
+				//glBindTexture(target, tex_ids[0]);
+				//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
 
-				glBindTexture(target, tex_ids[0]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+				//glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				//glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+			}
+			else{
+				print("Unexpected input type\n");
 			}
 
 			return tex_ids;

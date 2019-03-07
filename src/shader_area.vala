@@ -163,6 +163,7 @@ namespace Shady
 				{
 					glActiveTexture(GL_TEXTURE0 + buf_prop.tex_channels[i]);
 					glBindTexture(buf_prop.tex_targets[i], buf_prop.tex_ids[i]);
+					glGenerateMipmap(buf_prop.tex_targets[i]);
 					glBindSampler(buf_prop.tex_channels[i], buf_prop.sampler_ids[i]);
 					glUniform1i(buf_prop.channel_locs[i], (GLint)buf_prop.tex_channels[i]);
 				}

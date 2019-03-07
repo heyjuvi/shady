@@ -9,6 +9,7 @@ namespace Shady.Core
 		}
 
 		private const string _channel_string = "iChannel";
+		private const uint _default_tile_size=16;
 
 		private class ThreadData
 		{
@@ -38,33 +39,34 @@ namespace Shady.Core
 
 		public static void queue_shader_compile(Shader shader, RenderResources render_resources, CompileResources compile_resources)
 		{
-			Gdk.GLContext thread_context;
-
-			try
-			{
-				thread_context = compile_resources.window.create_gl_context();
-				thread_context.realize();
-			}
-			catch(Error e)
-			{
-				print("Couldn't create gl context\n");
-				return;
-			}
-
-			RenderResources.BufferProperties img_prop = render_resources.get_image_prop(RenderResources.Purpose.COMPILE);
-			RenderResources.BufferProperties[] buf_props = allocate_buffers(shader);
-
-			img_prop.context = thread_context;
-			for(int i=0;i<buf_props.length;i++)
-			{
-				buf_props[i].context = thread_context;
-			}
-
-			render_resources.set_buffer_props(RenderResources.Purpose.COMPILE, buf_props);
-
-			ThreadData data = new ThreadData(){shader=shader, context = thread_context, render_resources=render_resources, compile_resources=compile_resources};
 			if (compile_resources.mutex.trylock())
 			{
+				Gdk.GLContext thread_context;
+
+				try
+				{
+					thread_context = compile_resources.window.create_gl_context();
+					thread_context.realize();
+				}
+				catch(Error e)
+				{
+					print("Couldn't create gl context\n");
+					return;
+				}
+
+				RenderResources.BufferProperties img_prop = render_resources.get_image_prop(RenderResources.Purpose.COMPILE);
+				RenderResources.BufferProperties[] buf_props = allocate_buffers(shader);
+
+				img_prop.context = thread_context;
+				for(int i=0;i<buf_props.length;i++)
+				{
+					buf_props[i].context = thread_context;
+				}
+
+				render_resources.set_buffer_props(RenderResources.Purpose.COMPILE, buf_props);
+
+				ThreadData data = new ThreadData(){shader=shader, context = thread_context, render_resources=render_resources, compile_resources=compile_resources};
+
 				try
 				{
 					_compile_pool.add(data);
@@ -197,14 +199,33 @@ namespace Shady.Core
 				image_prop.cur_x_img_part = 0;
 				image_prop.cur_y_img_part = 0;
 
+				image_prop.x_img_parts = compile_resources.width/_default_tile_size;
+				image_prop.y_img_parts = compile_resources.height/_default_tile_size;
+
+				if(compile_resources.width==0)
+				{
+					image_prop.x_img_parts = 8;
+				}
+				if(compile_resources.height==0)
+				{
+					image_prop.y_img_parts = 8;
+				}
+
+				init_tile_renderbuffer(image_prop, compile_resources);
+
 				for(int i=0;i<image_inputs.length;i++)
 				{
 					int width, height, depth, channel;
 
 					init_sampler(image_inputs.index(i), image_prop.sampler_ids[i]);
 
+					width = compile_resources.width;
+					height = compile_resources.height;
+					depth = 0;
+
 					GLuint tex_target;
-					GLuint[] tex_ids = TextureManager.query_input_texture(image_inputs.index(i), (uint64) compile_resources.window, out width, out height, out depth, out tex_target);
+					GLuint[] tex_ids = TextureManager.query_input_texture(image_inputs.index(i), (uint64) compile_resources.window, ref width, ref height, ref depth, out tex_target);
+
 					image_prop.tex_ids[i] = tex_ids[0];
 					image_prop.tex_targets[i] = tex_target;
 
@@ -252,17 +273,17 @@ namespace Shady.Core
 				{
 					buffer_props[i].fb = fbs[i];
 
-					GLuint[] output_tex_ids = TextureManager.query_output_texture(buffer_outputs[i], (uint64) compile_resources.window);
+					GLuint[] output_tex_ids = TextureManager.query_output_texture(buffer_outputs[i], (uint64) compile_resources.window, compile_resources.width, compile_resources.height);
 					buffer_props[i].tex_id_out_front = output_tex_ids[0];
 					buffer_props[i].tex_id_out_back = output_tex_ids[1];
 
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbs[i]);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output_tex_ids[1], 0);
-
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+					//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbs[i]);
+					//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output_tex_ids[1], 0);
 
 					glClearColor(0,0,0,1);
 					glClear(GL_COLOR_BUFFER_BIT);
+
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 					int num_samplers = (int)buffer_inputs[i].length;
 
@@ -276,6 +297,20 @@ namespace Shady.Core
 					buffer_props[i].cur_x_img_part = 0;
 					buffer_props[i].cur_y_img_part = 0;
 
+					buffer_props[i].x_img_parts = compile_resources.width/_default_tile_size;
+					buffer_props[i].y_img_parts = compile_resources.height/_default_tile_size;
+
+					if(compile_resources.width==0)
+					{
+						buffer_props[i].x_img_parts = 8;
+					}
+					if(compile_resources.height==0)
+					{
+						buffer_props[i].y_img_parts = 8;
+					}
+
+					init_tile_renderbuffer(buffer_props[i], compile_resources);
+
 					buffer_props[i].tex_channels = new int[num_samplers];
 					buffer_props[i].tex_ids = new uint[num_samplers];
 					buffer_props[i].tex_targets = new uint[num_samplers];
@@ -286,8 +321,12 @@ namespace Shady.Core
 
 						init_sampler(buffer_inputs[i].index(j), buffer_props[i].sampler_ids[j]);
 
+						width = compile_resources.width;
+						height = compile_resources.height;
+						depth = 0;
+
 						GLuint tex_target;
-						GLuint[] tex_ids = TextureManager.query_input_texture(buffer_inputs[i].index(j), (uint64) compile_resources.window, out width, out height, out depth, out tex_target);
+						GLuint[] tex_ids = TextureManager.query_input_texture(buffer_inputs[i].index(j), (uint64) compile_resources.window, ref width, ref height, ref depth, out tex_target);
 						buffer_props[i].tex_targets[j] = tex_target;
 						buffer_props[i].tex_ids[j] = tex_ids[0];
 
@@ -374,6 +413,7 @@ namespace Shady.Core
 				string full_buffer_source = SourceGenerator.generate_renderpass_source(buffer_pass, true);
 
 				success = compile_pass(buffer_indices[i], full_buffer_source, buffer_props[i], compile_resources);
+
 				if (!success)
 				{
 					return false;
@@ -505,6 +545,7 @@ namespace Shady.Core
 			glCompileShader(compile_resources.vertex_shader);
 		}
 
+		//TODO: merge with query_output_texture
 		public static void init_fb_texs(CompileResources compile_resources, RenderResources.BufferProperties buf_prop, int width, int height)
 		{
 			GLuint[] tex_arr = {buf_prop.tex_id_out_back};
@@ -570,6 +611,28 @@ namespace Shady.Core
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
+		}
+
+		private static void init_tile_renderbuffer(RenderResources.BufferProperties buf_prop, CompileResources compile_resources)
+		{
+			GLuint[] rb_arr = {0};
+			glGenRenderbuffers(1, rb_arr);
+			buf_prop.tile_render_buf = rb_arr[0];
+
+			//TODO: reenable exact buffer size calculation ? (remember adding glRenderBufferStorage() to detect_tile_size() then)
+			//uint width = compile_resources.width/buf_prop.x_img_parts;
+			//uint height = compile_resources.height/buf_prop.y_img_parts;
+
+			//if(width < compile_resources.width - (buf_prop.x_img_parts-1) * width){
+			//	width = compile_resources.width - (buf_prop.x_img_parts-1) * width;
+			//}
+			//if(height < compile_resources.height - (buf_prop.y_img_parts-1) * height){
+			//	height = compile_resources.height - (buf_prop.y_img_parts-1) * height;
+			//}
+
+			glBindRenderbuffer(GL_RENDERBUFFER, buf_prop.tile_render_buf);
+			//glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)width, (int)height);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)compile_resources.width, (int)compile_resources.height);
 		}
 
 		public static void init_sampler(Shader.Input input, GLuint sampler_id)

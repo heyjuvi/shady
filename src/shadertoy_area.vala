@@ -53,7 +53,6 @@ namespace Shady
 			}
 		}
 
-		private GLuint _tile_render_buf;
 		private uint _render_timeout;
 
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
@@ -65,7 +64,6 @@ namespace Shady
 		private CompileResources _compile_resources = new CompileResources();
 
 		/* Constants */
-		const uint _default_tile_size=16;
 		const uint _timeout_interval=16;
 
 		const double _target_time=10000.0;
@@ -73,9 +71,6 @@ namespace Shady
 		const double _lower_time_threshold=5000;
 
 		private bool _adaptive_tiling = true;
-
-		private uint _x_image_parts = 1;
-		private uint _y_image_parts = 1;
 
 		/* OpenGL ids */
 
@@ -165,18 +160,6 @@ namespace Shady
 			_compile_resources.compilation_finished.connect(() =>
 			{
 				compilation_finished();
-
-				_x_image_parts = _width/_default_tile_size;
-				_y_image_parts = _height/_default_tile_size;
-
-				if(_width==0)
-				{
-					_x_image_parts = 8;
-				}
-				if(_height==0)
-				{
-					_y_image_parts = 8;
-				}
 				update_rendering();
 			});
 
@@ -222,27 +205,6 @@ namespace Shady
 			return loading_shader;
 		}
 
-		private void init_tile_renderbuffer()
-		{
-			GLuint[] rb_arr = {0};
-    		glGenRenderbuffers(1,rb_arr);
-			_tile_render_buf=rb_arr[0];
-
-    		glBindRenderbuffer(GL_RENDERBUFFER,_tile_render_buf);
-
-			uint width=_width/_x_image_parts;
-			uint height=_height/_x_image_parts;
-
-			if(width<_width-(_x_image_parts-1)*width){
-				width=_width-(_x_image_parts-1)*width;
-			}
-			if(height<_height-(_y_image_parts-1)*height){
-				height=_height-(_y_image_parts-1)*height;
-			}
-
-    		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)width, (int)height);
-		}
-
 		private void init_gl(Shader default_shader)
 		{
 			make_current();
@@ -263,8 +225,6 @@ namespace Shady
 			init_target_pass(_target_prop, _compile_resources, img_prop.tex_id_out_front);
 
 			_compile_resources.vertex_shader = vertex_shader_backup;
-
-			init_tile_renderbuffer();
 
 			GLuint[] fb_arr = {0};
 
@@ -299,85 +259,89 @@ namespace Shady
 			_compile_resources.width = _width;
 			_compile_resources.height = _height;
 
-			glBindRenderbuffer(GL_RENDERBUFFER, _tile_render_buf);
+			//TODO: reenable exact buffer size calculation ? (remember adding glRenderBufferStorage() to detect_tile_size() then)
+			//uint width=_width/img_prop.x_img_parts;
+			//uint height=_height/img_prop.y_img_parts;
 
-			uint width=_width/_x_image_parts;
-			uint height=_height/_x_image_parts;
+			//if(width < _width - (img_prop.x_img_parts-1) * width){
+			//	width = _width - (img_prop.x_img_parts-1) * width;
+			//}
+			//if(height < _height - (img_prop.y_img_parts-1) * height){
+			//	height = _height - (img_prop.y_img_parts-1) * height;
+			//}
 
-			if(width < _width - (_x_image_parts-1) * width){
-				width = _width - (_x_image_parts-1) * width;
-			}
-			if(height < _height - (_y_image_parts-1) * height){
-				height = _height - (_y_image_parts-1) * height;
-			}
-
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)width, (int)height);
+			glBindRenderbuffer(GL_RENDERBUFFER, img_prop.tile_render_buf);
+			//glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)width, (int)height);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)_width, (int)_height);
 
 			img_prop.cur_x_img_part = 0;
 			img_prop.cur_y_img_part = 0;
-
-			for(int i=0; i<buf_props.length; i++)
-			{
-				buf_props[i].cur_x_img_part = 0;
-				buf_props[i].cur_y_img_part = 0;
-			}
 
 			glBindTexture(GL_TEXTURE_2D, img_prop.tex_id_out_back);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
 
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, img_prop.tex_id_out_back, 0);
+			//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
+			//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, img_prop.tex_id_out_back, 0);
 
-			//TODO: fix multipass again, include in texture manager somehow?
-			/*
-			for(int i=0;i<_buffer_buffer.length;i++)
+			//glClearColor(0,0,0,1);
+			//glClear(GL_COLOR_BUFFER_BIT);
+
+			for(int i=0; i<buf_props.length; i++)
 			{
-				_buffer_buffer[i].width=_width;
-				_buffer_buffer[i].height=_height;
-				
-				for(int j=0;j<2;j++)
-				{
-					glBindTexture(GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j]);
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+				glBindRenderbuffer(GL_RENDERBUFFER, buf_props[i].tile_render_buf);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)_width, (int)_height);
 
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _buffer_buffer[i].tex_ids[j], 0);
+				buf_props[i].cur_x_img_part = 0;
+				buf_props[i].cur_y_img_part = 0;
 
-					glClearColor(0,0,0,1);
-					glClear(GL_COLOR_BUFFER_BIT);
-				}
+				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_back);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+				//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
+				//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buf_props[i].tex_id_out_back, 0);
+
+				//glClearColor(0,0,0,1);
+				//glClear(GL_COLOR_BUFFER_BIT);
+
+				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_front);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+				//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
+				//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buf_props[i].tex_id_out_front, 0);
+
+				//glClearColor(0,0,0,1);
+				//glClear(GL_COLOR_BUFFER_BIT);
 			}
-			*/
 
 			_size_updated = false;
 		}
 
-		private void detect_tile_size(RenderResources.BufferProperties img_prop, double time_delta)
+		private void detect_tile_size(RenderResources.BufferProperties buf_prop, double time_delta)
 		{
-			double target_tile_size = Math.sqrt((_target_time*(double)_width*(double)_height)/((double)time_delta*(double)_x_image_parts*(double)_y_image_parts));
-			_x_image_parts = (uint)(_width/target_tile_size + 0.5);
-			_y_image_parts = (uint)(_height/target_tile_size + 0.5);
+			double target_tile_size = Math.sqrt((_target_time*(double)_width*(double)_height)/((double)time_delta*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts));
+			buf_prop.x_img_parts = (uint)(_width/target_tile_size + 0.5);
+			buf_prop.y_img_parts = (uint)(_height/target_tile_size + 0.5);
 
-			if(_x_image_parts < 1)
+			if(buf_prop.x_img_parts < 1)
 			{
-				_x_image_parts = 1;
+				buf_prop.x_img_parts = 1;
 			}
-			else if(_x_image_parts > _width)
+			else if(buf_prop.x_img_parts > _width)
 			{
-				_x_image_parts = _width;
-			}
-
-			if(_y_image_parts < 1)
-			{
-				_y_image_parts = 1;
-			}
-			else if(_y_image_parts > _height)
-			{
-				_y_image_parts = _height;
+				buf_prop.x_img_parts = _width;
 			}
 
-			img_prop.cur_x_img_part = 0;
-			img_prop.cur_y_img_part = 0;
+			if(buf_prop.y_img_parts < 1)
+			{
+				buf_prop.y_img_parts = 1;
+			}
+			else if(buf_prop.y_img_parts > _height)
+			{
+				buf_prop.y_img_parts = _height;
+			}
+
+			buf_prop.cur_x_img_part = 0;
+			buf_prop.cur_y_img_part = 0;
 		}
 
 		private void swap_buffer_textures(RenderResources.BufferProperties[] buf_props, RenderResources.BufferProperties img_prop){
@@ -425,11 +389,18 @@ namespace Shady
 
 				for(int i=0; i<buf_props.length; i++)
 				{
-					render_gl(buf_props[i]);
+					glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_MEDIUM, -1, "buffer");
+					int64 time_delta = render_gl(buf_props[i]);
+
+					if(time_delta > _upper_time_threshold || time_delta < _lower_time_threshold)
+					{
+						detect_tile_size(buf_props[i], time_delta);
+					}
 				}
 
 				swap_buffer_textures(buf_props, img_prop);
 
+				glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_MEDIUM, -1, "image");
 				int64 time_delta = render_gl(img_prop);
 				_time_delta_accum += time_delta;
 
@@ -460,6 +431,8 @@ namespace Shady
 					}
 
 					// compute moving average
+					// TODO: incorporate buffers
+					// TODO: make averaging adaptive so high framerate doesn't mean high update rate of framerate average
 					if (fps != 0)
 					{
 						fps = (0.95 * fps + 0.05 * (1000000.0f / _time_delta_accum));
@@ -483,49 +456,48 @@ namespace Shady
 		{
 			buf_prop.context.make_current();
 
+			uint x_offset = 0;
+			uint y_offset = 0;
+			uint cur_width = 0;
+			uint cur_height = 0;
+
 			if(buf_prop.fb!=0)
 			{
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, buf_prop.fb);
-    			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _tile_render_buf);
-			}
+    			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, buf_prop.tile_render_buf);
 
-			uint cur_width=_width/_x_image_parts;
-			uint cur_height=_height/_y_image_parts;
+				cur_width=_width/buf_prop.x_img_parts;
+				cur_height=_height/buf_prop.y_img_parts;
 
-			uint x_offset = cur_width*buf_prop.cur_x_img_part;
-			uint y_offset = cur_height*buf_prop.cur_y_img_part;
+				x_offset = cur_width*buf_prop.cur_x_img_part;
+				y_offset = cur_height*buf_prop.cur_y_img_part;
 
-			if(buf_prop.cur_x_img_part == _x_image_parts-1)
-			{
-				cur_width = _width-(_x_image_parts-1)*(int)(_width/_x_image_parts);
-			}
-			if(buf_prop.cur_y_img_part == _y_image_parts-1)
-			{
-				cur_height = _height-(_y_image_parts-1)*(int)(_height/_y_image_parts);
-			}
+				if(buf_prop.cur_x_img_part == buf_prop.x_img_parts-1)
+				{
+					cur_width = _width-(buf_prop.x_img_parts-1)*(int)(_width/buf_prop.x_img_parts);
+				}
+				if(buf_prop.cur_y_img_part == buf_prop.y_img_parts-1)
+				{
+					cur_height = _height-(buf_prop.y_img_parts-1)*(int)(_height/buf_prop.y_img_parts);
+				}
 
-			if(buf_prop.fb!=0)
-			{
 				glViewport(0, 0,(int)cur_width, (int)cur_height);
-			}
-			else
-			{
-				glViewport(0, 0,(int)_width, (int)_height);
-			}
 
-			if(buf_prop.fb!=0)
-			{
 				buf_prop.cur_x_img_part += 1;
-				if(buf_prop.cur_x_img_part == _x_image_parts)
+				if(buf_prop.cur_x_img_part >= buf_prop.x_img_parts)
 				{
 					buf_prop.cur_x_img_part = 0;
 					buf_prop.cur_y_img_part += 1;
 
-					if(buf_prop.cur_y_img_part == _y_image_parts)
+					if(buf_prop.cur_y_img_part >= buf_prop.y_img_parts)
 					{
 						buf_prop.cur_y_img_part = 0;
 					}
 				}
+			}
+			else
+			{
+				glViewport(0, 0,(int)_width, (int)_height);
 			}
 
 			int64 time_after = 0, time_before = 0;
@@ -551,7 +523,7 @@ namespace Shady
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 			if(buf_prop.fb!=0){
-				glCopyImageSubData(_tile_render_buf,GL_RENDERBUFFER,0,0,0,0,buf_prop.tex_id_out_back,GL_TEXTURE_2D,0,(int)x_offset,(int)y_offset,0,(int)cur_width,(int)cur_height,1);
+				glCopyImageSubData(buf_prop.tile_render_buf,GL_RENDERBUFFER,0,0,0,0,buf_prop.tex_id_out_back,GL_TEXTURE_2D,0,(int)x_offset,(int)y_offset,0,(int)cur_width,(int)cur_height,1);
 			}
 
 			glFinish();

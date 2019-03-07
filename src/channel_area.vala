@@ -94,7 +94,12 @@ namespace Shady
 		{
 			if(input.resource!=null){
 				_target_prop.context.make_current();
-				int width, height, depth, channel;
+
+				int width = 0;
+				int height = 0;
+				int depth = 0;
+				int channel;
+
 				GLuint tex_target;
 
 				Shader.Input input_copy = new Shader.Input();
@@ -109,7 +114,7 @@ namespace Shady
 					input_copy.sampler.v_flip = true;
 				}
 
-				GLuint[] tex_ids = TextureManager.query_input_texture(input_copy, (uint64) get_window(), out width, out height, out depth, out tex_target);
+				GLuint[] tex_ids = TextureManager.query_input_texture(input_copy, (uint64) get_window(), ref width, ref height, ref depth, out tex_target);
 
 				if(tex_ids != null && tex_ids.length > 0){
 

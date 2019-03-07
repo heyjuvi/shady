@@ -27,8 +27,13 @@ namespace Shady.Core
 			public int[] tex_heights;
 			public int[] tex_depths;
 
+			public GLuint tile_render_buf;
+
 			public int cur_x_img_part;
 			public int cur_y_img_part;
+
+			public uint x_img_parts;
+			public uint y_img_parts;
 
 			//public double[] tex_times;
 
