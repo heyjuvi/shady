@@ -85,8 +85,8 @@ namespace Shady
 		private string _default_code;
 		private string _buffer_default_code;
 
-        private Shader _curr_shader;
-		private ShaderSourceBuffer _curr_buffer;
+        private Shader _curr_shader = null;
+		private ShaderSourceBuffer _curr_buffer = null;
 
 		private Gtk.TextIter _last_match_start;
 		private Gtk.TextIter _last_match_end;
@@ -130,6 +130,8 @@ namespace Shady
 			add_buffer("Image", get_insert_index_for_buffer("Image"), false);
 			set_buffer("Image", _default_code);
 
+			_curr_buffer = _shader_buffers["Image"];
+
 			do_full_char_count_refresh();
 
 			_edited = false;
@@ -139,15 +141,20 @@ namespace Shady
 
             for (int i = 0; i < 4; i++)
             {
-			    _channels[i] = new ShaderChannel();
+			    _channels[i] = new ShaderChannel(i);
 			    _channels[i].channel_name = @"iChannel$i";
-			    _channels[i].id = i;
 
 			    _channels[i].channel_input_changed.connect(channel_input_changed);
 
 			    _channels[i].channel_area.initialized.connect(() =>
 			    {
 			        _channels_initialized = true;
+
+			        // set all channels empty in the beginning
+			        for (int j = 0; j < 4; j++)
+		            {
+			            _channels[j].channel_input = Shader.Input.NO_INPUT;
+		            }
 
 			        update_channels();
 			    });
@@ -394,8 +401,13 @@ namespace Shady
 		    }
 		}
 
-		private Shader.Renderpass find_current_renderpass()
+		private Shader.Renderpass? find_current_renderpass()
 		{
+		    if (_curr_buffer == null)
+		    {
+		        return null;
+		    }
+
 			Shader.Renderpass curr_renderpass = null;
 
 			for (int i = 0; i < _curr_shader.renderpasses.length; i++)
@@ -416,6 +428,11 @@ namespace Shady
 
 		private void do_full_char_count_refresh()
 		{
+		    if (_curr_buffer == null)
+		    {
+		        return;
+		    }
+
 		    int new_total_chars = 0;
 			foreach (string key in _shader_buffers.get_keys())
 			{
@@ -593,9 +610,33 @@ namespace Shady
 			}
 		}
 
+		private void list_curr_renderass()
+		{
+		    Shader.Renderpass? curr_renderpass = find_current_renderpass();
+		    if (curr_renderpass == null)
+			{
+				return;
+			}
+
+		    print("list_curr_renderass: --- Listing renderpass\n");
+		    for (int i = 0; i < curr_renderpass.inputs.length; i++)
+	        {
+	            print(@"list_curr_renderass: Renderpass: $(curr_renderpass.name)\n");
+
+	            for (int channel_index = 0; channel_index < 4; channel_index++)
+	            {
+		            print(@"list_curr_renderass: iChannel$channel_index@name: $(curr_renderpass.inputs.index(i).name)\n");
+	                print(@"list_curr_renderass: iChannel$channel_index@channel: $(curr_renderpass.inputs.index(i).channel)\n");
+		        }
+		    }
+		    print("list_curr_renderass: ---\n");
+		}
+
 		[GtkCallback]
 		private void change_renderpass(string buffer_name, bool active)
 		{
+		    list_curr_renderass();
+
 		    if (active)
 		    {
 			    add_buffer(buffer_name, get_insert_index_for_buffer(buffer_name));
@@ -646,6 +687,7 @@ namespace Shady
 
 		        if (channel_input.channel == channel_index)
 		        {
+		            print(@"channel_input_changed: Renderpass: $(curr_renderpass.name)\n");
 			        curr_renderpass.inputs.index(i).assign(channel_input);
 			        return;
 			    }
@@ -657,15 +699,30 @@ namespace Shady
 		[GtkCallback]
 		private void switch_page(Gtk.Notebook sender_notebook, Gtk.Widget buffer, uint page_num)
 		{
-		    buffer_switched(_curr_buffer, buffer as ShaderSourceBuffer);
+		    Shader.Renderpass? curr_renderpass = find_current_renderpass();
+		    if (curr_renderpass == null)
+			{
+			    print("Error: the current renderpass should not be null!\n");
+				return;
+			}
+
+		    ShaderSourceBuffer old_buffer = _curr_buffer;
 
 		    _curr_buffer = buffer as ShaderSourceBuffer;
+
+			print(@"Page switched from $(old_buffer.buffer_name) to $(_curr_buffer.buffer_name)...\n");
+
 		    buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
 
             if (_channels_initialized)
             {
-		        update_channels();
+		        for (int i = 0; i < _channels.length; i++)
+			    {
+			        _channels[i].channel_buffer = _curr_buffer.buffer_name;
+			    }
 		    }
+
+		    buffer_switched(old_buffer, buffer as ShaderSourceBuffer);
 		}
 
 		private void update_channels()
@@ -675,6 +732,13 @@ namespace Shady
 			{
 				return;
 			}
+
+			print(@"update_channels: Renderpass: $(curr_renderpass.name)\n");
+
+			/*for (int i = 0; i < _channels.length; i++)
+			{
+			    _channels[i].channel_buffer = curr_renderpass.name;
+			}*/
 
 			int[] channels_in_use = {};
 
@@ -686,20 +750,23 @@ namespace Shady
 		        {
 		            _channels[channel_index].channel_input = curr_renderpass.inputs.index(i);
 
-		            //print(@"iChannel$channel_index@name: $(_channels[channel_index].channel_input.name)\n");
-		            //print(@"iChannel$channel_index@channel: $(_channels[channel_index].channel_input.channel)\n");
+		            //print(@"update_channels: iChannel$channel_index@name: $(_channels[channel_index].channel_input.name)\n");
+		            //print(@"update_channels: iChannel$channel_index@channel: $(_channels[channel_index].channel_input.channel)\n");
 
 		            channels_in_use += channel_index;
 		        }
 		    }
 
+            print("update_channels: Not in use: ");
 		    for (int i = 0; i < 4; i++)
 		    {
 		        if (!(i in channels_in_use))
 		        {
+		            print(@"$i");
 			        _channels[i].channel_input = Shader.Input.NO_INPUT;
 		        }
 		    }
+		    print("\n");
 		}
 	}
 }
