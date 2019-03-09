@@ -85,9 +85,8 @@ namespace Shady
 			        _last_buffer_inputs[_channel_buffer] = _channel_inputs[_channel_buffer];
 			    }
 
-			    // TODO: triggers other updates... is this wanted?
-			    // NOT WANTED, ALARM
-			    channel_type_popover.channel_type = _channel_inputs[_channel_buffer].type;
+			    _channel_type_popover.set_channel_type_inconsistently(_channel_inputs[_channel_buffer].type);
+			    update_for_input_type();
 
                 print(@"iChannel$(_channel_inputs[_channel_buffer].channel) with buffer $(_channel_buffer) says: Compiling input $(_channel_inputs[_channel_buffer].name)...\n");
 			    compile_input();
@@ -118,7 +117,9 @@ namespace Shady
 		private Gtk.Switch v_flip_switch;
 
 		[GtkChild]
-		private ShaderChannelTypePopover channel_type_popover;
+		private Gtk.MenuButton channel_type_button;
+
+		private ShaderChannelTypePopover _channel_type_popover;
 
 		private ShaderChannelSoundcloudPopover _soundcloud_popover;
 		private ShaderChannelInputPopover _texture_popover;
@@ -133,6 +134,12 @@ namespace Shady
 			channel_area = new ChannelArea();
 
 			shader_container.pack_start(channel_area, true, true);
+
+            _channel_type_popover = new ShaderChannelTypePopover();
+			_channel_type_popover.channel_type_changed.connect(channel_type_popover_channel_type_changed);
+			_channel_type_popover.hide();
+
+			channel_type_button.popover = _channel_type_popover;
 
 			_soundcloud_popover = new ShaderChannelSoundcloudPopover(value_button);
 			_texture_popover = new ShaderChannelInputPopover(Shader.InputType.TEXTURE, value_button);
@@ -271,7 +278,7 @@ namespace Shady
 			channel_area.compile_shader_input(_channel_inputs[_channel_buffer]);
 		}
 
-		[GtkCallback]
+		//[GtkCallback]
 		private void channel_type_popover_channel_type_changed(Shader.InputType channel_type)
 		{
 			_channel_inputs[_channel_buffer].type = channel_type;

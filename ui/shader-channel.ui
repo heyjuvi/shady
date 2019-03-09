@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <interface>
-	<object class="ShadyShaderChannelTypePopover" id="channel_type_popover">
+	<!--<object class="ShadyShaderChannelTypePopover" id="channel_type_popover">
 		<signal name="channel_type_changed" handler="channel_type_popover_channel_type_changed" />
-	</object>
+	</object>-->
 
 	<template class="ShadyShaderChannel" parent="GtkBox">
 		<property name="visible">True</property>
@@ -86,7 +86,7 @@
 								<property name="can_focus">False</property>
 								<property name="use-popover">True</property>
 								<property name="direction">up</property>
-								<property name="popover">channel_type_popover</property>
+								<!--<property name="popover">channel_type_popover</property>-->
 
 								<style>
 									<class name="flat" />
@@ -335,3 +335,4 @@
 		</child>
 	</template>
 </interface>
+

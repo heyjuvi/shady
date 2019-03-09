@@ -88,6 +88,8 @@ namespace Shady
         private Shader _curr_shader = null;
 		private ShaderSourceBuffer _curr_buffer = null;
 
+		private ulong change_renderpass_handler_id = 0;
+
 		private Gtk.TextIter _last_match_start;
 		private Gtk.TextIter _last_match_end;
 
@@ -151,10 +153,13 @@ namespace Shady
 			        _channels_initialized = true;
 
 			        // set all channels empty in the beginning
-			        for (int j = 0; j < 4; j++)
+			        // TODO: why are we not allowed to to this???
+			        // If this is not commented, the buffer shader is not
+			        // displayed for shaders, which use a buffer as input
+			        /*for (int j = 0; j < 4; j++)
 		            {
 			            _channels[j].channel_input = Shader.Input.NO_INPUT;
-		            }
+		            }*/
 
 			        update_channels();
 			    });
@@ -171,6 +176,8 @@ namespace Shady
                 _last_match_start = cursor_iter;
 		        _last_match_end = cursor_iter;
 			});
+
+			change_renderpass_handler_id = action_widget.buffer_active_changed.connect(change_renderpass);
 
 			search_entry.key_press_event.connect((widget, event) =>
 			{
@@ -501,6 +508,7 @@ namespace Shady
 
 		public void set_buffer(string buffer_name, string content)
 		{
+		    print(@"Setting buffer $buffer_name...\n");
 			_shader_buffers[buffer_name].buffer.text = content;
 
 			do_full_char_count_refresh();
@@ -591,8 +599,11 @@ namespace Shady
 						}
 						else
 						{
-						    // triggers the enabling, not sure, wether this could be solved more elegant
+						    SignalHandler.block(action_widget, change_renderpass_handler_id);
 						    action_widget.set_buffer_active(renderpass.name, true);
+						    SignalHandler.unblock(action_widget, change_renderpass_handler_id);
+
+						    add_buffer(renderpass.name, get_insert_index_for_buffer(renderpass.name), true);
 						}
 
 						set_buffer(renderpass.name, renderpass.code);
@@ -618,21 +629,21 @@ namespace Shady
 				return;
 			}
 
-		    print("list_curr_renderass: --- Listing renderpass\n");
+		    //print("list_curr_renderass: --- Listing renderpass\n");
 		    for (int i = 0; i < curr_renderpass.inputs.length; i++)
 	        {
-	            print(@"list_curr_renderass: Renderpass: $(curr_renderpass.name)\n");
+	            //print(@"list_curr_renderass: Renderpass: $(curr_renderpass.name)\n");
 
 	            for (int channel_index = 0; channel_index < 4; channel_index++)
 	            {
-		            print(@"list_curr_renderass: iChannel$channel_index@name: $(curr_renderpass.inputs.index(i).name)\n");
-	                print(@"list_curr_renderass: iChannel$channel_index@channel: $(curr_renderpass.inputs.index(i).channel)\n");
+		            //print(@"list_curr_renderass: iChannel$channel_index@name: $(curr_renderpass.inputs.index(i).name)\n");
+	                //print(@"list_curr_renderass: iChannel$channel_index@channel: $(curr_renderpass.inputs.index(i).channel)\n");
 		        }
 		    }
-		    print("list_curr_renderass: ---\n");
+		    //print("list_curr_renderass: ---\n");
 		}
 
-		[GtkCallback]
+		//[GtkCallback]
 		private void change_renderpass(string buffer_name, bool active)
 		{
 		    list_curr_renderass();
@@ -710,7 +721,7 @@ namespace Shady
 
 		    _curr_buffer = buffer as ShaderSourceBuffer;
 
-			print(@"Page switched from $(old_buffer.buffer_name) to $(_curr_buffer.buffer_name)...\n");
+			//print(@"Page switched from $(old_buffer.buffer_name) to $(_curr_buffer.buffer_name)...\n");
 
 		    buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
 
@@ -733,12 +744,7 @@ namespace Shady
 				return;
 			}
 
-			print(@"update_channels: Renderpass: $(curr_renderpass.name)\n");
-
-			/*for (int i = 0; i < _channels.length; i++)
-			{
-			    _channels[i].channel_buffer = curr_renderpass.name;
-			}*/
+			//print(@"update_channels: Renderpass: $(curr_renderpass.name)\n");
 
 			int[] channels_in_use = {};
 
@@ -757,16 +763,16 @@ namespace Shady
 		        }
 		    }
 
-            print("update_channels: Not in use: ");
+            //print("update_channels: Not in use: ");
 		    for (int i = 0; i < 4; i++)
 		    {
 		        if (!(i in channels_in_use))
 		        {
-		            print(@"$i");
+		            //print(@"$i");
 			        _channels[i].channel_input = Shader.Input.NO_INPUT;
 		        }
 		    }
-		    print("\n");
+		    //print("\n");
 		}
 	}
 }

@@ -72,7 +72,11 @@ namespace Shady.Core
                             input.type != Shader.InputType.WEBCAM &&
                             input.type != Shader.InputType.MICROPHONE)
                         {
-                            string resource = input_node.get_object().get_string_member("resource");
+                            string resource = null;
+                            if (input.type != Shader.InputType.BUFFER)
+                            {
+                                resource = input_node.get_object().get_string_member("resource");
+                            }
 
                             // TODO: we need to check, if the resource is an uri
                             //       handle this case

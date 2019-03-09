@@ -20,7 +20,7 @@
 						<property name="can_focus">True</property>
 						<property name="label">None</property>
 
-						<signal name="toggled" handler="none_radio_button_toggled" />
+						<!--<signal name="toggled" handler="none_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -36,7 +36,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">Keyboard</property>
 
-						<signal name="toggled" handler="keyboard_radio_button_toggled" />
+						<!--<signal name="toggled" handler="keyboard_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -52,7 +52,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">Webcam</property>
 
-						<signal name="toggled" handler="webcam_radio_button_toggled" />
+						<!--<signal name="toggled" handler="webcam_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -68,7 +68,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">Microphone</property>
 
-						<signal name="toggled" handler="microphone_radio_button_toggled" />
+						<!--<signal name="toggled" handler="microphone_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -84,7 +84,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">Soundcloud</property>
 
-						<signal name="toggled" handler="soundcloud_radio_button_toggled" />
+						<!--<signal name="toggled" handler="soundcloud_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -100,7 +100,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">Buffer</property>
 
-						<signal name="toggled" handler="buffer_radio_button_toggled" />
+						<!--<signal name="toggled" handler="buffer_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -116,7 +116,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">Texture</property>
 
-						<signal name="toggled" handler="texture_radio_button_toggled" />
+						<!--<signal name="toggled" handler="texture_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -132,7 +132,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">Cubemap</property>
 
-						<signal name="toggled" handler="cubemap_radio_button_toggled" />
+						<!--<signal name="toggled" handler="cubemap_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -148,7 +148,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">3D texture</property>
 
-						<signal name="toggled" handler="3dtexture_radio_button_toggled" />
+						<!--<signal name="toggled" handler="3dtexture_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -164,7 +164,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">Video</property>
 
-						<signal name="toggled" handler="video_radio_button_toggled" />
+						<!--<signal name="toggled" handler="video_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -180,7 +180,7 @@
 						<property name="group">none_radio_button</property>
 						<property name="label">Music</property>
 
-						<signal name="toggled" handler="music_radio_button_toggled" />
+						<!--<signal name="toggled" handler="music_radio_button_toggled" />-->
 					</object>
 					<packing>
 						<property name="expand">False</property>
@@ -192,3 +192,4 @@
 		</child>
 	</template>
 </interface>
+

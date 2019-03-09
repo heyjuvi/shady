@@ -143,7 +143,7 @@ namespace Shady
 				_search_pool = new ThreadPool<LoadShaderThread>.with_owned_data((load_shader_thread) =>
 				{
 					load_shader_thread.run();
-				}, (int) GLib.get_num_processors() - 1, false);
+				}, (int) GLib.get_num_processors() * 4, false);
 			}
 			catch (Error e)
 			{
