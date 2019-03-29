@@ -21,7 +21,6 @@ namespace Shady.Core
 			public int[] tex_channels;
 
 			public int[,] tex_out_refs;
-			public int[] tex_out_refs_img;
 
 			public int[] tex_widths;
 			public int[] tex_heights;
@@ -34,6 +33,8 @@ namespace Shady.Core
 
 			public uint x_img_parts;
 			public uint y_img_parts;
+
+			public bool parts_rendered;
 
 			//public double[] tex_times;
 
@@ -61,11 +62,11 @@ namespace Shady.Core
 
 		public Mutex buffer_switch_mutex = Mutex();
 
-		private BufferProperties _image_prop1 = new BufferProperties();
-		private BufferProperties _image_prop2 = new BufferProperties();
-
 		private BufferProperties[] _buffer_props1 = {};
 		private BufferProperties[] _buffer_props2 = {};
+
+		private uint _image_prop_index1;
+		private uint _image_prop_index2;
 
 		public RenderResources()
 		{
@@ -75,11 +76,35 @@ namespace Shady.Core
 		{
 			if (!_buffer_switch && purpose == Purpose.RENDER || _buffer_switch && purpose == Purpose.COMPILE)
 			{
-				return _image_prop1;
+				return _buffer_props1[_image_prop_index1];
 			}
 			else
 			{
-				return _image_prop2;
+				return _buffer_props2[_image_prop_index2];
+			}
+		}
+
+		public uint get_image_prop_index(Purpose purpose)
+		{
+			if (!_buffer_switch && purpose == Purpose.RENDER || _buffer_switch && purpose == Purpose.COMPILE)
+			{
+				return _image_prop_index1;
+			}
+			else
+			{
+				return _image_prop_index2;
+			}
+		}
+
+		public void set_image_prop_index(Purpose purpose, uint index)
+		{
+			if (!_buffer_switch && purpose == Purpose.RENDER || _buffer_switch && purpose == Purpose.COMPILE)
+			{
+				_image_prop_index1 = index;
+			}
+			else
+			{
+				_image_prop_index2 = index;
 			}
 		}
 

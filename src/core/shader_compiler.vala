@@ -54,16 +54,15 @@ namespace Shady.Core
 					return;
 				}
 
-				RenderResources.BufferProperties img_prop = render_resources.get_image_prop(RenderResources.Purpose.COMPILE);
 				RenderResources.BufferProperties[] buf_props = allocate_buffers(shader);
 
-				img_prop.context = thread_context;
 				for(int i=0;i<buf_props.length;i++)
 				{
 					buf_props[i].context = thread_context;
 				}
 
 				render_resources.set_buffer_props(RenderResources.Purpose.COMPILE, buf_props);
+				render_resources.set_image_prop_index(RenderResources.Purpose.COMPILE, 0);
 
 				ThreadData data = new ThreadData(){shader=shader, context = thread_context, render_resources=render_resources, compile_resources=compile_resources};
 
@@ -78,49 +77,6 @@ namespace Shady.Core
 			}
 		}
 
-		public static List<AppPreferences.GLSLVersion> get_glsl_version_list(Gdk.Window window)
-		{
-
-			try
-			{
-				Gdk.GLContext gl_context = window.create_gl_context();
-				gl_context.make_current();
-			}
-			catch(Error e)
-			{
-				print("Couldn't create context\n");
-				return new List<AppPreferences.GLSLVersion>();
-			}
-
-			GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-
-			List<AppPreferences.GLSLVersion> version_list = new List<AppPreferences.GLSLVersion>();
-
-			for(AppPreferences.GLSLVersion version=0;version<AppPreferences.GLSLVersion.INVALID;version+=1)
-			{
-				string source = version.to_prefix_string() + "void main(void){}\n";
-				string[] source_array = { source, null };
-
-				glShaderSource(fragment_shader, 1, source_array, null);
-				glCompileShader(fragment_shader);
-
-				GLint success[] = {0};
-
-				glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, success);
-
-				if(success[0] == GL_TRUE)
-				{
-					version_list.append(version);
-				}
-			}
-
-			glDeleteShader(fragment_shader);
-
-			Gdk.GLContext.clear_current();
-
-			return version_list;
-		}
-
 		private static void compile(ThreadData data)
 		{
 			data.context.make_current();
@@ -128,9 +84,6 @@ namespace Shady.Core
 			bool success = compile_blocking(data.shader, data.render_resources, data.compile_resources);
 			if (success)
 			{
-				RenderResources.BufferProperties img_prop = data.render_resources.get_image_prop(RenderResources.Purpose.COMPILE);
-				dummy_render_gl(img_prop);
-
 				RenderResources.BufferProperties[] buf_props = data.render_resources.get_buffer_props(RenderResources.Purpose.COMPILE);
 				foreach (RenderResources.BufferProperties buf_prop in buf_props)
 				{
@@ -156,95 +109,9 @@ namespace Shady.Core
 
 		private static bool compile_blocking(Shader new_shader, RenderResources render_resources, CompileResources compile_resources)
 		{
-			RenderResources.BufferProperties image_prop = render_resources.get_image_prop(RenderResources.Purpose.COMPILE);
 			RenderResources.BufferProperties[] buffer_props = render_resources.get_buffer_props(RenderResources.Purpose.COMPILE);
 
-			string image_source = "";
-			int image_index = -1;
-			int buffer_count = 0;
-			Array<Shader.Input> image_inputs = new Array<Shader.Input>();
-
-			for(int i=0; i<new_shader.renderpasses.length; i++)
-			{
-				if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
-				{
-					image_source = new_shader.renderpasses.index(i).code;
-					image_inputs = new_shader.renderpasses.index(i).inputs;
-					image_index = i;
-				}
-				else if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
-				{
-					buffer_count++;
-				}
-			}
-
-			if(image_index != -1)
-			{
-				init_fb_texs(compile_resources, image_prop, compile_resources.width, compile_resources.height);
-
-				int num_samplers = (int)image_inputs.length;
-
-				glDeleteSamplers(image_prop.sampler_ids.length, image_prop.sampler_ids);
-
-				image_prop.sampler_ids = new GLuint[num_samplers];
-				glGenSamplers(num_samplers, image_prop.sampler_ids);
-
-				image_prop.tex_channels = new int[num_samplers];
-				image_prop.tex_ids = new uint[num_samplers];
-				image_prop.tex_targets = new uint[num_samplers];
-				image_prop.tex_widths = {0,0,0,0};
-				image_prop.tex_heights = {0,0,0,0};
-				image_prop.tex_depths = {0,0,0,0};
-
-				image_prop.cur_x_img_part = 0;
-				image_prop.cur_y_img_part = 0;
-
-				image_prop.x_img_parts = compile_resources.width/_default_tile_size;
-				image_prop.y_img_parts = compile_resources.height/_default_tile_size;
-
-				if(compile_resources.width==0)
-				{
-					image_prop.x_img_parts = 8;
-				}
-				if(compile_resources.height==0)
-				{
-					image_prop.y_img_parts = 8;
-				}
-
-				init_tile_renderbuffer(image_prop, compile_resources);
-
-				for(int i=0;i<image_inputs.length;i++)
-				{
-					int width, height, depth, channel;
-
-					init_sampler(image_inputs.index(i), image_prop.sampler_ids[i]);
-
-					width = compile_resources.width;
-					height = compile_resources.height;
-					depth = 0;
-
-					GLuint tex_target;
-					GLuint[] tex_ids = TextureManager.query_input_texture(image_inputs.index(i), (uint64) compile_resources.window, ref width, ref height, ref depth, out tex_target);
-
-					image_prop.tex_ids[i] = tex_ids[0];
-					image_prop.tex_targets[i] = tex_target;
-
-					channel = image_inputs.index(i).channel;
-					image_prop.tex_channels[i] = channel;
-
-					if(channel>=0 && channel<4){
-						image_prop.tex_widths[channel] = width;
-						image_prop.tex_heights[channel] = height;
-						image_prop.tex_depths[channel] = depth;
-					}
-				}
-
-			}
-			else
-			{
-				print("No image buffer found!\n");
-				return false;
-			}
+			int buffer_count = buffer_props.length;
 
 			string[] buffer_sources = new string[buffer_count];
 			int[] buffer_indices = new int[buffer_count];
@@ -259,7 +126,8 @@ namespace Shady.Core
 				int buffer_index=0;
 				for(int i=0; i<new_shader.renderpasses.length;i++)
 				{
-					if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
+					if(new_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER ||
+					   new_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
 					{
 						buffer_indices[buffer_index] = i;
 						buffer_sources[buffer_index] = new_shader.renderpasses.index(i).code;
@@ -273,9 +141,17 @@ namespace Shady.Core
 				{
 					buffer_props[i].fb = fbs[i];
 
-					GLuint[] output_tex_ids = TextureManager.query_output_texture(buffer_outputs[i], (uint64) compile_resources.window, compile_resources.width, compile_resources.height);
-					buffer_props[i].tex_id_out_front = output_tex_ids[0];
-					buffer_props[i].tex_id_out_back = output_tex_ids[1];
+					if(buffer_outputs[i] != null)
+					{
+						GLuint[] output_tex_ids = TextureManager.query_output_texture(buffer_outputs[i], (uint64) compile_resources.window, compile_resources.width, compile_resources.height);
+						buffer_props[i].tex_id_out_front = output_tex_ids[0];
+						buffer_props[i].tex_id_out_back = output_tex_ids[1];
+					}
+					else
+					{
+						init_fb_texs(compile_resources, buffer_props[i], compile_resources.width, compile_resources.height);
+						render_resources.set_image_prop_index(RenderResources.Purpose.COMPILE, i);
+					}
 
 					//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbs[i]);
 					//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output_tex_ids[1], 0);
@@ -299,6 +175,8 @@ namespace Shady.Core
 
 					buffer_props[i].x_img_parts = compile_resources.width/_default_tile_size;
 					buffer_props[i].y_img_parts = compile_resources.height/_default_tile_size;
+
+					buffer_props[i].parts_rendered = false;
 
 					if(compile_resources.width==0)
 					{
@@ -369,42 +247,7 @@ namespace Shady.Core
 							}
 						}
 					}
-
-					int num_refs_img = 0;
-					for(int k=0;k<image_prop.tex_ids.length;k++)
-					{
-						if(image_prop.tex_ids[k] == buffer_props[i].tex_id_out_front)
-						{
-							num_refs_img++;
-						}
-					}
-
-					buffer_props[i].tex_out_refs_img = new int[num_refs_img];
-					int ref_index_img=0;
-					for(int j=0;j<image_prop.tex_ids.length;j++)
-					{
-						if(image_prop.tex_ids[j] == buffer_props[i].tex_id_out_front)
-						{
-							buffer_props[i].tex_out_refs_img[ref_index_img]=j;
-							ref_index_img++;
-						}
-					}
 				}
-			}
-
-			Shader.Renderpass image_pass = new_shader.renderpasses.index(image_index);
-			string full_image_source = SourceGenerator.generate_renderpass_source(image_pass, true);
-
-			GLuint[] fb_arr = {image_prop.fb};
-			glDeleteFramebuffers(1, fb_arr);
-
-			glGenFramebuffers(1, fb_arr);
-			image_prop.fb = fb_arr[0];
-
-			bool success = compile_pass(image_index, full_image_source, image_prop, compile_resources);
-			if (!success)
-			{
-				return false;
 			}
 
 			for(int i=0;i<buffer_count;i++)
@@ -412,7 +255,7 @@ namespace Shady.Core
 				Shader.Renderpass buffer_pass = new_shader.renderpasses.index(buffer_indices[i]);
 				string full_buffer_source = SourceGenerator.generate_renderpass_source(buffer_pass, true);
 
-				success = compile_pass(buffer_indices[i], full_buffer_source, buffer_props[i], compile_resources);
+				bool success = compile_pass(buffer_indices[i], full_buffer_source, buffer_props[i], compile_resources);
 
 				if (!success)
 				{
@@ -498,6 +341,7 @@ namespace Shady.Core
 			buf_prop.offset_loc = glGetUniformLocation(buf_prop.program, "SHADY_COORDINATE_OFFSET");
 
 			init_vao(buf_prop);
+
 			bind_vertex_buffer(buf_prop, compile_resources);
 
 			Timeout.add(1,() =>
@@ -514,7 +358,8 @@ namespace Shady.Core
 			int buffer_count = 0;
 			for(int i=0; i<shader.renderpasses.length; i++)
 			{
-				if(shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
+				if(shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER ||
+				   shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
 				{
 					buffer_count++;
 				}
@@ -619,19 +464,7 @@ namespace Shady.Core
 			glGenRenderbuffers(1, rb_arr);
 			buf_prop.tile_render_buf = rb_arr[0];
 
-			//TODO: reenable exact buffer size calculation ? (remember adding glRenderBufferStorage() to detect_tile_size() then)
-			//uint width = compile_resources.width/buf_prop.x_img_parts;
-			//uint height = compile_resources.height/buf_prop.y_img_parts;
-
-			//if(width < compile_resources.width - (buf_prop.x_img_parts-1) * width){
-			//	width = compile_resources.width - (buf_prop.x_img_parts-1) * width;
-			//}
-			//if(height < compile_resources.height - (buf_prop.y_img_parts-1) * height){
-			//	height = compile_resources.height - (buf_prop.y_img_parts-1) * height;
-			//}
-
 			glBindRenderbuffer(GL_RENDERBUFFER, buf_prop.tile_render_buf);
-			//glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)width, (int)height);
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)compile_resources.width, (int)compile_resources.height);
 		}
 
@@ -679,6 +512,49 @@ namespace Shady.Core
 
 			glFlush();
 			glFinish();
+		}
+
+		public static List<AppPreferences.GLSLVersion> get_glsl_version_list(Gdk.Window window)
+		{
+
+			try
+			{
+				Gdk.GLContext gl_context = window.create_gl_context();
+				gl_context.make_current();
+			}
+			catch(Error e)
+			{
+				print("Couldn't create context\n");
+				return new List<AppPreferences.GLSLVersion>();
+			}
+
+			GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+
+			List<AppPreferences.GLSLVersion> version_list = new List<AppPreferences.GLSLVersion>();
+
+			for(AppPreferences.GLSLVersion version=0;version<AppPreferences.GLSLVersion.INVALID;version+=1)
+			{
+				string source = version.to_prefix_string() + "void main(void){}\n";
+				string[] source_array = { source, null };
+
+				glShaderSource(fragment_shader, 1, source_array, null);
+				glCompileShader(fragment_shader);
+
+				GLint success[] = {0};
+
+				glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, success);
+
+				if(success[0] == GL_TRUE)
+				{
+					version_list.append(version);
+				}
+			}
+
+			glDeleteShader(fragment_shader);
+
+			Gdk.GLContext.clear_current();
+
+			return version_list;
 		}
 	}
 }

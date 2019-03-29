@@ -74,7 +74,8 @@ namespace Shady
 
 		/* OpenGL ids */
 
-		private GLuint _resize_fb;
+		private bool _second_texture_resize = false;
+		private bool _image_updated = false;
 
 		/* Shader render buffer variables */
 
@@ -226,11 +227,6 @@ namespace Shady
 
 			_compile_resources.vertex_shader = vertex_shader_backup;
 
-			GLuint[] fb_arr = {0};
-
-			glGenFramebuffers(1, fb_arr);
-			_resize_fb = fb_arr[0];
-
 			init_time();
 
 			Gdk.GLContext.clear_current();
@@ -244,76 +240,43 @@ namespace Shady
 
 		private void update_rendering()
 		{
+			_image_updated = false;
 			Timeout.add(_timeout_interval, () =>
 			{
 				render_image();
-				return false;
+
+				if(_image_updated)
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
 			});
 		}
 
-		//TODO: merge with init_tile_renderbuffer
-		private void render_size_update(RenderResources.BufferProperties img_prop, RenderResources.BufferProperties[] buf_props)
+		private void render_size_update(RenderResources.BufferProperties[] buf_props)
 		{
 			make_current();
 
 			_compile_resources.width = _width;
 			_compile_resources.height = _height;
 
-			//TODO: reenable exact buffer size calculation ? (remember adding glRenderBufferStorage() to detect_tile_size() then)
-			//uint width=_width/img_prop.x_img_parts;
-			//uint height=_height/img_prop.y_img_parts;
-
-			//if(width < _width - (img_prop.x_img_parts-1) * width){
-			//	width = _width - (img_prop.x_img_parts-1) * width;
-			//}
-			//if(height < _height - (img_prop.y_img_parts-1) * height){
-			//	height = _height - (img_prop.y_img_parts-1) * height;
-			//}
-
-			glBindRenderbuffer(GL_RENDERBUFFER, img_prop.tile_render_buf);
-			//glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)width, (int)height);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)_width, (int)_height);
-
-			img_prop.cur_x_img_part = 0;
-			img_prop.cur_y_img_part = 0;
-
-			glBindTexture(GL_TEXTURE_2D, img_prop.tex_id_out_back);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-			//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
-			//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, img_prop.tex_id_out_back, 0);
-
-			//glClearColor(0,0,0,1);
-			//glClear(GL_COLOR_BUFFER_BIT);
-
 			for(int i=0; i<buf_props.length; i++)
 			{
-				glBindRenderbuffer(GL_RENDERBUFFER, buf_props[i].tile_render_buf);
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)_width, (int)_height);
-
 				buf_props[i].cur_x_img_part = 0;
 				buf_props[i].cur_y_img_part = 0;
 
+				glBindRenderbuffer(GL_RENDERBUFFER, buf_props[i].tile_render_buf);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)_width, (int)_height);
+
 				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_back);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-				//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
-				//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buf_props[i].tex_id_out_back, 0);
-
-				//glClearColor(0,0,0,1);
-				//glClear(GL_COLOR_BUFFER_BIT);
-
-				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_front);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-				//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _resize_fb);
-				//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buf_props[i].tex_id_out_front, 0);
-
-				//glClearColor(0,0,0,1);
-				//glClear(GL_COLOR_BUFFER_BIT);
 			}
 
 			_size_updated = false;
+			_second_texture_resize = true;
 		}
 
 		private void detect_tile_size(RenderResources.BufferProperties buf_prop, double time_delta)
@@ -344,10 +307,10 @@ namespace Shady
 			buf_prop.cur_y_img_part = 0;
 		}
 
-		private void swap_buffer_textures(RenderResources.BufferProperties[] buf_props, RenderResources.BufferProperties img_prop){
+		private void swap_buffer_textures(RenderResources.BufferProperties[] buf_props){
 			for(int i=0; i<buf_props.length; i++)
 			{
-				if(buf_props[i].cur_x_img_part == 0 && buf_props[i].cur_y_img_part == 0)
+				if(buf_props[i].parts_rendered)
 				{
 					uint tmp = buf_props[i].tex_id_out_back;
 					buf_props[i].tex_id_out_back = buf_props[i].tex_id_out_front;
@@ -356,12 +319,10 @@ namespace Shady
 					for(int j=0; j<buf_props[i].tex_out_refs.length[0]; j++)
 					{
 						buf_props[buf_props[i].tex_out_refs[j,0]].tex_ids[buf_props[i].tex_out_refs[j,1]] = tmp;
+						buf_props[buf_props[i].tex_out_refs[j,0]].tex_widths[buf_props[i].tex_out_refs[j,1]] = _width;
+						buf_props[buf_props[i].tex_out_refs[j,0]].tex_heights[buf_props[i].tex_out_refs[j,1]] = _height;
 					}
-
-					for(int j=0; j<buf_props[i].tex_out_refs_img.length; j++)
-					{
-						img_prop.tex_ids[buf_props[i].tex_out_refs_img[j]] = tmp;
-					}
+					buf_props[i].parts_rendered = false;
 				}
 			}
 		}
@@ -379,7 +340,7 @@ namespace Shady
 
 				if(_size_updated)
 				{
-					render_size_update(img_prop, buf_props);
+					render_size_update(buf_props);
 				}
 
 				if(img_prop.cur_x_img_part == 0 && img_prop.cur_y_img_part == 0)
@@ -387,47 +348,43 @@ namespace Shady
 					update_uniform_values();
 				}
 
+				bool swap_target = false;
+
 				for(int i=0; i<buf_props.length; i++)
 				{
-					glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_MEDIUM, -1, "buffer");
 					int64 time_delta = render_gl(buf_props[i]);
 
 					if(time_delta > _upper_time_threshold || time_delta < _lower_time_threshold)
 					{
 						detect_tile_size(buf_props[i], time_delta);
 					}
-				}
 
-				swap_buffer_textures(buf_props, img_prop);
+					_time_delta_accum += time_delta;
 
-				glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_MEDIUM, -1, "image");
-				int64 time_delta = render_gl(img_prop);
-				_time_delta_accum += time_delta;
-
-				if(time_delta > _upper_time_threshold || time_delta < _lower_time_threshold)
-				{
-					detect_tile_size(img_prop, time_delta);
-				}
-
-				if(img_prop.cur_x_img_part == 0 && img_prop.cur_y_img_part == 0)
-				{
-					uint tmp = img_prop.tex_id_out_back;
-					img_prop.tex_id_out_back = img_prop.tex_id_out_front;
-					img_prop.tex_id_out_front = tmp;
-
-					_target_prop.tex_ids[0] = tmp;
-
-					glBindTexture(GL_TEXTURE_2D, img_prop.tex_id_out_back);
-
-					int width[] = {0};
-					int height[] = {0};
-
-					glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_WIDTH,width);
-					glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_HEIGHT,height);
-
-					if(width[0] != _width || height[0] != _height)
+					if(i == _render_resources.get_image_prop_index(RenderResources.Purpose.RENDER))
 					{
-						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+						if(buf_props[i].parts_rendered)
+						{
+							_image_updated = true;
+							swap_target = true;
+						}
+					}
+				}
+
+				swap_buffer_textures(buf_props);
+
+				if(swap_target)
+				{
+					_target_prop.tex_ids[0] = img_prop.tex_id_out_front;
+
+					if(_second_texture_resize)
+					{
+						for(int i=0; i<buf_props.length; i++)
+						{
+							glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_back);
+							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+						}
+						_second_texture_resize = false;
 					}
 
 					// compute moving average
@@ -435,14 +392,15 @@ namespace Shady
 					// TODO: make averaging adaptive so high framerate doesn't mean high update rate of framerate average
 					if (fps != 0)
 					{
-						fps = (0.95 * fps + 0.05 * (1000000.0f / _time_delta_accum));
+						fps = (0.95 * fps + 0.05 * (1000000.0f / (_time_delta_accum / buf_props.length)));
 					}
 					else
 					{
-						fps = 1000000.0f / _time_delta_accum;
+						fps = 1000000.0f / (_time_delta_accum / buf_props.length);
 					}
 
 					_time_delta_accum = 0;
+					swap_target = false;
 				}
 
 				_size_mutex.unlock();
@@ -492,6 +450,7 @@ namespace Shady
 					if(buf_prop.cur_y_img_part >= buf_prop.y_img_parts)
 					{
 						buf_prop.cur_y_img_part = 0;
+						buf_prop.parts_rendered = true;
 					}
 				}
 			}

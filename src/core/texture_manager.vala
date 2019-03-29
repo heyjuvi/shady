@@ -241,7 +241,7 @@ namespace Shady.Core
 					format = GL_RGBA;
 				}
 
-				glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, width, height, depth, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])voxmap.voxels);
+				glTexImage3D(GL_TEXTURE_3D, 0, format, width, height, depth, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])voxmap.voxels);
 				glGenerateMipmap(target);
 			}
 			else if(input.type == Shader.InputType.CUBEMAP)
