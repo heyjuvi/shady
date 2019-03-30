@@ -375,7 +375,7 @@ namespace Shady
 						detect_tile_size(buf_props[i], time_delta);
 					}
 
-					_time_delta_accum += time_delta;
+					_time_delta_accum += time_delta * buf_props[i].x_img_parts * buf_props[i].y_img_parts;
 
 					if(i == _render_resources.get_image_prop_index(RenderResources.Purpose.RENDER))
 					{
@@ -405,29 +405,29 @@ namespace Shady
 						}
 						_second_texture_resize = false;
 					}
-
-					double current_fps = 1000000.0 / (_time_delta_accum);
-					int64 cur_time = get_monotonic_time();
-
-					if((cur_time - _fps_time) / 1000000.0 < _fps_interval)
-					{
-						_fps_sum += current_fps;
-						_num_fps_vals++;
-					}
-					else
-					{
-						if(_num_fps_vals != 0)
-						{
-							fps = _fps_sum / _num_fps_vals;
-						}
-						_fps_sum = 0.0;
-						_num_fps_vals = 0;
-						_fps_time = cur_time;
-					}
-
-					_time_delta_accum = 0;
 					swap_target = false;
 				}
+
+				double current_fps = 1000000.0 / (_time_delta_accum);
+				int64 cur_time = get_monotonic_time();
+
+				if((cur_time - _fps_time) / 1000000.0 < _fps_interval)
+				{
+					_fps_sum += current_fps;
+					_num_fps_vals++;
+				}
+				else
+				{
+					if(_num_fps_vals != 0)
+					{
+						fps = _fps_sum / _num_fps_vals;
+					}
+					_fps_sum = 0.0;
+					_num_fps_vals = 0;
+					_fps_time = cur_time;
+				}
+
+				_time_delta_accum = 0;
 
 				_size_mutex.unlock();
 			}
