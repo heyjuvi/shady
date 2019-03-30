@@ -263,9 +263,6 @@ namespace Shady.Core
 				}
 			}
 
-			//prevent averaging in of old shader
-			//fps = 0;
-
             return true;
 		}
 

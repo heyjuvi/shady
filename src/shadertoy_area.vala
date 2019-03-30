@@ -81,6 +81,11 @@ namespace Shady
 
 		private int64 _time_delta_accum = 0;
 
+		const double _fps_interval = 0.1;
+		double _fps_sum = 0.0;
+		int _num_fps_vals = 0;
+		private int64 _fps_time;
+
 		private Mutex _size_mutex = Mutex();
 
 		public ShadertoyArea()
@@ -161,6 +166,9 @@ namespace Shady
 			_compile_resources.compilation_finished.connect(() =>
 			{
 				compilation_finished();
+				_fps_sum = 0.0;
+				_num_fps_vals = 0;
+				_fps_time = get_monotonic_time();
 				update_rendering();
 			});
 
@@ -228,6 +236,7 @@ namespace Shady
 			_compile_resources.vertex_shader = vertex_shader_backup;
 
 			init_time();
+			_fps_time = _start_time;
 
 			Gdk.GLContext.clear_current();
 
@@ -397,16 +406,23 @@ namespace Shady
 						_second_texture_resize = false;
 					}
 
-					// compute moving average
-					// TODO: incorporate buffers
-					// TODO: make averaging adaptive so high framerate doesn't mean high update rate of framerate average
-					if (fps != 0)
+					double current_fps = 1000000.0 / (_time_delta_accum);
+					int64 cur_time = get_monotonic_time();
+
+					if((cur_time - _fps_time) / 1000000.0 < _fps_interval)
 					{
-						fps = (0.95 * fps + 0.05 * (1000000.0f / (_time_delta_accum / buf_props.length)));
+						_fps_sum += current_fps;
+						_num_fps_vals++;
 					}
 					else
 					{
-						fps = 1000000.0f / (_time_delta_accum / buf_props.length);
+						if(_num_fps_vals != 0)
+						{
+							fps = _fps_sum / _num_fps_vals;
+						}
+						_fps_sum = 0.0;
+						_num_fps_vals = 0;
+						_fps_time = cur_time;
 					}
 
 					_time_delta_accum = 0;
