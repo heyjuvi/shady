@@ -75,7 +75,7 @@ namespace Shady
 		/* OpenGL ids */
 
 		private bool _second_texture_resize = false;
-		private bool _image_updated = false;
+		private bool _image_updated = true;
 
 		/* Shader render buffer variables */
 
@@ -240,20 +240,27 @@ namespace Shady
 
 		private void update_rendering()
 		{
-			_image_updated = false;
-			Timeout.add(_timeout_interval, () =>
+			//render twice to fill up front and back buffer
+			for(int i=0;i<2;i++)
 			{
-				render_image();
+				if(_initialized && _paused && _image_updated)
+				{
+					Timeout.add(_timeout_interval, () =>
+					{
+						_image_updated = false;
+						render_image();
 
-				if(_image_updated)
-				{
-					return false;
+						if(_image_updated)
+						{
+							return false;
+						}
+						else
+						{
+							return true;
+						}
+					});
 				}
-				else
-				{
-					return true;
-				}
-			});
+			}
 		}
 
 		private void render_size_update(RenderResources.BufferProperties[] buf_props)
@@ -365,8 +372,11 @@ namespace Shady
 					{
 						if(buf_props[i].parts_rendered)
 						{
-							_image_updated = true;
 							swap_target = true;
+							if(!_image_updated)
+							{
+								_image_updated = true;
+							}
 						}
 					}
 				}
