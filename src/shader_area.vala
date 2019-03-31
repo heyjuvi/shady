@@ -133,7 +133,7 @@ namespace Shady
 			glUniform1f(buf_prop.delta_loc, (float)_delta);
 			glUniform1i(buf_prop.frame_loc, buf_prop.frame_counter++);
 			glUniform1f(buf_prop.fps_loc, (float)fps);
-			glUniform3f(buf_prop.res_loc, _width, _height, 0);
+			glUniform3f(buf_prop.res_loc, _width, _height, 1);
 
 			if(buf_prop.tex_widths != null){
 				float[] channel_res = {(float)buf_prop.tex_widths[0],(float)buf_prop.tex_heights[0],(float)buf_prop.tex_depths[0],

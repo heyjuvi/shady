@@ -311,10 +311,10 @@ namespace Shady
 				buf_props[i].cur_y_img_part = 0;
 
 				glBindRenderbuffer(GL_RENDERBUFFER, buf_props[i].tile_render_buf);
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)_width, (int)_height);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA32F, (int)_width, (int)_height);
 
 				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_back);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
 
 				buf_props[i].second_resize = true;
 			}
@@ -370,7 +370,7 @@ namespace Shady
 					if(buf_props[i].second_resize)
 					{
 						glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_back);
-						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
 
 						buf_props[i].second_resize = false;
 					}

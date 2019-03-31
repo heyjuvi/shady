@@ -432,7 +432,7 @@ namespace Shady.Core
 			buf_prop.tile_render_buf = rb_arr[0];
 
 			glBindRenderbuffer(GL_RENDERBUFFER, buf_prop.tile_render_buf);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)compile_resources.width, (int)compile_resources.height);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA32F, (int)compile_resources.width, (int)compile_resources.height);
 		}
 
 		public static void init_sampler(Shader.Input input, GLuint sampler_id)
