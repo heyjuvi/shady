@@ -74,7 +74,6 @@ namespace Shady
 
 		/* OpenGL ids */
 
-		private bool _second_texture_resize = false;
 		private bool _image_updated = true;
 
 		/* Shader render buffer variables */
@@ -311,10 +310,11 @@ namespace Shady
 
 				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_back);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+				buf_props[i].second_resize = true;
 			}
 
 			_size_updated = false;
-			_second_texture_resize = true;
 		}
 
 		private void detect_tile_size(RenderResources.BufferProperties buf_prop, double time_delta)
@@ -361,6 +361,15 @@ namespace Shady
 						buf_props[buf_props[i].tex_out_refs[j,0]].tex_heights[buf_props[i].tex_out_refs[j,1]] = _height;
 					}
 					buf_props[i].parts_rendered = false;
+
+					if(buf_props[i].second_resize)
+					{
+						glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_back);
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
+
+						buf_props[i].second_resize = false;
+					}
+
 				}
 			}
 		}
@@ -386,8 +395,6 @@ namespace Shady
 					update_uniform_values();
 				}
 
-				bool swap_target = false;
-
 				for(int i=0; i<buf_props.length; i++)
 				{
 					int64 time_delta = render_gl(buf_props[i]);
@@ -402,26 +409,10 @@ namespace Shady
 
 				if(img_prop.parts_rendered)
 				{
-					swap_target = true;
+					_target_prop.tex_ids[0] = img_prop.tex_id_out_back;
 				}
 
 				swap_buffer_textures(buf_props);
-
-				if(swap_target)
-				{
-					_target_prop.tex_ids[0] = img_prop.tex_id_out_front;
-
-					if(_second_texture_resize)
-					{
-						for(int i=0; i<buf_props.length; i++)
-						{
-							glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_back);
-							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-						}
-						_second_texture_resize = false;
-					}
-					swap_target = false;
-				}
 
 				double current_fps = 1000000.0 / (_time_delta_accum);
 				int64 cur_time = get_monotonic_time();
@@ -516,7 +507,6 @@ namespace Shady
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 
-			glFlush();
 			glFinish();
 
 			time_after = get_monotonic_time();

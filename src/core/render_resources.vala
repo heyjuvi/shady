@@ -34,6 +34,8 @@ namespace Shady.Core
 			public uint x_img_parts;
 			public uint y_img_parts;
 
+			public bool second_resize;
+
 			public bool parts_rendered;
 			public bool updated;
 

@@ -177,6 +177,8 @@ namespace Shady.Core
 					buffer_props[i].y_img_parts = compile_resources.height/_default_tile_size;
 
 					buffer_props[i].parts_rendered = false;
+					buffer_props[i].second_resize = false;
+					buffer_props[i].updated = true;
 
 					if(compile_resources.width==0)
 					{
