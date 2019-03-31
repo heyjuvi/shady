@@ -116,7 +116,10 @@ namespace Shady
 					_button_pressed_x = event.x;
 					_button_pressed_y = _height - event.y - 1;
 
-					_render_timeout = Timeout.add(_timeout_interval, render_image);
+					if(_paused)
+					{
+						_render_timeout = Timeout.add(_timeout_interval, render_image);
+					}
 				}
 
 				return false;
@@ -130,7 +133,10 @@ namespace Shady
 					_button_released_x = event.x;
 					_button_released_y = _height - event.y - 1;
 
-					Source.remove(_render_timeout);
+					if(_paused)
+					{
+						Source.remove(_render_timeout);
+					}
 				}
 
 				return false;
