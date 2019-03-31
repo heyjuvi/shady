@@ -35,6 +35,7 @@ namespace Shady.Core
 			public uint y_img_parts;
 
 			public bool parts_rendered;
+			public bool updated;
 
 			//public double[] tex_times;
 

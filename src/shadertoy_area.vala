@@ -256,8 +256,24 @@ namespace Shady
 				{
 					Timeout.add(_timeout_interval, () =>
 					{
+						RenderResources.BufferProperties[] buf_props = _render_resources.get_buffer_props(RenderResources.Purpose.RENDER);
+
 						_image_updated = false;
+
+						for(int j=0;j<buf_props.length;j++)
+						{
+							buf_props[j].updated = false;
+						}
+
 						render_image();
+
+						bool all_updated = true;
+						for(int j=0;j<buf_props.length;j++)
+						{
+							all_updated &= buf_props[j].updated;
+						}
+
+						_image_updated = all_updated;
 
 						if(_image_updated)
 						{
@@ -376,18 +392,11 @@ namespace Shady
 					}
 
 					_time_delta_accum += time_delta * buf_props[i].x_img_parts * buf_props[i].y_img_parts;
+				}
 
-					if(i == _render_resources.get_image_prop_index(RenderResources.Purpose.RENDER))
-					{
-						if(buf_props[i].parts_rendered)
-						{
-							swap_target = true;
-							if(!_image_updated)
-							{
-								_image_updated = true;
-							}
-						}
-					}
+				if(img_prop.parts_rendered)
+				{
+					swap_target = true;
 				}
 
 				swap_buffer_textures(buf_props);
@@ -477,6 +486,7 @@ namespace Shady
 					{
 						buf_prop.cur_y_img_part = 0;
 						buf_prop.parts_rendered = true;
+						buf_prop.updated = true;
 					}
 				}
 			}
