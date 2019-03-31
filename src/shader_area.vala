@@ -101,7 +101,6 @@ namespace Shady
 			_size_mutex.unlock();
 		}
 
-
 		protected void update_uniform_values()
 		{
 			_delta_time = -_curr_time;

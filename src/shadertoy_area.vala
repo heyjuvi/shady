@@ -53,11 +53,9 @@ namespace Shady
 			}
 		}
 
-		private uint _render_timeout;
+		//private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
 
-		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
-
-		/* Buffer properties structs*/
+		/* Global Resources*/
 		private RenderResources.BufferProperties _target_prop = new RenderResources.BufferProperties();
 
 		private RenderResources _render_resources = new RenderResources();
@@ -70,17 +68,16 @@ namespace Shady
 		const double _upper_time_threshold=20000;
 		const double _lower_time_threshold=5000;
 
-		private bool _adaptive_tiling = true;
+		const double _fps_interval = 0.1;
 
-		/* OpenGL ids */
-
+		/* Flags */
 		private bool _image_updated = true;
 
 		/* Shader render buffer variables */
-
 		private int64 _time_delta_accum = 0;
 
-		const double _fps_interval = 0.1;
+		private uint _render_timeout;
+
 		double _fps_sum = 0.0;
 		int _num_fps_vals = 0;
 		private int64 _fps_time;
@@ -91,8 +88,6 @@ namespace Shady
 		{
 			realize.connect(() =>
 			{
-				_adaptive_tiling = _settings.get_boolean("adaptive-tiling");
-
 				ShaderCompiler.initialize_pool();
 				_compile_resources.window = get_window();
 				_compile_resources.width = _width;
@@ -171,9 +166,11 @@ namespace Shady
 			_compile_resources.compilation_finished.connect(() =>
 			{
 				compilation_finished();
+
 				_fps_sum = 0.0;
 				_num_fps_vals = 0;
 				_fps_time = get_monotonic_time();
+
 				update_rendering();
 			});
 
@@ -382,6 +379,30 @@ namespace Shady
 			}
 		}
 
+		void update_fps()
+		{
+			double current_fps = 1000000.0 / (_time_delta_accum);
+			int64 cur_time = get_monotonic_time();
+
+			if((cur_time - _fps_time) / 1000000.0 < _fps_interval)
+			{
+				_fps_sum += current_fps;
+				_num_fps_vals++;
+			}
+			else
+			{
+				if(_num_fps_vals != 0)
+				{
+					fps = _fps_sum / _num_fps_vals;
+				}
+				_fps_sum = 0.0;
+				_num_fps_vals = 0;
+				_fps_time = cur_time;
+			}
+
+			_time_delta_accum = 0;
+		}
+
 		private bool render_image()
 		{
 			_render_resources.buffer_switch_mutex.lock();
@@ -400,6 +421,7 @@ namespace Shady
 
 				if(img_prop.cur_x_img_part == 0 && img_prop.cur_y_img_part == 0)
 				{
+					//TODO: update time per buffer property?
 					update_uniform_values();
 				}
 
@@ -420,28 +442,10 @@ namespace Shady
 					_target_prop.tex_ids[0] = img_prop.tex_id_out_back;
 				}
 
+				//TODO: synchronize, only render second time if all buffers have rendered
 				swap_buffer_textures(buf_props);
 
-				double current_fps = 1000000.0 / (_time_delta_accum);
-				int64 cur_time = get_monotonic_time();
-
-				if((cur_time - _fps_time) / 1000000.0 < _fps_interval)
-				{
-					_fps_sum += current_fps;
-					_num_fps_vals++;
-				}
-				else
-				{
-					if(_num_fps_vals != 0)
-					{
-						fps = _fps_sum / _num_fps_vals;
-					}
-					_fps_sum = 0.0;
-					_num_fps_vals = 0;
-					_fps_time = cur_time;
-				}
-
-				_time_delta_accum = 0;
+				update_fps();
 
 				_size_mutex.unlock();
 			}

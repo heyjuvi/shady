@@ -9,7 +9,7 @@ namespace Shady.Core
 		}
 
 		private const string _channel_string = "iChannel";
-		private const uint _default_tile_size=16;
+		private const uint _default_tile_size = 16;
 
 		private class ThreadData
 		{
