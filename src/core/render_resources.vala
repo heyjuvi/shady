@@ -39,6 +39,8 @@ namespace Shady.Core
 			public bool parts_rendered;
 			public bool updated;
 
+			public int frame_counter;
+
 			//public double[] tex_times;
 
 			public GLint date_loc;

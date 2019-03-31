@@ -118,45 +118,59 @@ namespace Shady.Core
 			return {};
 		}
 
-		public static GLuint[] query_output_texture(Shader.Output output, uint64 window, int width, int height)
+		public static GLuint[] query_output_texture(Shader.Output? output, uint64 window, int width, int height)
 		{
-			int i;
-			for(i=0;i<_buffer_buffer.length;i++)
+			if(output != null)
 			{
-				if(_buffer_buffer[i].type == Shader.InputType.BUFFER &&
-				   _buffer_buffer[i].input_id == output.id &&
-				   _buffer_buffer[i].window_id == window)
+				int i;
+				for(i=0;i<_buffer_buffer.length;i++)
 				{
-					return _buffer_buffer[i].tex_ids;
+					if(_buffer_buffer[i].type == Shader.InputType.BUFFER &&
+					   _buffer_buffer[i].input_id == output.id &&
+					   _buffer_buffer[i].window_id == window)
+					{
+						return _buffer_buffer[i].tex_ids;
+					}
+				}
+
+				if(i == _buffer_buffer.length)
+				{
+					Shader.Input input = new Shader.Input();
+					input.id = output.id;
+					input.type = Shader.InputType.BUFFER;
+
+					int depth = 0;
+					uint target;
+
+					GLuint[] tex_ids = init_input_texture(input, ref width, ref height, ref depth, out target);
+					TextureBufferUnit tex_unit = TextureBufferUnit()
+					{
+						width = width,
+						height = height,
+						depth = depth,
+						target = target,
+						input_id = input.id,
+						tex_ids = tex_ids,
+						type = input.type,
+						v_flip = input.sampler.v_flip,
+						index = i,
+						window_id = window
+					};
+
+					_buffer_buffer += tex_unit;
+					return tex_ids;
 				}
 			}
-
-			if(i == _buffer_buffer.length)
+			else //image buffer
 			{
 				Shader.Input input = new Shader.Input();
-				input.id = output.id;
+				input.id = -1;
 				input.type = Shader.InputType.BUFFER;
 
 				int depth = 0;
 				uint target;
 
-				GLuint[] tex_ids = init_input_texture(input, ref width, ref height, ref depth, out target);
-				TextureBufferUnit tex_unit = TextureBufferUnit()
-				{
-					width = width,
-					height = height,
-					depth = depth,
-					target = target,
-					input_id = input.id,
-					tex_ids = tex_ids,
-					type = input.type,
-					v_flip = input.sampler.v_flip,
-					index = i,
-					window_id = window
-				};
-
-				_buffer_buffer += tex_unit;
-				return tex_ids;
+				return init_input_texture(input, ref width, ref height, ref depth, out target);
 			}
 			return {};
 		}

@@ -129,12 +129,10 @@ namespace Shady
 
 		protected void set_uniform_values(RenderResources.BufferProperties buf_prop)
 		{
-			//#TODO: synchronize locations with compiling
 			glUniform4f(buf_prop.date_loc, _year, _month, _day, _seconds);
 			glUniform1f(buf_prop.time_loc, (float)time);
 			glUniform1f(buf_prop.delta_loc, (float)_delta);
-			//#TODO: implement proper frame counter
-			glUniform1i(buf_prop.frame_loc, (int)(time*60));
+			glUniform1i(buf_prop.frame_loc, buf_prop.frame_counter++);
 			glUniform1f(buf_prop.fps_loc, (float)fps);
 			glUniform3f(buf_prop.res_loc, _width, _height, 0);
 

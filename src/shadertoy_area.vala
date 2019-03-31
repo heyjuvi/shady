@@ -187,6 +187,14 @@ namespace Shady
 		{
 			_start_time = _curr_time;
 			_pause_time = _curr_time;
+
+			RenderResources.BufferProperties[] buf_props = _render_resources.get_buffer_props(RenderResources.Purpose.RENDER);
+
+			for(int i=0;i<buf_props.length;i++)
+			{
+				buf_props[i].frame_counter = 0;
+			}
+
 			update_rendering();
 		}
 

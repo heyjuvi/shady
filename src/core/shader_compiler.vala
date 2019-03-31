@@ -141,20 +141,14 @@ namespace Shady.Core
 				{
 					buffer_props[i].fb = fbs[i];
 
-					if(buffer_outputs[i] != null)
+					GLuint[] output_tex_ids = TextureManager.query_output_texture(buffer_outputs[i], (uint64) compile_resources.window, compile_resources.width, compile_resources.height);
+					buffer_props[i].tex_id_out_front = output_tex_ids[0];
+					buffer_props[i].tex_id_out_back = output_tex_ids[1];
+
+					if(buffer_outputs[i] == null)
 					{
-						GLuint[] output_tex_ids = TextureManager.query_output_texture(buffer_outputs[i], (uint64) compile_resources.window, compile_resources.width, compile_resources.height);
-						buffer_props[i].tex_id_out_front = output_tex_ids[0];
-						buffer_props[i].tex_id_out_back = output_tex_ids[1];
-					}
-					else
-					{
-						init_fb_texs(compile_resources, buffer_props[i], compile_resources.width, compile_resources.height);
 						render_resources.set_image_prop_index(RenderResources.Purpose.COMPILE, i);
 					}
-
-					//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbs[i]);
-					//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output_tex_ids[1], 0);
 
 					glClearColor(0,0,0,1);
 					glClear(GL_COLOR_BUFFER_BIT);
@@ -179,6 +173,8 @@ namespace Shady.Core
 					buffer_props[i].parts_rendered = false;
 					buffer_props[i].second_resize = false;
 					buffer_props[i].updated = true;
+
+					buffer_props[i].frame_counter = 0;
 
 					if(compile_resources.width==0)
 					{
@@ -387,34 +383,6 @@ namespace Shady.Core
 			compile_resources.vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 			glShaderSource(compile_resources.vertex_shader, 1, vertex_source_array, null);
 			glCompileShader(compile_resources.vertex_shader);
-		}
-
-		//TODO: merge with query_output_texture
-		public static void init_fb_texs(CompileResources compile_resources, RenderResources.BufferProperties buf_prop, int width, int height)
-		{
-			GLuint[] tex_arr = {buf_prop.tex_id_out_back};
-			glDeleteTextures(1, tex_arr);
-			glGenTextures(1, tex_arr);
-
-			buf_prop.tex_id_out_back = tex_arr[0];
-
-			glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-
-			tex_arr = {buf_prop.tex_id_out_front};
-			glDeleteTextures(1, tex_arr);
-			glGenTextures(1, tex_arr);
-
-			buf_prop.tex_id_out_front = tex_arr[0];
-
-			glBindTexture(GL_TEXTURE_2D, tex_arr[0]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, {});
-
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 		}
 
 		public static void init_vao(RenderResources.BufferProperties buf_prop)
