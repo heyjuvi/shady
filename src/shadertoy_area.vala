@@ -24,12 +24,18 @@ namespace Shady
 				if (value == true)
 				{
 					_pause_time = get_monotonic_time();
-					Source.remove(_render_timeout);
+					if(!_paused)
+					{
+						Source.remove(_render_timeout);
+					}
 				}
 				else
 				{
 					_start_time += get_monotonic_time() - _pause_time;
-					_render_timeout = Timeout.add(_timeout_interval, render_image);
+					if(_paused)
+					{
+						_render_timeout = Timeout.add(_timeout_interval, render_image);
+					}
 				}
 
 				_paused = value;
@@ -192,6 +198,8 @@ namespace Shady
 				buf_props[i].frame_counter = 0;
 			}
 
+			reset_buffer_textures(buf_props);
+
 			update_rendering();
 		}
 
@@ -320,6 +328,25 @@ namespace Shady
 			}
 
 			_size_updated = false;
+		}
+
+		private void reset_buffer_textures(RenderResources.BufferProperties[] buf_props)
+		{
+			make_current();
+
+			for(int i=0; i<buf_props.length; i++)
+			{
+				buf_props[i].cur_x_img_part = 0;
+				buf_props[i].cur_y_img_part = 0;
+
+				float[] empty_buffer = new float[_width * _height *4];
+
+				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_front);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid[])empty_buffer);
+
+				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_back);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid[])empty_buffer);
+			}
 		}
 
 		private void detect_tile_size(RenderResources.BufferProperties buf_prop, double time_delta)
