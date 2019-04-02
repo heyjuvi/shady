@@ -369,6 +369,11 @@ namespace Shady.Core
 			}
 			else{
 				print("Unexpected input type\n");
+				//just return some texture so things don't break
+
+				target = GL_TEXTURE_2D;
+				tex_ids = {0};
+				glGenTextures(1,tex_ids);
 			}
 
 			return tex_ids;
