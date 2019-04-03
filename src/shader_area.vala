@@ -83,6 +83,30 @@ namespace Shady
 			return default_shader;
 		}
 
+		public static Shader? get_loading_shader()
+		{
+			Shader loading_shader = new Shader();
+			Shader.Renderpass renderpass = new Shader.Renderpass();
+
+			try
+			{
+				string loading_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/load.glsl", 0).get_data());
+				renderpass.code = loading_code;
+			}
+			catch(Error e)
+			{
+				print("Couldn't load loading shader!\n");
+				return null;
+			}
+
+			renderpass.type = Shader.RenderpassType.IMAGE;
+			renderpass.name = "Image";
+
+			loading_shader.renderpasses.append_val(renderpass);
+
+			return loading_shader;
+		}
+
 		protected void update_size(int width, int height)
 		{
 			_size_mutex.lock();

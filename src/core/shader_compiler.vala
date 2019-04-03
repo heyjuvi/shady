@@ -77,6 +77,26 @@ namespace Shady.Core
 			}
 		}
 
+		public static void compile_main_thread(Shader shader, RenderResources render_resources, CompileResources compile_resources)
+		{
+			compile_resources.mutex.lock();
+			RenderResources.BufferProperties[] buf_props = allocate_buffers(shader);
+
+			Gdk.GLContext current_context = Gdk.GLContext.get_current();
+
+			for(int i=0;i<buf_props.length;i++)
+			{
+				buf_props[i].context = current_context;
+			}
+
+			render_resources.set_buffer_props(RenderResources.Purpose.COMPILE, buf_props);
+			render_resources.set_image_prop_index(RenderResources.Purpose.COMPILE, 0);
+
+			ThreadData data = new ThreadData(){shader=shader, context = current_context, render_resources=render_resources, compile_resources=compile_resources};
+
+			compile(data);
+		}
+
 		private static void compile(ThreadData data)
 		{
 			data.context.make_current();
@@ -95,9 +115,6 @@ namespace Shady.Core
 
 			data.render_resources.switch_buffer();
 
-			data.compile_resources.ready_mutex.lock();
-			data.compile_resources.cond.signal();
-			data.compile_resources.ready_mutex.unlock();
 			data.compile_resources.mutex.unlock();
 
 			Timeout.add(1,() =>

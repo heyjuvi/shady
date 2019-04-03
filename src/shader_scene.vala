@@ -31,8 +31,8 @@ namespace Shady
 
 		public ShaderScene()
 		{
-		    _shadertoy_area = new ShadertoyArea();
-		    _fullscreen_shadertoy_area = new ShadertoyArea();
+		    _shadertoy_area = new ShadertoyArea(ShaderArea.get_default_shader());
+		    _fullscreen_shadertoy_area = new ShadertoyArea(ShaderArea.get_default_shader());
 
             _fullscreen_window = new Gtk.Window();
             _fullscreen_window.width_request = 320;

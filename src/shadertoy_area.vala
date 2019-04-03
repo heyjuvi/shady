@@ -90,7 +90,7 @@ namespace Shady
 
 		private Mutex _size_mutex = Mutex();
 
-		public ShadertoyArea()
+		public ShadertoyArea(Shader default_shader)
 		{
 			realize.connect(() =>
 			{
@@ -99,7 +99,7 @@ namespace Shady
 				_compile_resources.width = _width;
 				_compile_resources.height = _height;
 
-				init_gl(get_default_shader());
+				init_gl(default_shader);
 			});
 
 			resize.connect((width, height) =>
@@ -171,13 +171,13 @@ namespace Shady
 
 			_compile_resources.compilation_finished.connect(() =>
 			{
-				compilation_finished();
-
 				_fps_sum = 0.0;
 				_num_fps_vals = 0;
 				_fps_time = get_monotonic_time();
 
 				update_rendering();
+
+				compilation_finished();
 			});
 
 			_compile_resources.pass_compilation_terminated.connect((pass_index, e) =>
@@ -208,28 +208,11 @@ namespace Shady
 			ShaderCompiler.queue_shader_compile(shader, _render_resources, _compile_resources);
 		}
 
-		public static Shader? get_loading_shader()
+		public void compile_main_thread(Shader shader)
 		{
-			Shader loading_shader = new Shader();
-			Shader.Renderpass renderpass = new Shader.Renderpass();
-
-			try
-			{
-				string loading_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/load.glsl", 0).get_data());
-				renderpass.code = loading_code;
-			}
-			catch(Error e)
-			{
-				print("Couldn't load loading shader!\n");
-				return null;
-			}
-
-			renderpass.type = Shader.RenderpassType.IMAGE;
-			renderpass.name = "Image";
-
-			loading_shader.renderpasses.append_val(renderpass);
-
-			return loading_shader;
+			make_current();
+			ShaderCompiler.compile_main_thread(shader, _render_resources, _compile_resources);
+			make_current();
 		}
 
 		private void init_gl(Shader default_shader)
@@ -240,11 +223,8 @@ namespace Shady
 
 			ShaderCompiler.init_compile_resources(_compile_resources);
 
-			compile(default_shader);
-
-			_compile_resources.ready_mutex.lock();
-			_compile_resources.cond.wait(_compile_resources.ready_mutex);
-			_compile_resources.ready_mutex.unlock();
+			compile_main_thread(default_shader);
+			make_current();
 
 			RenderResources.BufferProperties img_prop = _render_resources.get_image_prop(RenderResources.Purpose.RENDER);
 
@@ -540,13 +520,13 @@ namespace Shady
 
 			glBindVertexArray(buf_prop.vao);
 
-			glFinish();
+			//glFinish();
 
 			time_before = get_monotonic_time();
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 
-			glFinish();
+			//glFinish();
 
 			time_after = get_monotonic_time();
 
@@ -556,7 +536,7 @@ namespace Shady
 				glCopyImageSubData(buf_prop.tile_render_buf,GL_RENDERBUFFER,0,0,0,0,buf_prop.tex_id_out_back,GL_TEXTURE_2D,0,(int)x_offset,(int)y_offset,0,(int)cur_width,(int)cur_height,1);
 			}
 
-			glFinish();
+			//glFinish();
 
 			return time_after - time_before;
 		}

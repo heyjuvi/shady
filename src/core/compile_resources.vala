@@ -14,8 +14,6 @@ namespace Shady.Core
 		public GLuint vbo;
 
 		public Mutex mutex = Mutex();
-		public Mutex ready_mutex = Mutex();
-		public Cond cond = Cond();
 
 		public Gdk.Window window;
 
