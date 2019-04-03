@@ -65,7 +65,7 @@ namespace Shady
 
 			try
 			{
-				if (input.type == Shader.InputType.TEXTURE)
+				if (input.type == Shader.InputType.TEXTURE || input.type == Shader.InputType.HIDDEN_TEXTURE)
 				{
 					input_renderpass.code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/texture_channel_default.glsl", 0).get_data());
 				}
@@ -110,8 +110,8 @@ namespace Shady
 				ShaderCompiler.init_sampler(input_copy, _target_prop.sampler_ids[0]);
 
 				if(input.type == Shader.InputType.BUFFER){
-					input_copy.type = Shader.InputType.TEXTURE;
-					input_copy.resource_index = 22 + input_copy.id - 3;
+					input_copy.type = Shader.InputType.HIDDEN_TEXTURE;
+					input_copy.resource_index = input_copy.id - 3;
 					input_copy.sampler.v_flip = true;
 				}
 

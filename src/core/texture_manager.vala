@@ -220,6 +220,45 @@ namespace Shady.Core
 
 				glGenerateMipmap(target);
 			}
+			else if(input.type == Shader.InputType.HIDDEN_TEXTURE)
+			{
+				if(!(input.resource_index < ShadertoyResourceManager.HIDDEN_TEXTURE_IDS.length))
+				{
+					input.resource_index = 0;
+				}
+
+				target = GL_TEXTURE_2D;
+				tex_ids = {0};
+				glGenTextures(1,tex_ids);
+				glBindTexture(target, tex_ids[0]);
+
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+
+				Gdk.Pixbuf buf = ShadertoyResourceManager.HIDDEN_TEXTURE_PIXBUFS[input.resource_index];
+
+				if(input.sampler.v_flip)
+				{
+					buf = buf.flip(false);
+				}
+
+				width = buf.get_width();
+				height = buf.get_height();
+
+				int format=-1;
+				if(buf.get_n_channels() == 3)
+				{
+					format = GL_RGB;
+				}
+				else if(buf.get_n_channels() == 4)
+				{
+					format = GL_RGBA;
+				}
+
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid[])buf.get_pixels());
+
+				glGenerateMipmap(target);
+			}
 			else if(input.type == Shader.InputType.3DTEXTURE)
 			{
 				if(!(input.resource_index < ShadertoyResourceManager.3DTEXTURE_IDS.length))

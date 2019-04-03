@@ -29,7 +29,11 @@ namespace Shady
 			"rock_tiles",
 			"rusty_metal",
 			"stars",
-			"wood",
+			"wood"
+		};
+
+		public static string[] HIDDEN_TEXTURE_IDS =
+		{
 			"buffer00",
 			"buffer01",
 			"buffer02",
@@ -64,6 +68,9 @@ namespace Shady
 		public static Gdk.Pixbuf[] TEXTURE_PIXBUFS;
 		public static Shader.Input[] TEXTURES;
 
+		public static Gdk.Pixbuf[] HIDDEN_TEXTURE_PIXBUFS;
+		public static Shader.Input[] HIDDEN_TEXTURES;
+
 		public static Voxmap[] 3DTEXTURE_VOXMAPS;
 		public static Shader.Input[] 3DTEXTURES;
 
@@ -84,6 +91,25 @@ namespace Shady
 				try
 				{
 					TEXTURE_PIXBUFS[i] = new Gdk.Pixbuf.from_resource(texture.resource);
+				}
+				catch (Error e)
+				{
+					print(@"Couldn't load texture: $(e.message)\n");
+				}
+			}
+
+			HIDDEN_TEXTURE_PIXBUFS = new Gdk.Pixbuf[HIDDEN_TEXTURE_IDS.length];
+			HIDDEN_TEXTURES = new Shader.Input[HIDDEN_TEXTURE_IDS.length];
+
+			for (int i = 0; i < HIDDEN_TEXTURE_IDS.length; i++)
+			{
+				Shader.Input? texture = load_texture(HIDDEN_TEXTURE_IDS[i]);
+				texture.resource_index = i;
+				HIDDEN_TEXTURES[i] = texture;
+
+				try
+				{
+					HIDDEN_TEXTURE_PIXBUFS[i] = new Gdk.Pixbuf.from_resource(texture.resource);
 				}
 				catch (Error e)
 				{

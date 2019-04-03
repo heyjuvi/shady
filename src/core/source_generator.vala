@@ -48,6 +48,7 @@ namespace Shady.Core
 				{
 					int index = renderpass.inputs.index(i).channel;
 					if(renderpass.inputs.index(i).type == Shader.InputType.TEXTURE ||
+					   renderpass.inputs.index(i).type == Shader.InputType.HIDDEN_TEXTURE ||
 					   renderpass.inputs.index(i).type == Shader.InputType.BUFFER ||
 					   renderpass.inputs.index(i).type == Shader.InputType.KEYBOARD ||
 					   renderpass.inputs.index(i).type == Shader.InputType.WEBCAM ||

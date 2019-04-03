@@ -11,6 +11,7 @@ namespace Shady
 			SOUNDCLOUD,
 			BUFFER,
 			TEXTURE,
+			HIDDEN_TEXTURE,
 			3DTEXTURE,
 			CUBEMAP,
 			VIDEO,
@@ -46,6 +47,10 @@ namespace Shady
 				else if (type == "texture")
 				{
 					return TEXTURE;
+				}
+				else if (type == "hiddentexture")
+				{
+					return HIDDEN_TEXTURE;
 				}
 				else if (type == "3dtexture")
 				{
@@ -96,6 +101,10 @@ namespace Shady
 			    else if (this == TEXTURE)
 			    {
 			        return "texture";
+			    }
+			    else if (this == HIDDEN_TEXTURE)
+			    {
+			        return "hiddentexture";
 			    }
 			    else if (this == 3DTEXTURE)
 			    {
