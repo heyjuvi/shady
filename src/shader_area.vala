@@ -241,7 +241,7 @@ namespace Shady
 			input.channel = 0;
 			Shader.Renderpass target_pass = ChannelArea.get_renderpass_from_input(input);
 
-			string full_target_source = SourceGenerator.generate_renderpass_source(target_pass, false);
+			string full_target_source = SourceGenerator.generate_renderpass_source(target_pass, false, "");
 
 			comp_resources.vertex_shader = target_vertex_shader;
 

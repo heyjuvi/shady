@@ -564,7 +564,7 @@ namespace Shady
 				glCopyImageSubData(buf_prop.tile_render_buf,GL_RENDERBUFFER,0,0,0,0,buf_prop.tex_id_out_back,GL_TEXTURE_2D,0,(int)x_offset,(int)y_offset,0,(int)cur_width,(int)cur_height,1);
 			}
 
-		glFinish();
+			glFinish();
 
 			return time_after - time_before;
 		}

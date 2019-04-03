@@ -407,7 +407,7 @@ namespace Shady.Core
 				//glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 			}
 			else{
-				print("Unexpected input type\n");
+				print(@"Unexpected input type: $(input.type)\n");
 				//just return some texture so things don't break
 
 				target = GL_TEXTURE_2D;

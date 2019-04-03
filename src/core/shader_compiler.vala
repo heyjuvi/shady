@@ -265,10 +265,18 @@ namespace Shady.Core
 				}
 			}
 
+			Shader.Renderpass common_pass = new_shader.get_renderpass_by_name("Common");
+			string common_code = "";
+
+			if(common_pass != null)
+			{
+				common_code = common_pass.code;
+			}
+
 			for(int i=0;i<buffer_count;i++)
 			{
 				Shader.Renderpass buffer_pass = new_shader.renderpasses.index(buffer_indices[i]);
-				string full_buffer_source = SourceGenerator.generate_renderpass_source(buffer_pass, true);
+				string full_buffer_source = SourceGenerator.generate_renderpass_source(buffer_pass, true, common_code);
 
 				bool success = compile_pass(buffer_indices[i], full_buffer_source, buffer_props[i], compile_resources);
 

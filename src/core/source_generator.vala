@@ -4,7 +4,7 @@ namespace Shady.Core
 	{
 		private const string _channel_string = "iChannel";
 
-		private const string _line_directive = "#line 1\n";
+		private const string _line_directive = "\n#line 1\n";
 
 		public SourceGenerator()
 		{
@@ -13,16 +13,29 @@ namespace Shady.Core
 		public static HashTable<string, string> generate_shader_source(Shader shader, bool set_version)
 		{
 			HashTable<string, string> string_table = new HashTable<string, string>(str_hash, str_equal);
+
+			Shader.Renderpass common_pass = shader.get_renderpass_by_name("Common");
+
+			string common_code = "";
+
+			if(common_pass != null)
+			{
+				common_code = common_pass.code;
+			}
+
 			for(int i=0;i<shader.renderpasses.length;i++)
 			{
-				Shader.Renderpass renderpass = shader.renderpasses.index(i);
-				string_table.insert(renderpass.name, generate_renderpass_source(renderpass, set_version));
+				if(shader.renderpasses.index(i).type != Shader.RenderpassType.COMMON)
+				{
+					Shader.Renderpass renderpass = shader.renderpasses.index(i);
+					string_table.insert(renderpass.name, generate_renderpass_source(renderpass, set_version, common_code));
+				}
 			}
 
 			return string_table;
 		}
 
-		public static string generate_renderpass_source(Shader.Renderpass renderpass, bool set_version)
+		public static string generate_renderpass_source(Shader.Renderpass renderpass, bool set_version, string common_code)
 		{
 			try
 			{
@@ -75,6 +88,7 @@ namespace Shady.Core
 						   shader_prefix +
 						   shader_builtins +
 						   channel_prefix +
+					       common_code +
 						   _line_directive +
 						   renderpass.code +
 						   shader_suffix;
@@ -84,6 +98,7 @@ namespace Shady.Core
 					return shader_prefix +
 					       shader_builtins_full +
 					       channel_prefix +
+					       common_code +
 					       _line_directive +
 					       renderpass.code +
 					       shader_suffix;

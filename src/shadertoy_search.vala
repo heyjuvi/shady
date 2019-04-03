@@ -65,6 +65,10 @@ namespace Shady
 					{
 						renderpass_name = "Image";
 					}
+					else if (new_renderpass.type == Shader.RenderpassType.COMMON)
+					{
+						renderpass_name = "Common";
+					}
 					else if (new_renderpass.type == Shader.RenderpassType.BUFFER)
 					{
 						renderpass_name = @"Buf $((char) (0x41 + buffer_counter))'";

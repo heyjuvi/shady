@@ -262,6 +262,7 @@ namespace Shady
 			SOUND,
 			IMAGE,
 			BUFFER,
+			COMMON,
 			INVALID;
 
 			public static RenderpassType from_string(string type)
@@ -277,6 +278,10 @@ namespace Shady
 				else if (type == "buffer")
 				{
 					return BUFFER;
+				}
+				else if (type == "common")
+				{
+					return COMMON;
 				}
 
 				return INVALID;
@@ -295,6 +300,10 @@ namespace Shady
 				else if (this == BUFFER)
 				{
 					return "buffer";
+				}
+				else if (this == COMMON)
+				{
+					return "common";
 				}
 
 				return "invalid";

@@ -121,7 +121,7 @@ namespace Shady
 
 					Shader? input_shader = get_shader_from_input(input_copy);
 
-					string full_target_source = SourceGenerator.generate_renderpass_source(input_shader.renderpasses.index(0), false);
+					string full_target_source = SourceGenerator.generate_renderpass_source(input_shader.renderpasses.index(0), false, "");
 
 					_target_prop.context = get_context();
 					ShaderCompiler.compile_pass(-1, full_target_source, _target_prop, _compile_resources);
