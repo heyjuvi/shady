@@ -20,19 +20,9 @@ namespace Shady
 		private const double _time_slider_factor = 2.0;
 
 		/* Time variables */
-		protected DateTime _curr_date;
-
 		protected int64 _start_time;
-		protected int64 _curr_time;
 		protected int64 _pause_time;
-		protected int64 _delta_time;
-
-		protected float _year;
-		protected float _month;
-		protected float _day;
-		protected float _seconds;
-
-		protected float _delta;
+		protected int64 _curr_time;
 
 		protected float _samplerate = 44100.0f;
 
@@ -125,37 +115,55 @@ namespace Shady
 			_size_mutex.unlock();
 		}
 
-		protected void update_uniform_values()
+		protected void update_time()
 		{
-			_delta_time = -_curr_time;
+			int64 delta_time = -_curr_time;
 			_curr_time = get_monotonic_time();
-			_delta_time += _curr_time;
+			delta_time += _curr_time;
 
 			if (!_paused)
 			{
 				time = (_curr_time - _start_time) / 1000000.0f;
-				_delta = _delta_time / 1000000.0f;
 			}
 			else
 			{
 				time = (_pause_time - _start_time) / 1000000.0f;
-				_pause_time += (int)(_time_slider * _time_slider_factor * _delta_time);
-				_delta = 0.0f;
+				_pause_time += (int)(_time_slider * _time_slider_factor * delta_time);
+			}
+		}
+
+		protected void update_uniform_values(RenderResources.BufferProperties buf_prop)
+		{
+			int64 delta_time = -buf_prop.curr_time;
+			buf_prop.curr_time = get_monotonic_time();
+			delta_time += buf_prop.curr_time;
+
+			if (!_paused)
+			{
+				buf_prop.time = (buf_prop.curr_time - _start_time) / 1000000.0f;
+				buf_prop.delta = delta_time / 1000000.0f;
+			}
+			else
+			{
+				buf_prop.time = (_pause_time - _start_time) / 1000000.0f;
+				buf_prop.delta = 0.0f;
 			}
 
-			_curr_date = new DateTime.now_local();
+			DateTime curr_date = new DateTime.now_local();
 
-			_curr_date.get_ymd(out _year, out _month, out _day);
+			curr_date.get_ymd(out buf_prop.year, out buf_prop.month, out buf_prop.day);
 
-			_seconds = (float)((_curr_date.get_hour()*60+_curr_date.get_minute())*60)+(float)_curr_date.get_seconds();
+			buf_prop.seconds = (float)((curr_date.get_hour()*60+curr_date.get_minute())*60)+(float)curr_date.get_seconds();
+
+			buf_prop.frame_counter++;
 		}
 
 		protected void set_uniform_values(RenderResources.BufferProperties buf_prop)
 		{
-			glUniform4f(buf_prop.date_loc, _year, _month, _day, _seconds);
-			glUniform1f(buf_prop.time_loc, (float)time);
-			glUniform1f(buf_prop.delta_loc, (float)_delta);
-			glUniform1i(buf_prop.frame_loc, buf_prop.frame_counter++);
+			glUniform4f(buf_prop.date_loc, buf_prop.year, buf_prop.month, buf_prop.day, buf_prop.seconds);
+			glUniform1f(buf_prop.time_loc, (float)buf_prop.time);
+			glUniform1f(buf_prop.delta_loc, (float)buf_prop.delta);
+			glUniform1i(buf_prop.frame_loc, buf_prop.frame_counter);
 			glUniform1f(buf_prop.fps_loc, (float)fps);
 			glUniform3f(buf_prop.res_loc, _width, _height, 1);
 

@@ -153,6 +153,7 @@ namespace Shady
 			render.connect(() =>
 			{
 				_size_mutex.lock();
+				update_time();
 				render_gl(_target_prop);
 				_size_mutex.unlock();
 				queue_draw();
@@ -382,6 +383,7 @@ namespace Shady
 						buf_props[i].second_resize = false;
 					}
 
+					update_uniform_values(buf_props[i]);
 				}
 			}
 		}
@@ -424,12 +426,6 @@ namespace Shady
 				if(_size_updated)
 				{
 					render_size_update(buf_props);
-				}
-
-				if(img_prop.cur_x_img_part == 0 && img_prop.cur_y_img_part == 0)
-				{
-					//TODO: update time per buffer property?
-					update_uniform_values();
 				}
 
 				for(int i=0; i<buf_props.length; i++)
@@ -520,13 +516,13 @@ namespace Shady
 
 			glBindVertexArray(buf_prop.vao);
 
-			//glFinish();
+			glFinish();
 
 			time_before = get_monotonic_time();
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 
-			//glFinish();
+			glFinish();
 
 			time_after = get_monotonic_time();
 
@@ -536,7 +532,7 @@ namespace Shady
 				glCopyImageSubData(buf_prop.tile_render_buf,GL_RENDERBUFFER,0,0,0,0,buf_prop.tex_id_out_back,GL_TEXTURE_2D,0,(int)x_offset,(int)y_offset,0,(int)cur_width,(int)cur_height,1);
 			}
 
-			//glFinish();
+			glFinish();
 
 			return time_after - time_before;
 		}

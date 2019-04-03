@@ -40,6 +40,16 @@ namespace Shady.Core
 			public bool updated;
 
 			public int frame_counter;
+			
+			public double time;
+			public double delta;
+
+			public float year;
+			public float month;
+			public float day;
+			public float seconds;
+
+			public int64 curr_time;
 
 			//public double[] tex_times;
 

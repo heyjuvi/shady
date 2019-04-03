@@ -30,7 +30,8 @@ namespace Shady
 			render.connect(() =>
 			{
 				_size_mutex.lock();
-				update_uniform_values();
+				update_time();
+				_target_prop.time = time;
 				render_gl(_target_prop);
 				_size_mutex.unlock();
 				queue_draw();
