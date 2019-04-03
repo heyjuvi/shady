@@ -78,6 +78,15 @@
 			</description>
 		</key>
 
+		<key name="synchronized-rendering" type="b">
+			<default>true</default>
+			<summary>Render Buffers synchronized</summary>
+			<description>
+				When enabled, the different buffers of the shadertoy area all rendered with the same framerate
+				regardless of their performance. Otherwise they all run as quick as they can basically.
+			</description>
+		</key>
+
 		<key name="virtual-resolution-factor" type="d">
 			<default>1.0</default>
 			<summary>Virtual resolution factor</summary>

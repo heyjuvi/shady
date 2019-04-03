@@ -158,6 +158,16 @@ namespace Shady
 			buf_prop.frame_counter++;
 		}
 
+		protected void copy_buffer_time(RenderResources.BufferProperties buf_prop1, RenderResources.BufferProperties buf_prop2)
+		{
+			buf_prop1.time = buf_prop2.time;
+			buf_prop1.delta = buf_prop2.delta;
+			buf_prop1.year = buf_prop2.year;
+			buf_prop1.month = buf_prop2.month;
+			buf_prop1.day = buf_prop2.day;
+			buf_prop1.seconds = buf_prop2.seconds;
+		}
+
 		protected void set_uniform_values(RenderResources.BufferProperties buf_prop)
 		{
 			glUniform4f(buf_prop.date_loc, buf_prop.year, buf_prop.month, buf_prop.day, buf_prop.seconds);
