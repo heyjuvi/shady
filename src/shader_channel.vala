@@ -3,6 +3,11 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/shader-channel.ui")]
 	public class ShaderChannel : Gtk.Box
 	{
+		private static Shader.Input TEXTURE_DEFAULT_INPUT = Shader.Input.NO_INPUT;
+		private static Shader.Input CUBEMAP_DEFAULT_INPUT = Shader.Input.NO_INPUT;
+		private static Shader.Input 3DTEXTURE_DEFAULT_INPUT = Shader.Input.NO_INPUT;
+		private static Shader.Input BUFFER_DEFAULT_INPUT = ShaderChannelBufferPopover.generate_buffer_input("Buf A");
+
 	    // TODO: can these be made obsolete by connecting to the property
 	    //       signals directly?
 		public signal void channel_type_changed(Shader.InputType channel_type);
@@ -28,7 +33,6 @@ namespace Shady
                 // needs to be set first, the following calls within the
                 // channel_input property will make use of this
                 _channel_buffer = value;
-                print(@"iChannel$(_channel_inputs[_channel_buffer].channel) says: Changing to $(_channel_buffer)...\n");
 
                 channel_input = _channel_inputs[_channel_buffer];
             }
@@ -87,8 +91,8 @@ namespace Shady
 
 			    _channel_type_popover.set_channel_type_inconsistently(_channel_inputs[_channel_buffer].type);
 			    update_for_input_type();
+			    select_current_inputs();
 
-                print(@"iChannel$(_channel_inputs[_channel_buffer].channel) with buffer $(_channel_buffer) says: Compiling input $(_channel_inputs[_channel_buffer].name)...\n");
 			    compile_input();
 			}
 		}
@@ -155,9 +159,16 @@ namespace Shady
 			foreach (string buffer_name in ShaderEditor.SHADER_BUFFERS_ORDER.get_keys())
             {
                 _last_texture_inputs.insert(buffer_name, new Shader.Input());
+                _last_texture_inputs[buffer_name].assign(TEXTURE_DEFAULT_INPUT);
+
                 _last_cubemap_inputs.insert(buffer_name, new Shader.Input());
+                _last_cubemap_inputs[buffer_name].assign(CUBEMAP_DEFAULT_INPUT);
+
                 _last_3dtexture_inputs.insert(buffer_name, new Shader.Input());
+                _last_3dtexture_inputs[buffer_name].assign(3DTEXTURE_DEFAULT_INPUT);
+
                 _last_buffer_inputs.insert(buffer_name, new Shader.Input());
+                _last_buffer_inputs[buffer_name].assign(BUFFER_DEFAULT_INPUT);
 
                 _channel_inputs.insert(buffer_name, new Shader.Input());
             }
@@ -273,17 +284,59 @@ namespace Shady
 			}
 		}
 
+		private void select_current_inputs()
+		{
+			if (_channel_inputs[_channel_buffer].type == Shader.InputType.BUFFER ||
+			    _channel_inputs[_channel_buffer].type == Shader.InputType.TEXTURE ||
+			    _channel_inputs[_channel_buffer].type == Shader.InputType.3DTEXTURE ||
+			    _channel_inputs[_channel_buffer].type == Shader.InputType.CUBEMAP ||
+			    _channel_inputs[_channel_buffer].type == Shader.InputType.VIDEO ||
+			    _channel_inputs[_channel_buffer].type == Shader.InputType.MUSIC)
+			{
+				if (_channel_inputs[_channel_buffer].type == Shader.InputType.SOUNDCLOUD)
+				{
+				}
+				else if (_channel_inputs[_channel_buffer].type == Shader.InputType.TEXTURE)
+				{
+				}
+				else if (_channel_inputs[_channel_buffer].type == Shader.InputType.CUBEMAP)
+				{
+				}
+				else if (_channel_inputs[_channel_buffer].type == Shader.InputType.3DTEXTURE)
+				{
+				}
+				else if (_channel_inputs[_channel_buffer].type == Shader.InputType.BUFFER)
+				{
+					string buffer = null;
+					foreach (string buffer_name in ShaderEditor.SHADER_BUFFERS_ORDER.get_keys())
+					{
+						if (ShaderEditor.SHADER_BUFFERS_ORDER[buffer_name] == _channel_inputs[_channel_buffer].id)
+						{
+							buffer = buffer_name;
+							break;
+						}
+					}
+
+					if (buffer != null)
+					{
+						_buffer_popover.buffer_name = buffer;
+					}
+				}
+			}
+		}
+
 		private void compile_input()
 		{
 			channel_area.compile_shader_input(_channel_inputs[_channel_buffer]);
 		}
 
-		//[GtkCallback]
 		private void channel_type_popover_channel_type_changed(Shader.InputType channel_type)
 		{
 			_channel_inputs[_channel_buffer].type = channel_type;
 
 			update_for_input_type();
+			select_current_inputs();
+
 			compile_input();
 
 			channel_type_changed(_channel_inputs[_channel_buffer].type);
