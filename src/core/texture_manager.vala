@@ -23,6 +23,21 @@ namespace Shady.Core
 			public uint64 window_id;
 		}
 
+		struct TextureAuxBuffer
+		{
+			public Shader.InputType type;
+			public int index;
+			public uint64 window_id;
+			public AuxBuffer buffer;
+		}
+
+		//wrapper class for buffer to allow counted references
+		//arrays in vala are always duplicated otherwise
+		public class AuxBuffer
+		{
+			public char[] data;
+		}
+
 		private static GLib.Once<TextureManager> _buffer;
 
 		public static unowned TextureManager buffer()
@@ -34,6 +49,7 @@ namespace Shady.Core
 		}
 
 		private static TextureBufferUnit[] _texture_buffer = {};
+		private static TextureAuxBuffer[] _texture_aux_buffers = {};
 		private static TextureBufferUnit[] _buffer_buffer = {};
 
 		public static GLuint[] query_input_texture(Shader.Input input, uint64 window, ref int width, ref int height, ref int depth, out uint target)
@@ -57,26 +73,24 @@ namespace Shady.Core
 						return _buffer_buffer[i].tex_ids;
 					}
 				}
-				if(i == _buffer_buffer.length)
-				{
-					GLuint[] tex_ids = init_input_texture(input, ref width, ref height, ref depth, out target);
-					TextureBufferUnit tex_unit = TextureBufferUnit()
-					{
-						width = width,
-						height = height,
-						depth = depth,
-						target = target,
-						input_id = input.id,
-						tex_ids = tex_ids,
-						type = input.type,
-						v_flip = input.sampler.v_flip,
-						index = i,
-						window_id = window
-					};
 
-					_buffer_buffer += tex_unit;
-					return tex_ids;
-				}
+				GLuint[] tex_ids = init_input_texture(input, window, ref width, ref height, ref depth, out target);
+				TextureBufferUnit tex_unit = TextureBufferUnit()
+				{
+					width = width,
+					height = height,
+					depth = depth,
+					target = target,
+					input_id = input.id,
+					tex_ids = tex_ids,
+					type = input.type,
+					v_flip = input.sampler.v_flip,
+					index = i,
+					window_id = window
+				};
+
+				_buffer_buffer += tex_unit;
+				return tex_ids;
 			}
 			else
 			{
@@ -94,28 +108,25 @@ namespace Shady.Core
 						return _texture_buffer[i].tex_ids;
 					}
 				}
-				if(i == _texture_buffer.length)
-				{
-					GLuint[] tex_ids = init_input_texture(input, ref width, ref height, ref depth, out target);
-					TextureBufferUnit tex_unit = TextureBufferUnit()
-					{
-						width = width,
-						height = height,
-						depth = depth,
-						target = target,
-						input_id = input.id,
-						tex_ids = tex_ids,
-						type = input.type,
-						v_flip = input.sampler.v_flip,
-						index = input.resource_index,
-						window_id = window
-					};
 
-					_texture_buffer += tex_unit;
-					return tex_ids;
-				}
+				GLuint[] tex_ids = init_input_texture(input, window, ref width, ref height, ref depth, out target);
+				TextureBufferUnit tex_unit = TextureBufferUnit()
+				{
+					width = width,
+					height = height,
+					depth = depth,
+					target = target,
+					input_id = input.id,
+					tex_ids = tex_ids,
+					type = input.type,
+					v_flip = input.sampler.v_flip,
+					index = input.resource_index,
+					window_id = window
+				};
+
+				_texture_buffer += tex_unit;
+				return tex_ids;
 			}
-			return {};
 		}
 
 		public static GLuint[] query_output_texture(Shader.Output? output, uint64 window, int width, int height)
@@ -133,33 +144,30 @@ namespace Shady.Core
 					}
 				}
 
-				if(i == _buffer_buffer.length)
+				Shader.Input input = new Shader.Input();
+				input.id = output.id;
+				input.type = Shader.InputType.BUFFER;
+
+				int depth = 0;
+				uint target;
+
+				GLuint[] tex_ids = init_input_texture(input, window, ref width, ref height, ref depth, out target);
+				TextureBufferUnit tex_unit = TextureBufferUnit()
 				{
-					Shader.Input input = new Shader.Input();
-					input.id = output.id;
-					input.type = Shader.InputType.BUFFER;
+					width = width,
+					height = height,
+					depth = depth,
+					target = target,
+					input_id = input.id,
+					tex_ids = tex_ids,
+					type = input.type,
+					v_flip = input.sampler.v_flip,
+					index = i,
+					window_id = window
+				};
 
-					int depth = 0;
-					uint target;
-
-					GLuint[] tex_ids = init_input_texture(input, ref width, ref height, ref depth, out target);
-					TextureBufferUnit tex_unit = TextureBufferUnit()
-					{
-						width = width,
-						height = height,
-						depth = depth,
-						target = target,
-						input_id = input.id,
-						tex_ids = tex_ids,
-						type = input.type,
-						v_flip = input.sampler.v_flip,
-						index = i,
-						window_id = window
-					};
-
-					_buffer_buffer += tex_unit;
-					return tex_ids;
-				}
+				_buffer_buffer += tex_unit;
+				return tex_ids;
 			}
 			else //image buffer
 			{
@@ -170,12 +178,11 @@ namespace Shady.Core
 				int depth = 0;
 				uint target;
 
-				return init_input_texture(input, ref width, ref height, ref depth, out target);
+				return init_input_texture(input, window, ref width, ref height, ref depth, out target);
 			}
-			return {};
 		}
 
-		private static GLuint[] init_input_texture(Shader.Input input, ref int width, ref int height, ref int depth, out uint target)
+		private static GLuint[] init_input_texture(Shader.Input input, uint64 window, ref int width, ref int height, ref int depth, out uint target)
 		{
 			target = -1;
 
@@ -406,6 +413,25 @@ namespace Shady.Core
 				//glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 				//glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 			}
+			else if(input.type == Shader.InputType.KEYBOARD)
+			{
+				target = GL_TEXTURE_2D;
+				tex_ids = {0};
+				glGenTextures(1,tex_ids);
+
+				width = 256;
+				height = 3;
+
+				char[] empty_buffer = new char[width * height];
+
+				init_aux_buffer(input, window, empty_buffer);
+
+				glBindTexture(target, tex_ids[0]);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, (GLvoid[])empty_buffer);
+
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+			}
 			else{
 				print(@"Unexpected input type: $(input.type)\n");
 				//just return some texture so things don't break
@@ -416,6 +442,34 @@ namespace Shady.Core
 			}
 
 			return tex_ids;
+		}
+
+		public static AuxBuffer? query_aux_buffer(Shader.Input input, uint64 window)
+		{
+			for(int i=0;i<_texture_aux_buffers.length;i++)
+			{
+				if(input.type == _texture_aux_buffers[i].type &&
+				   _texture_aux_buffers[i].index == input.resource_index &&
+				   _texture_aux_buffers[i].window_id == window)
+				{
+					return _texture_aux_buffers[i].buffer;
+				}
+			}
+			return null;
+		}
+
+		public static void init_aux_buffer(Shader.Input input, uint64 window, char[] buffer)
+		{
+			AuxBuffer abuffer = new AuxBuffer();
+			abuffer.data = buffer;
+			TextureAuxBuffer aux_buffer = TextureAuxBuffer()
+			{
+				type = input.type,
+				index = input.resource_index,
+				window_id = window,
+				buffer = abuffer
+			};
+			_texture_aux_buffers += aux_buffer;
 		}
 	}
 }

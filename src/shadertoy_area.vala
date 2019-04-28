@@ -59,6 +59,13 @@ namespace Shady
 			}
 		}
 
+		private enum KeyEvent
+		{
+			PRESSED,
+			RELEASED,
+			RENDERED;
+		}
+
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
 
 		/* Global Resources*/
@@ -84,6 +91,8 @@ namespace Shady
 		private int64 _time_delta_accum = 0;
 
 		private uint _render_timeout;
+		private uchar[] _updated_keys = {};
+		private bool[] _keys_pressed = new bool[256];
 
 		double _fps_sum = 0.0;
 		int _num_fps_vals = 0;
@@ -93,6 +102,8 @@ namespace Shady
 
 		public ShadertoyArea(Shader default_shader)
 		{
+			can_focus = true;
+
 			_synchronized_rendering = _settings.get_boolean("synchronized-rendering");
 
 			realize.connect(() =>
@@ -111,8 +122,34 @@ namespace Shady
 				update_rendering();
 			});
 
+			key_press_event.connect((widget, event) =>
+			{
+				uchar keycode = compute_keycode(event);
+				//TODO: is there a better way to prevent repeating?
+				if(!_keys_pressed[keycode])
+				{
+					_keys_pressed[keycode] = true;
+					update_keyboard_texture({keycode}, KeyEvent.PRESSED);
+					_updated_keys += keycode;
+				}
+
+				return true;
+			});
+
+			key_release_event.connect((widget, event) =>
+			{
+				uchar keycode = compute_keycode(event);
+				_keys_pressed[keycode] = false;
+				update_keyboard_texture({keycode}, KeyEvent.RELEASED);
+
+				return true;
+			});
+
 			button_press_event.connect((widget, event) =>
 			{
+				//why is this needed? (focus_on_click is true by default)
+				grab_focus();
+
 				if (event.button == BUTTON_PRIMARY)
 				{
 					_button_pressed = true;
@@ -240,13 +277,14 @@ namespace Shady
 			init_time();
 			_fps_time = _start_time;
 
-			Gdk.GLContext.clear_current();
+			GLContext.clear_current();
 
 			_render_timeout = Timeout.add(_timeout_interval, render_image);
 
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |
-					   EventMask.POINTER_MOTION_MASK);
+					   EventMask.POINTER_MOTION_MASK |
+			           EventMask.KEY_PRESS_MASK);
 		}
 
 		private void update_rendering()
@@ -314,6 +352,57 @@ namespace Shady
 			_size_updated = false;
 		}
 
+		private void update_keyboard_texture(uchar[] keycodes, KeyEvent event)
+		{
+			Shader.Input keyboard_input = new Shader.Input();
+			keyboard_input.type = Shader.InputType.KEYBOARD;
+			keyboard_input.resource_index = 0;
+			GLuint target;
+
+			int width = 0;
+			int height = 0;
+			int depth = 0;
+
+			GLuint[] tex_ids = TextureManager.query_input_texture(keyboard_input, (uint64) get_window(), ref width, ref height, ref depth, out target);
+
+			TextureManager.AuxBuffer buffer = TextureManager.query_aux_buffer(keyboard_input, (uint64) get_window());
+
+			if(event == KeyEvent.RENDERED)
+			{
+				foreach(uchar keycode in keycodes)
+				{
+					buffer.data[keycode+width] = (char)0;
+				}
+			}
+			else if(event == KeyEvent.PRESSED)
+			{
+				buffer.data[keycodes[0]+2*width] = (char)255 - buffer.data[keycodes[0]+2*width];
+				buffer.data[keycodes[0]+width] = (char)255;
+				buffer.data[keycodes[0]] = (char)255;
+			}
+			else if(event == KeyEvent.RELEASED)
+			{
+				buffer.data[keycodes[0]] = 0;
+			}
+
+			glBindTexture(target, tex_ids[0]);
+			glTexImage2D(target, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, (GLvoid[])buffer.data);
+		}
+
+		private uchar compute_keycode(EventKey event)
+		{
+			//javascript always gets the unmodified key of the current keyboard layout, so we do the same
+			KeymapKey key = KeymapKey();
+			key.group = 0;
+			key.level = 0;
+			key.keycode = event.hardware_keycode;
+
+			uint val = Keymap.get_for_display(get_display()).lookup_key(key);
+			uchar js_keycode = Keycodes.keyval_to_js_keycode(val);
+
+			return js_keycode;
+		}
+
 		private void reset_buffer_textures(RenderResources.BufferProperties[] buf_props)
 		{
 			make_current();
@@ -323,7 +412,7 @@ namespace Shady
 				buf_props[i].cur_x_img_part = 0;
 				buf_props[i].cur_y_img_part = 0;
 
-				float[] empty_buffer = new float[_width * _height *4];
+				float[] empty_buffer = new float[_width * _height * 4];
 
 				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_front);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid[])empty_buffer);
@@ -480,6 +569,12 @@ namespace Shady
 
 				swap_buffer_textures(buf_props, img_prop);
 
+				if(_updated_keys.length > 0)
+				{
+					update_keyboard_texture(_updated_keys, KeyEvent.RENDERED);
+					_updated_keys = {};
+				}
+
 				update_fps();
 
 				_size_mutex.unlock();
@@ -548,13 +643,13 @@ namespace Shady
 
 			glBindVertexArray(buf_prop.vao);
 
-			glFinish();
+			//glFinish();
 
 			time_before = get_monotonic_time();
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 
-			glFinish();
+			//glFinish();
 
 			time_after = get_monotonic_time();
 
@@ -564,7 +659,7 @@ namespace Shady
 				glCopyImageSubData(buf_prop.tile_render_buf,GL_RENDERBUFFER,0,0,0,0,buf_prop.tex_id_out_back,GL_TEXTURE_2D,0,(int)x_offset,(int)y_offset,0,(int)cur_width,(int)cur_height,1);
 			}
 
-			glFinish();
+			//glFinish();
 
 			return time_after - time_before;
 		}
