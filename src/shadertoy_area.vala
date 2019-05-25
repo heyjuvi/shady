@@ -78,8 +78,8 @@ namespace Shady
 		const uint _timeout_interval=16;
 
 		const double _target_time=10000.0;
-		const double _upper_time_threshold=20000;
-		const double _lower_time_threshold=5000;
+		const double _upper_time_threshold=15000;
+		const double _lower_time_threshold=4000;
 
 		const double _fps_interval = 0.1;
 
@@ -332,13 +332,19 @@ namespace Shady
 		{
 			make_current();
 
+			double ratio=((double)_width*_height)/((double)_compile_resources.width*_compile_resources.height);
+
 			_compile_resources.width = _width;
 			_compile_resources.height = _height;
 
 			for(int i=0; i<buf_props.length; i++)
 			{
-				buf_props[i].cur_x_img_part = 0;
-				buf_props[i].cur_y_img_part = 0;
+				if(Math.isinf(ratio) == 0)
+				{
+					buf_props[i].time_delta = (int64)(buf_props[i].time_delta*ratio);
+				}
+
+				detect_tile_size(buf_props[i]);
 
 				glBindRenderbuffer(GL_RENDERBUFFER, buf_props[i].tile_render_buf);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA32F, (int)_width, (int)_height);
@@ -422,29 +428,42 @@ namespace Shady
 			}
 		}
 
-		private void detect_tile_size(RenderResources.BufferProperties buf_prop, double time_delta)
+		private void detect_tile_size(RenderResources.BufferProperties buf_prop)
 		{
-			double target_tile_size = Math.sqrt((_target_time*(double)_width*(double)_height)/((double)time_delta*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts));
-			buf_prop.x_img_parts = (uint)(_width/target_tile_size + 0.5);
-			buf_prop.y_img_parts = (uint)(_height/target_tile_size + 0.5);
+			//TODO: is there a better way to do this? maybe another heuristic that is better than the old one?
+			//      should more "quadratic" tilings be preferred? why is this so sensitive to random fluctuations?
+			double target_pixels = (_target_time*(double)_width*(double)_height)/((double)buf_prop.time_delta*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts);
 
-			if(buf_prop.x_img_parts < 1)
+			double err = double.INFINITY;
+			int best_xp = 0;
+			int best_yp = 0;
+			for(int yp=1; yp<=8; yp++)
 			{
-				buf_prop.x_img_parts = 1;
-			}
-			else if(buf_prop.x_img_parts > _width)
-			{
-				buf_prop.x_img_parts = _width;
+				int cur_height = _height / yp;
+				int xp = (int)Math.round(_width / (target_pixels/cur_height));
+
+				if(xp < 1)
+				{
+					xp = 1;
+				}
+				else if(xp > _width)
+				{
+					xp = _width;
+				}
+
+				int cur_width = _width / xp;
+				double cur_err = Math.fabs(cur_width * cur_height - target_pixels);
+
+				if(cur_err < err)
+				{
+					err = cur_err;
+					best_xp = xp;
+					best_yp = yp;
+				}
 			}
 
-			if(buf_prop.y_img_parts < 1)
-			{
-				buf_prop.y_img_parts = 1;
-			}
-			else if(buf_prop.y_img_parts > _height)
-			{
-				buf_prop.y_img_parts = _height;
-			}
+			buf_prop.x_img_parts = best_xp;
+			buf_prop.y_img_parts = best_yp;
 
 			buf_prop.cur_x_img_part = 0;
 			buf_prop.cur_y_img_part = 0;
@@ -556,14 +575,15 @@ namespace Shady
 				{
 					if(!buf_props[i].parts_rendered)
 					{
-						int64 time_delta = render_gl(buf_props[i]);
+						render_gl(buf_props[i]);
 
-						if(time_delta > _upper_time_threshold || time_delta < _lower_time_threshold)
+						if(buf_props[i].time_delta > _upper_time_threshold ||
+						   (buf_props[i].time_delta < _lower_time_threshold && (buf_props[i].x_img_parts!=1 || buf_props[i].y_img_parts!=1)))
 						{
-							detect_tile_size(buf_props[i], time_delta);
+							detect_tile_size(buf_props[i]);
 						}
 
-						_time_delta_accum += time_delta * buf_props[i].x_img_parts * buf_props[i].y_img_parts;
+						_time_delta_accum += buf_props[i].time_delta * buf_props[i].x_img_parts * buf_props[i].y_img_parts;
 					}
 				}
 
@@ -584,7 +604,7 @@ namespace Shady
 			return true;
 		}
 
-		private int64 render_gl(RenderResources.BufferProperties buf_prop)
+		private void render_gl(RenderResources.BufferProperties buf_prop)
 		{
 			buf_prop.context.make_current();
 
@@ -643,13 +663,13 @@ namespace Shady
 
 			glBindVertexArray(buf_prop.vao);
 
-			//glFinish();
+			glFinish();
 
 			time_before = get_monotonic_time();
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 
-			//glFinish();
+			glFinish();
 
 			time_after = get_monotonic_time();
 
@@ -659,9 +679,9 @@ namespace Shady
 				glCopyImageSubData(buf_prop.tile_render_buf,GL_RENDERBUFFER,0,0,0,0,buf_prop.tex_id_out_back,GL_TEXTURE_2D,0,(int)x_offset,(int)y_offset,0,(int)cur_width,(int)cur_height,1);
 			}
 
-			//glFinish();
+			glFinish();
 
-			return time_after - time_before;
+			buf_prop.time_delta = time_after - time_before;
 		}
 	}
 }
