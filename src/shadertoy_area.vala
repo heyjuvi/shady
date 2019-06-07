@@ -34,7 +34,7 @@ namespace Shady
 					_start_time += get_monotonic_time() - _pause_time;
 					if(_paused)
 					{
-						_render_timeout = Timeout.add(_timeout_interval, render_image);
+						_render_timeout = Timeout.add(_timeout_interval, render_image_part);
 					}
 				}
 
@@ -53,7 +53,7 @@ namespace Shady
 				}
 				else if(_time_slider == 0.0)
 				{
-					_render_timeout = Timeout.add(_timeout_interval, render_image);
+					_render_timeout = Timeout.add(_timeout_interval, render_image_part);
 				}
 				_time_slider = value;
 			}
@@ -79,7 +79,7 @@ namespace Shady
 
 		const double _target_time=10000.0;
 		const double _upper_time_threshold=15000;
-		const double _lower_time_threshold=4000;
+		const double _lower_time_threshold=1000;
 
 		const double _fps_interval = 0.1;
 
@@ -97,6 +97,9 @@ namespace Shady
 		double _fps_sum = 0.0;
 		int _num_fps_vals = 0;
 		private int64 _fps_time;
+
+		private int _curr_renderpass = 0;
+		private bool _splitted_rendering = false;
 
 		private Mutex _size_mutex = Mutex();
 
@@ -158,7 +161,7 @@ namespace Shady
 
 					if(_paused)
 					{
-						_render_timeout = Timeout.add(_timeout_interval, render_image);
+						_render_timeout = Timeout.add(_timeout_interval, render_image_part);
 					}
 				}
 
@@ -279,7 +282,7 @@ namespace Shady
 
 			GLContext.clear_current();
 
-			_render_timeout = Timeout.add(_timeout_interval, render_image);
+			_render_timeout = Timeout.add(_timeout_interval, render_image_part);
 
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |
@@ -292,6 +295,8 @@ namespace Shady
 			//render twice to fill up front and back buffer
 			for(int i=0;i<2;i++)
 			{
+				_curr_renderpass = 0;
+
 				if(_initialized && _paused && _image_updated)
 				{
 					Timeout.add(_timeout_interval, () =>
@@ -305,7 +310,7 @@ namespace Shady
 							buf_props[j].updated = false;
 						}
 
-						render_image();
+						render_image_part();
 
 						bool all_updated = true;
 						for(int j=0;j<buf_props.length;j++)
@@ -555,8 +560,13 @@ namespace Shady
 			_time_delta_accum = 0;
 		}
 
-		private bool render_image()
+		private bool render_image_part()
 		{
+			if(get_monotonic_time() - _curr_time > 500000)
+			{
+				print("WARNING: gtk is not rendering!\n");
+			}
+
 			_render_resources.buffer_switch_mutex.lock();
 
 			RenderResources.BufferProperties img_prop = _render_resources.get_image_prop(RenderResources.Purpose.RENDER);
@@ -569,9 +579,27 @@ namespace Shady
 				if(_size_updated)
 				{
 					render_size_update(buf_props);
+					_curr_renderpass = 0;
 				}
 
-				for(int i=0; i<buf_props.length; i++)
+				int i, n;
+				if(_splitted_rendering)
+				{
+					i = _curr_renderpass;
+					n = _curr_renderpass + 1;
+
+					if(i >= buf_props.length)
+					{
+						i = 0;
+						n = 1;
+					}
+				}
+				else
+				{
+					i = 0;
+					n = buf_props.length;
+				}
+				for(;i<n;i++)
 				{
 					if(!buf_props[i].parts_rendered)
 					{
@@ -587,6 +615,28 @@ namespace Shady
 					}
 				}
 
+				if(_time_delta_accum > _upper_time_threshold)
+				{
+					if(!_splitted_rendering)
+					{
+						_curr_renderpass = 0;
+					}
+					_splitted_rendering = true;
+				}
+				else if(_time_delta_accum < _lower_time_threshold)
+				{
+					_splitted_rendering = false;
+				}
+
+				if(_splitted_rendering)
+				{
+					_curr_renderpass++;
+					if(_curr_renderpass >= buf_props.length)
+					{
+						_curr_renderpass = 0;
+					}
+				}
+
 				swap_buffer_textures(buf_props, img_prop);
 
 				if(_updated_keys.length > 0)
@@ -595,7 +645,10 @@ namespace Shady
 					_updated_keys = {};
 				}
 
-				update_fps();
+				if(!_splitted_rendering || _curr_renderpass == 0)
+				{
+					update_fps();
+				}
 
 				_size_mutex.unlock();
 			}
