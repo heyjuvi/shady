@@ -2,6 +2,27 @@ namespace Shady
 {
 	public class Shader
 	{
+	    public static HashTable<string, int> RENDERPASSES_ORDER;
+
+		static construct
+		{
+		    debug("(shader): initializing RENDERPASSES_ORDER hash table");
+
+		    RENDERPASSES_ORDER = new HashTable<string, int>(str_hash, str_equal);
+
+		    RENDERPASSES_ORDER.insert("Image", 0);
+		    RENDERPASSES_ORDER.insert("Common", 1);
+		    RENDERPASSES_ORDER.insert("Sound", 2);
+		    RENDERPASSES_ORDER.insert("Buf A", 3);
+		    RENDERPASSES_ORDER.insert("Buf B", 4);
+		    RENDERPASSES_ORDER.insert("Buf C", 5);
+		    RENDERPASSES_ORDER.insert("Buf D", 6);
+		    RENDERPASSES_ORDER.insert("Cubemap A", 7);
+
+		    bool sanity = RENDERPASSES_ORDER.get_keys().data.contains("Image");
+		    debug(@"(shader): sanity checking for Image: $sanity");
+		}
+
 		public enum InputType
 		{
 			NONE,
@@ -162,6 +183,19 @@ namespace Shady
 			    name = other.name;
 			    resource = other.resource;
 			    resource_index = other.resource_index;
+			}
+
+			public string to_string()
+			{
+			    return @"            id: $id\n" +
+			           @"       channel: $channel\n" +
+			           @"          type: $type\n" +
+			           @"       sampler: <sampler>\n" +
+			           @"          hash: $hash\n" +
+			           @"    n_channels: $n_channels\n" +
+			           @"          name: $name\n" +
+			           @"      resource: $resource\n" +
+			           @"resource_index: $resource_index";
 			}
 		}
 

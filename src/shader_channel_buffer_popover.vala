@@ -11,6 +11,8 @@ namespace Shady
 		    get { return _buffer_name; }
 		    set
 		    {
+				print(@"shader_channel_buffer_popover@buffer_name: setting property buffer_name to $value\n");
+
 		        if (value == "Buf A")
 		        {
 		            buf_a_radio_button.active = true;
@@ -80,7 +82,7 @@ namespace Shady
 		    Shader.Input input = new Shader.Input();
 
 		    input.type = Shader.InputType.BUFFER;
-		    input.id = ShaderEditor.SHADER_BUFFERS_ORDER[buffer];
+		    input.id = Shader.RENDERPASSES_ORDER[buffer];
 
 		    return input;
 		}

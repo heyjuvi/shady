@@ -74,24 +74,27 @@ namespace Shady
 
 			    if (value.type == Shader.InputType.TEXTURE)
 			    {
-			        _last_texture_inputs[_channel_buffer] = _channel_inputs[_channel_buffer];
+			        _last_texture_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
 			    }
 			    else if (value.type == Shader.InputType.TEXTURE)
 			    {
-			        _last_cubemap_inputs[_channel_buffer] = _channel_inputs[_channel_buffer];
+			        _last_cubemap_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
 			    }
 			    else if (value.type == Shader.InputType.3DTEXTURE)
 			    {
-			        _last_3dtexture_inputs[_channel_buffer] = _channel_inputs[_channel_buffer];
+			        _last_3dtexture_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
 			    }
 			    else if (value.type == Shader.InputType.BUFFER)
 			    {
-			        _last_buffer_inputs[_channel_buffer] = _channel_inputs[_channel_buffer];
+			        _last_buffer_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
 			    }
 
 			    _channel_type_popover.set_channel_type_inconsistently(_channel_inputs[_channel_buffer].type);
 			    update_for_input_type();
 			    select_current_inputs();
+
+			    debug(@"channel_input.set: channel input has been set to\n" +
+			          @"$channel_input");
 
 			    compile_input();
 			}
@@ -156,7 +159,7 @@ namespace Shady
             // note the difference between a buffer, which correpsonds to a
             // notebook page in the editor and a buffer, which is actually
             // a renderpass and can be used as an input
-			foreach (string buffer_name in ShaderEditor.SHADER_BUFFERS_ORDER.get_keys())
+			foreach (string buffer_name in Shader.RENDERPASSES_ORDER.get_keys())
             {
                 _last_texture_inputs.insert(buffer_name, new Shader.Input());
                 _last_texture_inputs[buffer_name].assign(TEXTURE_DEFAULT_INPUT);
@@ -173,7 +176,7 @@ namespace Shady
                 _channel_inputs.insert(buffer_name, new Shader.Input());
             }
 
-            foreach (string buffer_name in ShaderEditor.SHADER_BUFFERS_ORDER.get_keys())
+            foreach (string buffer_name in Shader.RENDERPASSES_ORDER.get_keys())
             {
                 _channel_inputs[buffer_name].channel = channel_id;
             }
@@ -227,6 +230,63 @@ namespace Shady
 			});
 
 			channel_area.show();
+		}
+
+		public void set_content_by_renderpass(Shader.Renderpass renderpass)
+		{
+			bool channel_in_use = false;
+
+		    for (int i = 0; i < renderpass.inputs.length; i++)
+		    {
+		        int channel_index = renderpass.inputs.index(i).channel;
+		        if (channel_index == channel_input.channel &&
+		            renderpass.name in Shader.RENDERPASSES_ORDER.get_keys().data)
+		        {
+ 		            debug(@"set_content_by_shader: setting assigning channel input for channel $(channel_input.channel)\n" +
+	                      @"$(renderpass.inputs.index(i))");
+
+		            _channel_inputs[renderpass.name].assign_content(renderpass.inputs.index(i));
+
+				    if (_channel_inputs[renderpass.name].type == Shader.InputType.TEXTURE)
+				    {
+				        _last_texture_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
+				    }
+				    else if (_channel_inputs[renderpass.name].type == Shader.InputType.TEXTURE)
+				    {
+				        _last_cubemap_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
+				    }
+				    else if (_channel_inputs[renderpass.name].type == Shader.InputType.3DTEXTURE)
+				    {
+				        _last_3dtexture_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
+				    }
+				    else if (_channel_inputs[renderpass.name].type == Shader.InputType.BUFFER)
+				    {
+				        _last_buffer_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
+				    }
+
+		            channel_in_use = true;
+		        }
+		    }
+
+    		/*if (!channel_in_use)
+    		{
+    			channel_input = Shader.Input.NO_INPUT;
+    		}*/
+
+    		if (renderpass.name == _channel_buffer)
+    		{
+    		    _channel_type_popover.set_channel_type_inconsistently(_channel_inputs[_channel_buffer].type);
+			    update_for_input_type();
+			    select_current_inputs();
+    		}
+		}
+
+		public void set_content_by_shader(Shader shader)
+		{
+			for (int i = 0; i < shader.renderpasses.length; i++)
+			{
+			    set_content_by_renderpass(shader.renderpasses.index(i));
+		    }
 		}
 
 		private void read_sampler_to_input()
@@ -308,9 +368,9 @@ namespace Shady
 				else if (_channel_inputs[_channel_buffer].type == Shader.InputType.BUFFER)
 				{
 					string buffer = null;
-					foreach (string buffer_name in ShaderEditor.SHADER_BUFFERS_ORDER.get_keys())
+					foreach (string buffer_name in Shader.RENDERPASSES_ORDER.get_keys())
 					{
-						if (ShaderEditor.SHADER_BUFFERS_ORDER[buffer_name] == _channel_inputs[_channel_buffer].id)
+						if (Shader.RENDERPASSES_ORDER[buffer_name] == _channel_inputs[_channel_buffer].id)
 						{
 							buffer = buffer_name;
 							break;
@@ -319,7 +379,9 @@ namespace Shady
 
 					if (buffer != null)
 					{
-						_buffer_popover.buffer_name = buffer;
+						print(@"shader_channel@select_current_inputs: setting buffer_name to $buffer\n");
+						//_buffer_popover.buffer_name = buffer;
+						_buffer_popover.set_buffer_name_inconsistently(buffer);
 					}
 				}
 			}

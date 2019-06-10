@@ -44,8 +44,6 @@ namespace Shady
 				shader.views = (int) info_node.get_int_member("viewed");
 
 				var renderpasses_node = shader_root.get_array_member("renderpass");
-
-				int buffer_counter = 0;
 				foreach (var renderpass in renderpasses_node.get_elements())
 				{
 					var renderpass_object = renderpass.get_object();
@@ -55,7 +53,6 @@ namespace Shady
 
 					Shader.Renderpass new_renderpass = new Shader.Renderpass();
 					new_renderpass.type = Shader.RenderpassType.from_string(renderpass_type);
-					new_renderpass.name = renderpass_name;
 
 					if (new_renderpass.type == Shader.RenderpassType.SOUND)
 					{
@@ -71,13 +68,14 @@ namespace Shady
 					}
 					else if (new_renderpass.type == Shader.RenderpassType.BUFFER)
 					{
-						renderpass_name = @"Buf $((char) (0x41 + buffer_counter))'";
-						buffer_counter++;
+						// Normalize the buffer name to our scheme
+						renderpass_name = renderpass_name.replace("Buffer", "Buf");
 					}
 
+					new_renderpass.name = renderpass_name;
 					new_renderpass.code = renderpass_object.get_string_member("code");
-					//new_renderpass.code = new_renderpass.code.replace("\\n", "\n");
-					//new_renderpass.code = new_renderpass.code.replace("\\t", "\t");
+
+					print(@"--- $renderpass_name, $renderpass_type ---\n");
 
 					var inputs_node = renderpass_object.get_array_member("inputs");
 					foreach (var input in inputs_node.get_elements())
@@ -109,13 +107,41 @@ namespace Shady
 						var output_object = output.get_object();
 
 						Shader.Output shader_output = new Shader.Output();
+
+						// We normalize the id's to our own scheme, so there is ambiguity
 						shader_output.id = (int) output_object.get_int_member("id");
+
 						shader_output.channel = (int) output_object.get_int_member("channel");
 
 						new_renderpass.outputs.append_val(shader_output);
 					}
 
 					shader.renderpasses.append_val(new_renderpass);
+				}
+
+				// Walk through all renderpasses and normalize input/output id relations to our
+				// scheme, so there will not be any ambiguity
+				for (int i = 0; i < shader.renderpasses.length; i++)
+				{
+					var renderpass = shader.renderpasses.index(i);
+					for (int j = 0; j < renderpass.outputs.length; j++)
+					{
+						int output_id = renderpass.outputs.index(j).id;
+						for (int k = 0; k < shader.renderpasses.length; k++)
+						{
+							var match_renderpass = shader.renderpasses.index(k);
+							for (int l = 0; l < match_renderpass.inputs.length; l++)
+							{
+								int input_id = match_renderpass.inputs.index(l).id;
+								if (input_id == output_id)
+								{
+									int normalized_id = Shader.RENDERPASSES_ORDER[renderpass.name];
+									renderpass.outputs.index(j).id = normalized_id;
+									match_renderpass.inputs.index(l).id = normalized_id;
+								}
+							}
+						}
+					}
 				}
 			}
 			catch (Error e)

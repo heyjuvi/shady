@@ -89,10 +89,6 @@ namespace Shady
 					ShadertoyShaderItem element = new ShadertoyShaderItem();
 					shader_box.add(element);
 
-                    print(
-                    @"B: $loc_index, $(_found_shaders[loc_index] == null)\n"
-                    );
-
 			        element.sh_it_name = _found_shaders[loc_index].name;
 			        element.author = _found_shaders[loc_index].author;
 			        element.likes = (int) _found_shaders[loc_index].likes;
@@ -142,21 +138,14 @@ namespace Shady
 
 				/*Gtk.Allocation allocation;
 				shader_box.get_allocation(out allocation);
-				print(@"$(allocation.y)\n");
-				print("Geht das noch?\n");
 				while (allocation.y < 100 && _last_index < _found_shaders.length);
 				{
-					print("Ja!\n");
-					print(@"$(allocation.y)\n");
-
 					show_n_more_shaders(4);
 
 					Thread.usleep(500000);
 
 					shader_box.get_allocation(out allocation);
-				}
-
-				print("??????????????????\n");*/
+				}*/
 			}
 
 			// for some reason the corresponding signal is emitted twice, so

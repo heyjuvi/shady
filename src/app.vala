@@ -188,6 +188,7 @@ namespace Shady
 			new ShadertoyResourceManager();
 			new ShaderSourceBufferAddPopover();
 			new NotebookActionWidget();
+			new Shader();
 			//new ShaderEditor();
 			//new ShaderChannel();
 
