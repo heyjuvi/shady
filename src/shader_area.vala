@@ -166,6 +166,7 @@ namespace Shady
 			buf_prop1.month = buf_prop2.month;
 			buf_prop1.day = buf_prop2.day;
 			buf_prop1.seconds = buf_prop2.seconds;
+			buf_prop1.frame_counter = buf_prop2.frame_counter;
 		}
 
 		protected void set_uniform_values(RenderResources.BufferProperties buf_prop)

@@ -50,6 +50,7 @@ namespace Shady.Core
 			public float seconds;
 
 			public int64 curr_time;
+			public int64 time_delta;
 
 			//public double[] tex_times;
 

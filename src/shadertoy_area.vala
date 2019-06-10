@@ -34,7 +34,7 @@ namespace Shady
 					_start_time += get_monotonic_time() - _pause_time;
 					if(_paused)
 					{
-						_render_timeout = Timeout.add(_timeout_interval, render_image);
+						_render_timeout = Timeout.add(_timeout_interval, render_image_part);
 					}
 				}
 
@@ -53,10 +53,17 @@ namespace Shady
 				}
 				else if(_time_slider == 0.0)
 				{
-					_render_timeout = Timeout.add(_timeout_interval, render_image);
+					_render_timeout = Timeout.add(_timeout_interval, render_image_part);
 				}
 				_time_slider = value;
 			}
+		}
+
+		private enum KeyEvent
+		{
+			PRESSED,
+			RELEASED,
+			RENDERED;
 		}
 
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
@@ -71,8 +78,8 @@ namespace Shady
 		const uint _timeout_interval=16;
 
 		const double _target_time=10000.0;
-		const double _upper_time_threshold=20000;
-		const double _lower_time_threshold=5000;
+		const double _upper_time_threshold=15000;
+		const double _lower_time_threshold=1000;
 
 		const double _fps_interval = 0.1;
 
@@ -84,15 +91,22 @@ namespace Shady
 		private int64 _time_delta_accum = 0;
 
 		private uint _render_timeout;
+		private uchar[] _updated_keys = {};
+		private bool[] _keys_pressed = new bool[256];
 
 		double _fps_sum = 0.0;
 		int _num_fps_vals = 0;
 		private int64 _fps_time;
 
+		private int _curr_renderpass = 0;
+		private bool _splitted_rendering = false;
+
 		private Mutex _size_mutex = Mutex();
 
 		public ShadertoyArea(Shader default_shader)
 		{
+			can_focus = true;
+
 			_synchronized_rendering = _settings.get_boolean("synchronized-rendering");
 
 			realize.connect(() =>
@@ -111,8 +125,34 @@ namespace Shady
 				update_rendering();
 			});
 
+			key_press_event.connect((widget, event) =>
+			{
+				uchar keycode = compute_keycode(event);
+				//TODO: is there a better way to prevent repeating?
+				if(!_keys_pressed[keycode])
+				{
+					_keys_pressed[keycode] = true;
+					update_keyboard_texture({keycode}, KeyEvent.PRESSED);
+					_updated_keys += keycode;
+				}
+
+				return true;
+			});
+
+			key_release_event.connect((widget, event) =>
+			{
+				uchar keycode = compute_keycode(event);
+				_keys_pressed[keycode] = false;
+				update_keyboard_texture({keycode}, KeyEvent.RELEASED);
+
+				return true;
+			});
+
 			button_press_event.connect((widget, event) =>
 			{
+				//why is this needed? (focus_on_click is true by default)
+				grab_focus();
+
 				if (event.button == BUTTON_PRIMARY)
 				{
 					_button_pressed = true;
@@ -121,7 +161,7 @@ namespace Shady
 
 					if(_paused)
 					{
-						_render_timeout = Timeout.add(_timeout_interval, render_image);
+						_render_timeout = Timeout.add(_timeout_interval, render_image_part);
 					}
 				}
 
@@ -240,13 +280,14 @@ namespace Shady
 			init_time();
 			_fps_time = _start_time;
 
-			Gdk.GLContext.clear_current();
+			GLContext.clear_current();
 
-			_render_timeout = Timeout.add(_timeout_interval, render_image);
+			_render_timeout = Timeout.add(_timeout_interval, render_image_part);
 
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |
-					   EventMask.POINTER_MOTION_MASK);
+					   EventMask.POINTER_MOTION_MASK |
+			           EventMask.KEY_PRESS_MASK);
 		}
 
 		private void update_rendering()
@@ -254,6 +295,8 @@ namespace Shady
 			//render twice to fill up front and back buffer
 			for(int i=0;i<2;i++)
 			{
+				_curr_renderpass = 0;
+
 				if(_initialized && _paused && _image_updated)
 				{
 					Timeout.add(_timeout_interval, () =>
@@ -267,7 +310,7 @@ namespace Shady
 							buf_props[j].updated = false;
 						}
 
-						render_image();
+						render_image_part();
 
 						bool all_updated = true;
 						for(int j=0;j<buf_props.length;j++)
@@ -294,13 +337,19 @@ namespace Shady
 		{
 			make_current();
 
+			double ratio=((double)_width*_height)/((double)_compile_resources.width*_compile_resources.height);
+
 			_compile_resources.width = _width;
 			_compile_resources.height = _height;
 
 			for(int i=0; i<buf_props.length; i++)
 			{
-				buf_props[i].cur_x_img_part = 0;
-				buf_props[i].cur_y_img_part = 0;
+				if(Math.isinf(ratio) == 0)
+				{
+					buf_props[i].time_delta = (int64)(buf_props[i].time_delta*ratio);
+				}
+
+				detect_tile_size(buf_props[i]);
 
 				glBindRenderbuffer(GL_RENDERBUFFER, buf_props[i].tile_render_buf);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA32F, (int)_width, (int)_height);
@@ -314,6 +363,57 @@ namespace Shady
 			_size_updated = false;
 		}
 
+		private void update_keyboard_texture(uchar[] keycodes, KeyEvent event)
+		{
+			Shader.Input keyboard_input = new Shader.Input();
+			keyboard_input.type = Shader.InputType.KEYBOARD;
+			keyboard_input.resource_index = 0;
+			GLuint target;
+
+			int width = 0;
+			int height = 0;
+			int depth = 0;
+
+			GLuint[] tex_ids = TextureManager.query_input_texture(keyboard_input, (uint64) get_window(), ref width, ref height, ref depth, out target);
+
+			TextureManager.AuxBuffer buffer = TextureManager.query_aux_buffer(keyboard_input, (uint64) get_window());
+
+			if(event == KeyEvent.RENDERED)
+			{
+				foreach(uchar keycode in keycodes)
+				{
+					buffer.data[keycode+width] = (char)0;
+				}
+			}
+			else if(event == KeyEvent.PRESSED)
+			{
+				buffer.data[keycodes[0]+2*width] = (char)255 - buffer.data[keycodes[0]+2*width];
+				buffer.data[keycodes[0]+width] = (char)255;
+				buffer.data[keycodes[0]] = (char)255;
+			}
+			else if(event == KeyEvent.RELEASED)
+			{
+				buffer.data[keycodes[0]] = 0;
+			}
+
+			glBindTexture(target, tex_ids[0]);
+			glTexImage2D(target, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, (GLvoid[])buffer.data);
+		}
+
+		private uchar compute_keycode(EventKey event)
+		{
+			//javascript always gets the unmodified key of the current keyboard layout, so we do the same
+			KeymapKey key = KeymapKey();
+			key.group = 0;
+			key.level = 0;
+			key.keycode = event.hardware_keycode;
+
+			uint val = Keymap.get_for_display(get_display()).lookup_key(key);
+			uchar js_keycode = Keycodes.keyval_to_js_keycode(val);
+
+			return js_keycode;
+		}
+
 		private void reset_buffer_textures(RenderResources.BufferProperties[] buf_props)
 		{
 			make_current();
@@ -323,7 +423,7 @@ namespace Shady
 				buf_props[i].cur_x_img_part = 0;
 				buf_props[i].cur_y_img_part = 0;
 
-				float[] empty_buffer = new float[_width * _height *4];
+				float[] empty_buffer = new float[_width * _height * 4];
 
 				glBindTexture(GL_TEXTURE_2D, buf_props[i].tex_id_out_front);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid[])empty_buffer);
@@ -333,29 +433,42 @@ namespace Shady
 			}
 		}
 
-		private void detect_tile_size(RenderResources.BufferProperties buf_prop, double time_delta)
+		private void detect_tile_size(RenderResources.BufferProperties buf_prop)
 		{
-			double target_tile_size = Math.sqrt((_target_time*(double)_width*(double)_height)/((double)time_delta*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts));
-			buf_prop.x_img_parts = (uint)(_width/target_tile_size + 0.5);
-			buf_prop.y_img_parts = (uint)(_height/target_tile_size + 0.5);
+			//TODO: is there a better way to do this? maybe another heuristic that is better than the old one?
+			//      should more "quadratic" tilings be preferred? why is this so sensitive to random fluctuations?
+			double target_pixels = (_target_time*(double)_width*(double)_height)/((double)buf_prop.time_delta*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts);
 
-			if(buf_prop.x_img_parts < 1)
+			double err = double.INFINITY;
+			int best_xp = 0;
+			int best_yp = 0;
+			for(int yp=1; yp<=8; yp++)
 			{
-				buf_prop.x_img_parts = 1;
-			}
-			else if(buf_prop.x_img_parts > _width)
-			{
-				buf_prop.x_img_parts = _width;
+				int cur_height = _height / yp;
+				int xp = (int)Math.round(_width / (target_pixels/cur_height));
+
+				if(xp < 1)
+				{
+					xp = 1;
+				}
+				else if(xp > _width)
+				{
+					xp = _width;
+				}
+
+				int cur_width = _width / xp;
+				double cur_err = Math.fabs(cur_width * cur_height - target_pixels);
+
+				if(cur_err < err)
+				{
+					err = cur_err;
+					best_xp = xp;
+					best_yp = yp;
+				}
 			}
 
-			if(buf_prop.y_img_parts < 1)
-			{
-				buf_prop.y_img_parts = 1;
-			}
-			else if(buf_prop.y_img_parts > _height)
-			{
-				buf_prop.y_img_parts = _height;
-			}
+			buf_prop.x_img_parts = best_xp;
+			buf_prop.y_img_parts = best_yp;
 
 			buf_prop.cur_x_img_part = 0;
 			buf_prop.cur_y_img_part = 0;
@@ -447,8 +560,13 @@ namespace Shady
 			_time_delta_accum = 0;
 		}
 
-		private bool render_image()
+		private bool render_image_part()
 		{
+			if(get_monotonic_time() - _curr_time > 500000)
+			{
+				print("WARNING: gtk is not rendering!\n");
+			}
+
 			_render_resources.buffer_switch_mutex.lock();
 
 			RenderResources.BufferProperties img_prop = _render_resources.get_image_prop(RenderResources.Purpose.RENDER);
@@ -461,26 +579,76 @@ namespace Shady
 				if(_size_updated)
 				{
 					render_size_update(buf_props);
+					_curr_renderpass = 0;
 				}
 
-				for(int i=0; i<buf_props.length; i++)
+				int i, n;
+				if(_splitted_rendering)
+				{
+					i = _curr_renderpass;
+					n = _curr_renderpass + 1;
+
+					if(i >= buf_props.length)
+					{
+						i = 0;
+						n = 1;
+					}
+				}
+				else
+				{
+					i = 0;
+					n = buf_props.length;
+				}
+				for(;i<n;i++)
 				{
 					if(!buf_props[i].parts_rendered)
 					{
-						int64 time_delta = render_gl(buf_props[i]);
+						render_gl(buf_props[i]);
 
-						if(time_delta > _upper_time_threshold || time_delta < _lower_time_threshold)
+						if(buf_props[i].time_delta > _upper_time_threshold ||
+						   (buf_props[i].time_delta < _lower_time_threshold && (buf_props[i].x_img_parts!=1 || buf_props[i].y_img_parts!=1)))
 						{
-							detect_tile_size(buf_props[i], time_delta);
+							detect_tile_size(buf_props[i]);
 						}
 
-						_time_delta_accum += time_delta * buf_props[i].x_img_parts * buf_props[i].y_img_parts;
+						_time_delta_accum += buf_props[i].time_delta * buf_props[i].x_img_parts * buf_props[i].y_img_parts;
+					}
+				}
+
+				if(_time_delta_accum > _upper_time_threshold)
+				{
+					if(!_splitted_rendering)
+					{
+						_curr_renderpass = 0;
+					}
+					_splitted_rendering = true;
+				}
+				else if(_time_delta_accum < _lower_time_threshold)
+				{
+					_splitted_rendering = false;
+				}
+
+				if(_splitted_rendering)
+				{
+					_curr_renderpass++;
+					if(_curr_renderpass >= buf_props.length)
+					{
+						_curr_renderpass = 0;
 					}
 				}
 
 				swap_buffer_textures(buf_props, img_prop);
 
-				update_fps();
+				if(_updated_keys.length > 0)
+				{
+					update_keyboard_texture(_updated_keys, KeyEvent.RENDERED);
+					_updated_keys = {};
+				}
+
+				if(!_splitted_rendering || _curr_renderpass == 0)
+				{
+					update_fps();
+				}
 
 				_size_mutex.unlock();
 			}
@@ -489,7 +657,7 @@ namespace Shady
 			return true;
 		}
 
-		private int64 render_gl(RenderResources.BufferProperties buf_prop)
+		private void render_gl(RenderResources.BufferProperties buf_prop)
 		{
 			buf_prop.context.make_current();
 
@@ -566,7 +734,7 @@ namespace Shady
 
 			glFinish();
 
-			return time_after - time_before;
+			buf_prop.time_delta = time_after - time_before;
 		}
 	}
 }
