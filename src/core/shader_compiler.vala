@@ -356,7 +356,7 @@ namespace Shady.Core
 
 			for(int i=0;i<buf_prop.tex_ids.length;i++)
 			{
-				buf_prop.channel_locs[i] = glGetUniformLocation(buf_prop.program, _channel_string+@"$i");
+				buf_prop.channel_locs[i] = glGetUniformLocation(buf_prop.program, _channel_string+@"$(buf_prop.tex_channels[i])");
 			}
 
 			buf_prop.date_loc = glGetUniformLocation(buf_prop.program, "iDate");
