@@ -89,7 +89,7 @@ namespace Shady
 					ShadertoyShaderItem element = new ShadertoyShaderItem();
 					shader_box.add(element);
 
-			        element.sh_it_name = _found_shaders[loc_index].name;
+			        element.sh_it_name = _found_shaders[loc_index].shader_name;
 			        element.author = _found_shaders[loc_index].author;
 			        element.likes = (int) _found_shaders[loc_index].likes;
 			        element.views = (int) _found_shaders[loc_index].views;

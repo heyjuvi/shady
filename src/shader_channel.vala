@@ -234,34 +234,38 @@ namespace Shady
 
 		public void set_content_by_renderpass(Shader.Renderpass renderpass)
 		{
+		    debug(@"set_content_by_renderpass: setting content of buffer $(renderpass.renderpass_name)");
+
 			bool channel_in_use = false;
 
 		    for (int i = 0; i < renderpass.inputs.length; i++)
 		    {
 		        int channel_index = renderpass.inputs.index(i).channel;
-		        if (channel_index == channel_input.channel &&
-		            renderpass.name in Shader.RENDERPASSES_ORDER.get_keys().data)
+		        print(@"channel_index: $channel_index\n" +
+		              @"channel_input.channel: $(channel_input.channel)\n" +
+		              @"renderpass.renderpass_name: $(renderpass.renderpass_name)\n");
+		        if (channel_index == channel_input.channel)
 		        {
- 		            debug(@"set_content_by_shader: setting assigning channel input for channel $(channel_input.channel)\n" +
+ 		            debug(@"set_content_by_renderpass: assigning channel input of channel $(channel_input.channel) for buffer $(renderpass.renderpass_name)\n" +
 	                      @"$(renderpass.inputs.index(i))");
 
-		            _channel_inputs[renderpass.name].assign_content(renderpass.inputs.index(i));
+		            _channel_inputs[renderpass.renderpass_name].assign_content(renderpass.inputs.index(i));
 
-				    if (_channel_inputs[renderpass.name].type == Shader.InputType.TEXTURE)
+				    if (_channel_inputs[renderpass.renderpass_name].type == Shader.InputType.TEXTURE)
 				    {
-				        _last_texture_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
+				        _last_texture_inputs[renderpass.renderpass_name].assign_content(_channel_inputs[renderpass.renderpass_name]);
 				    }
-				    else if (_channel_inputs[renderpass.name].type == Shader.InputType.TEXTURE)
+				    else if (_channel_inputs[renderpass.renderpass_name].type == Shader.InputType.TEXTURE)
 				    {
-				        _last_cubemap_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
+				        _last_cubemap_inputs[renderpass.renderpass_name].assign_content(_channel_inputs[renderpass.renderpass_name]);
 				    }
-				    else if (_channel_inputs[renderpass.name].type == Shader.InputType.3DTEXTURE)
+				    else if (_channel_inputs[renderpass.renderpass_name].type == Shader.InputType.3DTEXTURE)
 				    {
-				        _last_3dtexture_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
+				        _last_3dtexture_inputs[renderpass.renderpass_name].assign_content(_channel_inputs[renderpass.renderpass_name]);
 				    }
-				    else if (_channel_inputs[renderpass.name].type == Shader.InputType.BUFFER)
+				    else if (_channel_inputs[renderpass.renderpass_name].type == Shader.InputType.BUFFER)
 				    {
-				        _last_buffer_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
+				        _last_buffer_inputs[renderpass.renderpass_name].assign_content(_channel_inputs[renderpass.renderpass_name]);
 				    }
 
 		            channel_in_use = true;
@@ -273,7 +277,7 @@ namespace Shady
     			channel_input = Shader.Input.NO_INPUT;
     		}*/
 
-    		if (renderpass.name == _channel_buffer)
+    		if (renderpass.renderpass_name == _channel_buffer)
     		{
     		    _channel_type_popover.set_channel_type_inconsistently(_channel_inputs[_channel_buffer].type);
 			    update_for_input_type();
@@ -291,6 +295,8 @@ namespace Shady
 
 		private void read_sampler_to_input()
 		{
+		    debug(@"read_sampler_to_input: reading the sampler settings from the ui into the input of the current buffer $_channel_buffer");
+
 			_channel_inputs[_channel_buffer].sampler.filter = Shader.FilterMode.from_string(filter_mode_combo_box.get_active_text());
 			_channel_inputs[_channel_buffer].sampler.wrap = Shader.WrapMode.from_string(wrap_mode_combo_box.get_active_text());
 			_channel_inputs[_channel_buffer].sampler.v_flip = v_flip_switch.active;
@@ -298,6 +304,8 @@ namespace Shady
 
 		private void update_for_input_type()
 		{
+		    debug(@"update_for_input_type: updating popover and input of current buffer $_channel_buffer");
+
 			if (_channel_inputs[_channel_buffer].type == Shader.InputType.SOUNDCLOUD ||
 			    _channel_inputs[_channel_buffer].type == Shader.InputType.BUFFER ||
 			    _channel_inputs[_channel_buffer].type == Shader.InputType.TEXTURE ||
@@ -346,6 +354,8 @@ namespace Shady
 
 		private void select_current_inputs()
 		{
+		    debug(@"select_current_inputs: selecting ui elements according to the current buffer type $(_channel_inputs[_channel_buffer].type)");
+
 			if (_channel_inputs[_channel_buffer].type == Shader.InputType.BUFFER ||
 			    _channel_inputs[_channel_buffer].type == Shader.InputType.TEXTURE ||
 			    _channel_inputs[_channel_buffer].type == Shader.InputType.3DTEXTURE ||
@@ -389,6 +399,8 @@ namespace Shady
 
 		private void compile_input()
 		{
+		    debug("compile_input: compiling input for this channel");
+
 			channel_area.compile_shader_input(_channel_inputs[_channel_buffer]);
 		}
 

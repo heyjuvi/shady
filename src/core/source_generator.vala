@@ -28,7 +28,7 @@ namespace Shady.Core
 				if(shader.renderpasses.index(i).type != Shader.RenderpassType.COMMON)
 				{
 					Shader.Renderpass renderpass = shader.renderpasses.index(i);
-					string_table.insert(renderpass.name, generate_renderpass_source(renderpass, set_version, common_code));
+					string_table.insert(renderpass.renderpass_name, generate_renderpass_source(renderpass, set_version, common_code));
 				}
 			}
 

@@ -245,7 +245,7 @@ namespace Shady
 				texture.hash = texture_root.get_string_member("hash");
 				texture.resource = texture_root.get_string_member("resource");
 				texture.n_channels = (int) texture_root.get_int_member("channels");
-				texture.name = texture_root.get_string_member("name");
+				texture.input_name = texture_root.get_string_member("name");
 
 				return texture;
 			}
@@ -261,7 +261,7 @@ namespace Shady
 		{
 		    foreach (var texture in TEXTURES)
 		    {
-		        if (texture.name == name)
+		        if (texture.input_name == name)
 		        {
 		            return texture;
 		        }
@@ -286,7 +286,7 @@ namespace Shady
 				3dtexture.hash = 3dtexture_root.get_string_member("hash");
 				3dtexture.resource = 3dtexture_root.get_string_member("resource");
 				3dtexture.n_channels = (int) 3dtexture_root.get_int_member("channels");
-				3dtexture.name = 3dtexture_root.get_string_member("name");
+				3dtexture.input_name = 3dtexture_root.get_string_member("name");
 
 				return 3dtexture;
 			}
@@ -302,7 +302,7 @@ namespace Shady
 		{
 		    foreach (var 3dtexture in 3DTEXTURES)
 		    {
-		        if (3dtexture.name == name)
+		        if (3dtexture.input_name == name)
 		        {
 		            return 3dtexture;
 		        }
@@ -327,7 +327,7 @@ namespace Shady
 				cubemap.hash = cubemap_root.get_string_member("hash");
 				cubemap.resource = cubemap_root.get_string_member("resource");
 				cubemap.n_channels = (int) cubemap_root.get_int_member("channels");
-				cubemap.name = cubemap_root.get_string_member("name");
+				cubemap.input_name = cubemap_root.get_string_member("name");
 
 				return cubemap;
 			}
@@ -343,7 +343,7 @@ namespace Shady
 		{
 		    foreach (var cubemap in CUBEMAPS)
 		    {
-		        if (cubemap.name == name)
+		        if (cubemap.input_name == name)
 		        {
 		            return cubemap;
 		        }

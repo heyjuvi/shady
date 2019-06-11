@@ -38,7 +38,7 @@ namespace Shady
 				var shader_root = shader_parser.get_root().get_object().get_object_member("Shader");
 				var info_node = shader_root.get_object_member("info");
 
-				shader.name = info_node.get_string_member("name");
+				shader.shader_name = info_node.get_string_member("name");
 				shader.author = info_node.get_string_member("username");
 				shader.likes = (int) info_node.get_int_member("likes");
 				shader.views = (int) info_node.get_int_member("viewed");
@@ -72,10 +72,8 @@ namespace Shady
 						renderpass_name = renderpass_name.replace("Buffer", "Buf");
 					}
 
-					new_renderpass.name = renderpass_name;
+					new_renderpass.renderpass_name = renderpass_name;
 					new_renderpass.code = renderpass_object.get_string_member("code");
-
-					print(@"--- $renderpass_name, $renderpass_type ---\n");
 
 					var inputs_node = renderpass_object.get_array_member("inputs");
 					foreach (var input in inputs_node.get_elements())
@@ -135,7 +133,7 @@ namespace Shady
 								int input_id = match_renderpass.inputs.index(l).id;
 								if (input_id == output_id)
 								{
-									int normalized_id = Shader.RENDERPASSES_ORDER[renderpass.name];
+									int normalized_id = Shader.RENDERPASSES_ORDER[renderpass.renderpass_name];
 									renderpass.outputs.index(j).id = normalized_id;
 									match_renderpass.inputs.index(l).id = normalized_id;
 								}

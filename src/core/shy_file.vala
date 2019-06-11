@@ -41,7 +41,7 @@ namespace Shady.Core
 
                 var root = parser.get_root().get_object();
 
-                shader.name = root.get_string_member("name");
+                shader.shader_name = root.get_string_member("name");
                 shader.description = root.get_string_member("description");
 
                 var renderpasses = root.get_array_member("renderpasses");
@@ -50,7 +50,7 @@ namespace Shady.Core
                     Shader.Renderpass renderpass = new Shader.Renderpass();
 
                     renderpass.type = Shader.RenderpassType.from_string(renderpass_node.get_object().get_string_member("type"));
-                    renderpass.name = renderpass_node.get_object().get_string_member("name");
+                    renderpass.renderpass_name = renderpass_node.get_object().get_string_member("name");
                     renderpass.code = renderpass_node.get_object().get_string_member("code");
 
                     var inputs = renderpass_node.get_object().get_array_member("inputs");
@@ -144,7 +144,7 @@ namespace Shady.Core
             builder.begin_object();
 
             builder.set_member_name("name");
-            builder.add_string_value(shader.name);
+            builder.add_string_value(shader.shader_name);
 
             builder.set_member_name("description");
             builder.add_string_value(shader.description);
@@ -162,7 +162,7 @@ namespace Shady.Core
                 builder.add_string_value(renderpass.type.to_string());
 
                 builder.set_member_name("name");
-                builder.add_string_value(renderpass.name);
+                builder.add_string_value(renderpass.renderpass_name);
 
                 builder.set_member_name("code");
                 builder.add_string_value(renderpass.code);
@@ -190,7 +190,7 @@ namespace Shady.Core
                     else
                     {
                         builder.set_member_name("resource");
-                        builder.add_string_value(input.name);
+                        builder.add_string_value(input.input_name);
                     }
 
                     builder.set_member_name("sampler");

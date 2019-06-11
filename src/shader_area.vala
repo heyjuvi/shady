@@ -66,7 +66,7 @@ namespace Shady
 			}
 
 			renderpass.type = Shader.RenderpassType.IMAGE;
-			renderpass.name = "Image";
+			renderpass.renderpass_name = "Image";
 
 			default_shader.renderpasses.append_val(renderpass);
 
@@ -90,7 +90,7 @@ namespace Shady
 			}
 
 			renderpass.type = Shader.RenderpassType.IMAGE;
-			renderpass.name = "Image";
+			renderpass.renderpass_name = "Image";
 
 			loading_shader.renderpasses.append_val(renderpass);
 

@@ -18,9 +18,6 @@ namespace Shady
 		    RENDERPASSES_ORDER.insert("Buf C", 5);
 		    RENDERPASSES_ORDER.insert("Buf D", 6);
 		    RENDERPASSES_ORDER.insert("Cubemap A", 7);
-
-		    bool sanity = RENDERPASSES_ORDER.get_keys().data.contains("Image");
-		    debug(@"(shader): sanity checking for Image: $sanity");
 		}
 
 		public enum InputType
@@ -158,7 +155,7 @@ namespace Shady
 			public Sampler sampler = new Sampler();
 			public string hash = "";
 			public int n_channels = 0;
-			public string name = "";
+			public string input_name = "";
 			public string resource = "";
 			public int resource_index = 0;
 
@@ -170,7 +167,7 @@ namespace Shady
 			    sampler = other.sampler;
 			    hash = other.hash;
 				n_channels = other.n_channels;
-			    name = other.name;
+			    input_name = other.input_name;
 			    resource = other.resource;
 			    resource_index = other.resource_index;
 			}
@@ -180,7 +177,7 @@ namespace Shady
 			    id = other.id;
 			    type = other.type;
 			    hash = other.hash;
-			    name = other.name;
+			    input_name = other.input_name;
 			    resource = other.resource;
 			    resource_index = other.resource_index;
 			}
@@ -193,7 +190,7 @@ namespace Shady
 			           @"       sampler: <sampler>\n" +
 			           @"          hash: $hash\n" +
 			           @"    n_channels: $n_channels\n" +
-			           @"          name: $name\n" +
+			           @"          name: $input_name\n" +
 			           @"      resource: $resource\n" +
 			           @"resource_index: $resource_index";
 			}
@@ -201,8 +198,14 @@ namespace Shady
 
 		public class Output
 		{
-			public int id;
-			public int channel;
+			public int id = -1;
+			public int channel = -1;
+
+			public string to_string()
+			{
+			    return @"     id: $id\n" +
+			           @"channel: $channel";
+			}
 		}
 
 		public enum FilterMode
@@ -346,19 +349,40 @@ namespace Shady
 
 		public class Renderpass
 		{
-			public string code;
-			public RenderpassType type;
-			public string name;
+			public string code = "";
+			public RenderpassType type = RenderpassType.INVALID;
+			public string renderpass_name = "";
 
 			public Array<Input> inputs = new Array<Input>();
 			public Array<Output> outputs = new Array<Output>();
+
+			public string to_string()
+			{
+			    string str =  @"   name: $renderpass_name\n" +
+			                  @"   type: $type\n" +
+			                  @"   code: <code>\n";
+
+			    str += " inputs:\n";
+			    for (int i = 0; i < inputs.length; i++)
+			    {
+			        str += @"$(inputs.index(i))\n";
+			    }
+
+			    str += "outputs:\n";
+			    for (int i = 0; i < outputs.length; i++)
+			    {
+			        str += @"$(outputs.index(i))\n";
+			    }
+
+			    return str;
+			}
 		}
 
-		public string name;
-		public string description;
-		public string author;
-		public int likes;
-		public int views;
+		public string shader_name = "";
+		public string description = "";
+		public string author = "";
+		public int likes = 0;
+		public int views = 0;
 
 		public Array<Renderpass> renderpasses = new Array<Renderpass>();
 
@@ -366,13 +390,28 @@ namespace Shady
 		{
 		    for (int i = 0; i < renderpasses.length; i++)
 		    {
-		        if (renderpasses.index(i).name == name)
+		        if (renderpasses.index(i).renderpass_name == name)
 		        {
 		            return renderpasses.index(i);
 		        }
 		    }
 
 		    return null;
+		}
+
+		public string to_string()
+		{
+		    string str = @"        name: $shader_name\n" +
+		                 @"       likes: $likes\n" +
+		                 @"       views: $views\n";
+
+		    str += "renderpasses:\n";
+		    for (int i = 0; i < renderpasses.length; i++)
+		    {
+		        str += @"$(renderpasses.index(i))\n";
+		    }
+
+		    return str;
 		}
 	}
 }

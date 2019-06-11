@@ -84,7 +84,7 @@ namespace Shady
 
 				int texture_channels = input.n_channels;
 
-				chn_name = input.name;
+				chn_name = input.input_name;
 				author = "shadertoy";
 				resolution = @"$(texture_width)x$(texture_height)";
 				channels = texture_channels;
@@ -96,7 +96,7 @@ namespace Shady
 
 				int cubemap_channels = input.n_channels;
 
-				chn_name = input.name;
+				chn_name = input.input_name;
 				author = "shadertoy";
 				resolution = @"$(cubemap_width)x$(cubemap_height)";
 				channels = cubemap_channels;
@@ -109,7 +109,7 @@ namespace Shady
 
 				int 3dtexture_channels = input.n_channels;
 
-				chn_name = input.name;
+				chn_name = input.input_name;
 				author = "shadertoy";
 				resolution = @"$(3dtexture_width)x$(3dtexture_height)x$(3dtexture_depth)";
 				channels = 3dtexture_channels;

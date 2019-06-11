@@ -145,6 +145,11 @@ namespace Shady
 		        _channels_initialized = true;
 
 		        update_channels_for_current_shader();
+
+		        for (int i = 0; i < _channels.length; i++)
+			    {
+			        _channels[i].channel_buffer = _curr_buffer.buffer_name;
+			    }
 		    });
 
 			buffer_switched.connect((from, to) =>
@@ -334,7 +339,7 @@ namespace Shady
 
 				if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
 				{
-					string renderpass_name = _curr_shader.renderpasses.index(i).name;
+					string renderpass_name = _curr_shader.renderpasses.index(i).renderpass_name;
 					_curr_shader.renderpasses.index(i).code = get_buffer(renderpass_name);
 					//_shader_buffers[renderpass_name].clear_error_messages();
 				}
@@ -399,7 +404,7 @@ namespace Shady
 
 			for (int i = 0; i < _curr_shader.renderpasses.length; i++)
 			{
-				if (_curr_shader.renderpasses.index(i).name == _curr_buffer.buffer_name)
+				if (_curr_shader.renderpasses.index(i).renderpass_name == _curr_buffer.buffer_name)
 				{
 					curr_renderpass = _curr_shader.renderpasses.index(i);
 				}
@@ -532,7 +537,7 @@ namespace Shady
 
 			for (int i = 0; i < shader.renderpasses.length; i++)
 			{
-			    if (shader.renderpasses.index(i).name == buffer_name)
+			    if (shader.renderpasses.index(i).renderpass_name == buffer_name)
 			    {
 			        debug("remove_buffer: removing $buffer_name, which has index $i, from current shaders renderpasses");
 			        _curr_shader.renderpasses.remove_index(i);
@@ -583,28 +588,31 @@ namespace Shady
             debug("set_shader: setting current shader to new one");
 		    _curr_shader = shader;
 
+		    debug(@"set_shader: the new shader is given by\n" +
+		          @"$shader");
+
 			for (int i = 0; i < shader.renderpasses.length; i++)
 			{
 				if (shader.renderpasses.index(i) is Shader.Renderpass)
 				{
 					Shader.Renderpass renderpass = shader.renderpasses.index(i) as Shader.Renderpass;
 
-					debug(@"set_shader: adding renderpass $(renderpass.name)");
+					debug(@"set_shader: adding renderpass $(renderpass.renderpass_name)");
 
-                    if (renderpass.name == "Image")
+                    if (renderpass.renderpass_name == "Image")
                     {
-					    add_buffer(renderpass.name, get_insert_index_for_buffer(renderpass.name), false);
+					    add_buffer(renderpass.renderpass_name, get_insert_index_for_buffer(renderpass.renderpass_name), false);
 					}
 					else
 					{
 					    SignalHandler.block(action_widget, change_renderpass_handler_id);
-					    action_widget.set_buffer_active(renderpass.name, true);
+					    action_widget.set_buffer_active(renderpass.renderpass_name, true);
 					    SignalHandler.unblock(action_widget, change_renderpass_handler_id);
 
-					    add_buffer(renderpass.name, get_insert_index_for_buffer(renderpass.name), true);
+					    add_buffer(renderpass.renderpass_name, get_insert_index_for_buffer(renderpass.renderpass_name), true);
 					}
 
-					set_buffer(renderpass.name, renderpass.code);
+					set_buffer(renderpass.renderpass_name, renderpass.code);
 				}
 			}
 
@@ -632,7 +640,7 @@ namespace Shady
                 // TODO: the construction of these defaults should be moved elsewhere
 			    Shader.Renderpass renderpass = new Shader.Renderpass();
 
-			    renderpass.name = buffer_name;
+			    renderpass.renderpass_name = buffer_name;
 			    renderpass.code = _buffer_default_code;
 			    renderpass.type = Shader.RenderpassType.BUFFER;
 
