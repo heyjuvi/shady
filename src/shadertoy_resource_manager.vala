@@ -172,6 +172,16 @@ namespace Shady
 			return bytes[3] << 24 | bytes[2] << 16 | bytes[1] << 8 | bytes[0];
 		}
 
+		public static string src_to_hash(string src)
+		{
+			int last_slash_index = src.last_index_of("/");
+			int last_dot_index = src.last_index_of(".");
+
+			string hash = src[last_slash_index + 1:last_dot_index];
+
+			return hash;
+		}
+
 		public int texture_index_from_string(string index)
 		{
 			int i;
@@ -270,6 +280,19 @@ namespace Shady
 		    return null;
 		}
 
+		public static Shader.Input? get_texture_by_hash(string hash)
+		{
+		    foreach (var texture in TEXTURES)
+		    {
+		        if (texture.hash == hash)
+		        {
+		            return texture;
+		        }
+		    }
+
+		    return null;
+		}
+
 		public static Shader.Input? load_3dtexture(string _3dtexture_id)
 		{
 			File 3dtexture_json_file = File.new_for_uri(@"resource://$(3DTEXTURE_PREFIX)/$(_3dtexture_id).json");
@@ -311,6 +334,19 @@ namespace Shady
 		    return null;
 		}
 
+		public static Shader.Input? get_3dtexture_by_hash(string hash)
+		{
+		    foreach (var 3dtexture in 3DTEXTURES)
+		    {
+		        if (3dtexture.hash == hash)
+		        {
+		            return 3dtexture;
+		        }
+		    }
+
+		    return null;
+		}
+
 		public static Shader.Input? load_cubemap(string cubemap_id)
 		{
 			File cubemap_json_file = File.new_for_uri(@"resource://$(CUBEMAP_PREFIX)/$(cubemap_id).json");
@@ -344,6 +380,19 @@ namespace Shady
 		    foreach (var cubemap in CUBEMAPS)
 		    {
 		        if (cubemap.input_name == name)
+		        {
+		            return cubemap;
+		        }
+		    }
+
+		    return null;
+		}
+
+		public static Shader.Input? get_cubemap_by_hash(string hash)
+		{
+		    foreach (var cubemap in CUBEMAPS)
+		    {
+		        if (cubemap.hash == hash)
 		        {
 		            return cubemap;
 		        }

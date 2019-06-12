@@ -97,6 +97,36 @@ namespace Shady
 						new_renderpass.inputs.append_val(shader_input);
 
 						// if this is a known resource, add info to it from the resources
+						if (shader_input.type == Shader.InputType.TEXTURE)
+						{
+						    string hash = ShadertoyResourceManager.src_to_hash(input_object.get_string_member("src"));
+						    var texture_input = ShadertoyResourceManager.get_texture_by_hash(hash);
+
+						    if (texture_input != null)
+						    {
+						        shader_input.assign_content(texture_input);
+						    }
+						}
+						else if (shader_input.type == Shader.InputType.3DTEXTURE)
+						{
+						    string hash = ShadertoyResourceManager.src_to_hash(input_object.get_string_member("src"));
+						    var 3dtexture_input = ShadertoyResourceManager.get_3dtexture_by_hash(hash);
+
+						    if (3dtexture_input != null)
+						    {
+						        shader_input.assign_content(3dtexture_input);
+						    }
+						}
+						else if (shader_input.type == Shader.InputType.CUBEMAP)
+						{
+						    string hash = ShadertoyResourceManager.src_to_hash(input_object.get_string_member("src"));
+						    var cubemap_input = ShadertoyResourceManager.get_cubemap_by_hash(hash);
+
+						    if (cubemap_input != null)
+						    {
+						        shader_input.assign_content(cubemap_input);
+						    }
+						}
 					}
 
 					var outputs_node = renderpass_object.get_array_member("outputs");

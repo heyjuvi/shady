@@ -241,9 +241,6 @@ namespace Shady
 		    for (int i = 0; i < renderpass.inputs.length; i++)
 		    {
 		        int channel_index = renderpass.inputs.index(i).channel;
-		        print(@"channel_index: $channel_index\n" +
-		              @"channel_input.channel: $(channel_input.channel)\n" +
-		              @"renderpass.renderpass_name: $(renderpass.renderpass_name)\n");
 		        if (channel_index == channel_input.channel)
 		        {
  		            debug(@"set_content_by_renderpass: assigning channel input of channel $(channel_input.channel) for buffer $(renderpass.renderpass_name)\n" +

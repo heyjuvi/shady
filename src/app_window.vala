@@ -192,6 +192,10 @@ namespace Shady
 			    compile_button_stack.visible_child_name = "compile_spinner";
 
                 editor.gather_shader();
+
+                debug(@"compile: compiling shader, which is given by\n" +
+                      @"$(_editor.shader)");
+
 			    scene.compile(_editor.shader);
 			    scene._fullscreen_shadertoy_area.compile(_editor.shader);
 			}

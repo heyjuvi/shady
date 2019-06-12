@@ -174,6 +174,11 @@ namespace Shady.Core
                 {
                     var input = renderpass.inputs.index(j);
 
+                    if (input.type == Shader.InputType.NONE)
+                    {
+                        continue;
+                    }
+
                     builder.begin_object();
 
                     builder.set_member_name("type");
