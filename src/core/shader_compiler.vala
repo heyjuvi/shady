@@ -511,10 +511,11 @@ namespace Shady.Core
 
 		public static List<AppPreferences.GLSLVersion> get_glsl_version_list(Gdk.Window window)
 		{
+			Gdk.GLContext gl_context;
 
 			try
 			{
-				Gdk.GLContext gl_context = window.create_gl_context();
+				gl_context = window.create_gl_context();
 				gl_context.make_current();
 			}
 			catch(Error e)
