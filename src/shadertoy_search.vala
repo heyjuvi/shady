@@ -33,15 +33,29 @@ namespace Shady
 				shader_data = shader_data.replace("\\t", "\t");
 				shader_data = shader_data.replace("\\/", "/");
 
+				print(shader_data + "\n\n");
+
 				shader_parser.load_from_data(shader_data, -1);
 
 				var shader_root = shader_parser.get_root().get_object().get_object_member("Shader");
 				var info_node = shader_root.get_object_member("info");
 
 				shader.shader_name = info_node.get_string_member("name");
+				shader.description = info_node.get_string_member("description");
 				shader.author = info_node.get_string_member("username");
 				shader.likes = (int) info_node.get_int_member("likes");
 				shader.views = (int) info_node.get_int_member("viewed");
+				shader.date = new DateTime.from_unix_utc(info_node.get_int_member("date"));
+				shader.version = info_node.get_string_member("ver");
+
+				var tags_node = info_node.get_array_member("tags");
+				int tag_counter = 0;
+				shader.tags = new string[tags_node.get_elements().length()];
+				foreach (var tag in tags_node.get_elements())
+				{
+				    shader.tags[tag_counter] = tag.get_string();
+				    tag_counter++;
+				}
 
 				var renderpasses_node = shader_root.get_array_member("renderpass");
 				foreach (var renderpass in renderpasses_node.get_elements())

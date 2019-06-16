@@ -20,11 +20,20 @@ namespace Shady
 	    [GtkChild]
 	    private Gtk.Label time_label;
 
-	    /*[GtkChild]
-	    private Gtk.Label shader_title;
+	    [GtkChild]
+	    private Gtk.Label title_label;
 
 	    [GtkChild]
-	    private Gtk.Label shader_description;*/
+	    private Gtk.Label description_label;
+
+	    [GtkChild]
+	    private Gtk.Label views_and_likes_label;
+
+	    [GtkChild]
+	    private Gtk.Label author_and_date_label;
+
+	    [GtkChild]
+	    private Gtk.FlowBox tags_box;
 
         public ShadertoyArea _fullscreen_shadertoy_area;
 	    private Gtk.Window _fullscreen_window;
@@ -93,6 +102,25 @@ namespace Shady
 
 		public void compile(Shader shader)
 		{
+		    tags_box.forall((widget) =>
+			{
+				tags_box.remove(widget);
+			});
+
+		    title_label.set_text(shader.shader_name);
+		    description_label.set_text(shader.description);
+
+		    views_and_likes_label.set_markup(@"Views: $(shader.views), Likes: $(shader.likes)");
+		    author_and_date_label.set_markup(@"Created by <b>$(shader.author)</b> in $(shader.date.format("%F"))");
+
+		    foreach (string tag in shader.tags)
+			{
+			    Gtk.Label tag_label = new Gtk.Label(tag);
+			    tag_label.show();
+
+			    tags_box.add(tag_label);
+			}
+
 		    _shadertoy_area.compile(shader);
 		    _fullscreen_shadertoy_area.compile(shader);
 		}

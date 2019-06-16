@@ -381,8 +381,11 @@ namespace Shady
 		public string shader_name = "";
 		public string description = "";
 		public string author = "";
+		public string version = "";
+		public DateTime date = new DateTime.now_local();
 		public int likes = 0;
 		public int views = 0;
+		public string[] tags = {};
 
 		public Array<Renderpass> renderpasses = new Array<Renderpass>();
 

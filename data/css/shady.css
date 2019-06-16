@@ -108,6 +108,33 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
   /*background-size: contain;*/
 }
 
+.info_box
+{
+  margin: 15pt;
+}
+
+.info_box .tags
+{
+  margin: 6pt;
+}
+
+.info_box .tags flowboxchild
+{
+  margin: 0;
+  padding: 0;
+}
+
+.info_box .tags label
+{
+  padding: 3pt;
+  background: #4060ff;
+  border: 0;
+  border-radius: 3pt;
+  color: #ffffff;
+  font-size: 9pt;
+  font-weight: bold;
+}
+
 .main_shader_box
 {
   margin: 15pt;
