@@ -154,7 +154,7 @@
             <property name="xalign">0</property>
 
             <attributes>
-              <attribute name="font-desc" value="14" />
+              <attribute name="font-desc" value="16" />
               <attribute name="weight" value="bold" />
             </attributes>
           </object>

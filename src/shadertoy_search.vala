@@ -33,8 +33,6 @@ namespace Shady
 				shader_data = shader_data.replace("\\t", "\t");
 				shader_data = shader_data.replace("\\/", "/");
 
-				print(shader_data + "\n\n");
-
 				shader_parser.load_from_data(shader_data, -1);
 
 				var shader_root = shader_parser.get_root().get_object().get_object_member("Shader");
@@ -45,8 +43,7 @@ namespace Shady
 				shader.author = info_node.get_string_member("username");
 				shader.likes = (int) info_node.get_int_member("likes");
 				shader.views = (int) info_node.get_int_member("viewed");
-				shader.date = new DateTime.from_unix_utc(info_node.get_int_member("date"));
-				shader.version = info_node.get_string_member("ver");
+				shader.date = new DateTime.from_unix_utc(int64.parse(info_node.get_string_member("date")));
 
 				var tags_node = info_node.get_array_member("tags");
 				int tag_counter = 0;
