@@ -8,6 +8,7 @@ namespace Shady
 		public int shader_index;
 
 		public Shader shader;
+		public bool invalid_result;
 
 		public LoadShaderThread(string uri, int index)
 		{
@@ -26,6 +27,8 @@ namespace Shady
 			{
 				shader = new Shader();
 
+				invalid_result = false;
+
 				var shader_parser = new Json.Parser();
 
 				string shader_data = (string) shader_message.response_body.flatten().data;
@@ -34,6 +37,15 @@ namespace Shady
 				shader_data = shader_data.replace("\\/", "/");
 
 				shader_parser.load_from_data(shader_data, -1);
+
+				if (shader_parser.get_root() == null)
+				{
+				    print(@"\n\n\n\n\n$shader_data\n\n\n\n\n");
+				    invalid_result = true;
+				    loading_finished();
+
+				    return -1;
+				}
 
 				var shader_root = shader_parser.get_root().get_object().get_object_member("Shader");
 				var info_node = shader_root.get_object_member("info");
@@ -281,6 +293,7 @@ namespace Shady
 			return _found_shaders;
 		}
 
+        // TODO: handle the invalid shaders
 		private uint64 search_shaders(string search_string)
 		{
 			var search_session = new Soup.Session();

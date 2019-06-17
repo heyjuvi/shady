@@ -229,20 +229,17 @@
         </child>
 
         <child>
-          <object class="GtkFlowBox" id="tags_box">
+          <object class="GtkTextView" id="tags_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="column_spacing">3</property>
-            <property name="row_spacing">3</property>
-            <property name="max_children_per_line">99</property>
-            <property name="selection_mode">none</property>
+            <property name="wrap_mode">char</property>
 
             <style>
               <class name="tags" />
             </style>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">3</property>
           </packing>

@@ -113,20 +113,21 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
   margin: 15pt;
 }
 
-.info_box .tags
+.info_box textview.view
 {
-  margin: 6pt;
+  padding-top: 12pt;
+  background: transparent;
 }
 
-.info_box .tags flowboxchild
+.info_box textview text
 {
-  margin: 0;
-  padding: 0;
+  background: transparent;
 }
 
 .info_box .tags label
 {
   padding: 3pt;
+  margin: 1.5pt;
   background: #4060ff;
   border: 0;
   border-radius: 3pt;

@@ -33,7 +33,7 @@ namespace Shady
 	    private Gtk.Label author_and_date_label;
 
 	    [GtkChild]
-	    private Gtk.FlowBox tags_box;
+	    private Gtk.TextView tags_box;
 
         public ShadertoyArea _fullscreen_shadertoy_area;
 	    private Gtk.Window _fullscreen_window;
@@ -102,10 +102,11 @@ namespace Shady
 
 		public void compile(Shader shader)
 		{
-		    tags_box.forall((widget) =>
-			{
-				tags_box.remove(widget);
-			});
+		    Gtk.TextIter start_iter, end_iter;
+		    tags_box.buffer.get_iter_at_offset(out start_iter, 0);
+			tags_box.buffer.get_iter_at_offset(out end_iter, -1);
+
+		    tags_box.buffer.delete(ref start_iter, ref end_iter);
 
 		    title_label.set_text(shader.shader_name);
 		    description_label.set_text(shader.description);
@@ -116,9 +117,13 @@ namespace Shady
 		    foreach (string tag in shader.tags)
 			{
 			    Gtk.Label tag_label = new Gtk.Label(tag);
-			    tag_label.show();
 
-			    tags_box.add(tag_label);
+			    Gtk.TextIter iter;
+			    tags_box.buffer.get_iter_at_offset(out iter, -1);
+
+                var anchor = tags_box.buffer.create_child_anchor(iter);
+                tags_box.add_child_at_anchor(tag_label, anchor);
+			    tag_label.show();
 			}
 
 		    _shadertoy_area.compile(shader);
