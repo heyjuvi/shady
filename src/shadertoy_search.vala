@@ -300,6 +300,13 @@ namespace Shady
 				var search_root = search_parser.get_root().get_object();
 
 				num_shaders = search_root.get_int_member("Shaders");
+				if (num_shaders == 0)
+				{
+                    return 0;
+				}
+
+				print(@"$((string) search_message.response_body.flatten().data)\n\n\n\n\n\n\n\n");
+
 				var results = search_root.get_array_member("Results");
 
 				_found_shaders = new Shader[num_shaders];

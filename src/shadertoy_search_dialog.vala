@@ -84,10 +84,12 @@ namespace Shady
 			    int loc_index = _last_index;
 				_last_index++;
 
-				if (_found_shaders[_last_index] != null)
+				if (_found_shaders[loc_index] != null)
 				{
 					ShadertoyShaderItem element = new ShadertoyShaderItem();
 					shader_box.add(element);
+
+					debug(@"show_n_more_shaders: adding shader $(_found_shaders[loc_index].shader_name) with index $(loc_index)");
 
 			        element.sh_it_name = _found_shaders[loc_index].shader_name;
 			        element.author = _found_shaders[loc_index].author;
@@ -102,12 +104,12 @@ namespace Shady
 
 			        try
 			        {
-			            print(@"Compiling $(element.sh_it_name)\n");
+			            debug(@@"show_n_more_shaders: Compiling $(element.sh_it_name)");
 				        element.compile();
 			        }
 			        catch (ShaderError e)
 			        {
-				        print(@"Compilation error: $(e.message)");
+				        warning(@"show_n_more_shaders: compilation error: $(e.message)");
 			        }
 				}
 			}
