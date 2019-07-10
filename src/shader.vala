@@ -304,19 +304,19 @@ namespace Shady
 
 			public static RenderpassType from_string(string type)
 			{
-				if (type == "sound")
+				if (type.down() == "sound")
 				{
 					return SOUND;
 				}
-				else if (type == "image")
+				else if (type.down() == "image")
 				{
 					return IMAGE;
 				}
-				else if (type == "buffer")
+				else if (type.down() == "buffer")
 				{
 					return BUFFER;
 				}
-				else if (type == "common")
+				else if (type.down() == "common")
 				{
 					return COMMON;
 				}

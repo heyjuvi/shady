@@ -334,14 +334,21 @@ namespace Shady
 				if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.IMAGE)
 				{
 					_curr_shader.renderpasses.index(i).code = get_buffer("Image");
-					//_shader_buffers["Image"].clear_error_messages();
 				}
+				else if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.COMMON)
+				{
+					_curr_shader.renderpasses.index(i).code = get_buffer("Common");
 
-				if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
+					print(@"$(_curr_shader.renderpasses.index(i))\n");
+				}
+				else if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.SOUND)
+				{
+					_curr_shader.renderpasses.index(i).code = get_buffer("Sound");
+				}
+				else if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.BUFFER)
 				{
 					string renderpass_name = _curr_shader.renderpasses.index(i).renderpass_name;
 					_curr_shader.renderpasses.index(i).code = get_buffer(renderpass_name);
-					//_shader_buffers[renderpass_name].clear_error_messages();
 				}
 			}
 		}
@@ -642,7 +649,8 @@ namespace Shady
 
 			    renderpass.renderpass_name = buffer_name;
 			    renderpass.code = _buffer_default_code;
-			    renderpass.type = Shader.RenderpassType.BUFFER;
+
+			    renderpass.type = Shader.RenderpassType.from_string(buffer_name);
 
 			    Shader.Output output = new Shader.Output();
 
