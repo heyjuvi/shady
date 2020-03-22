@@ -71,21 +71,20 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 	background: alpha(@theme_bg_color, 0.4);
 }
 
-.error_tooltip
-{
-  background: transparent;
-}
-
-.error_tooltip label
+.error
 {
   background: #FF0000;
   color: #FFFFFF;
-	/*border-radius: 3pt;*/
-	/*margin: 3pt;*/
-	padding: 3pt;
   font-family: Monospace;
   font-weight: bold;
-  /*box-shadow: 0 0 3px #000000;*/
+}
+
+.lang_doc
+{
+  background: #2A4E5E;
+  color: #FFFFFF;
+  font-family: Monospace;
+  font-weight: bold;
 }
 
 .search_slider
@@ -208,7 +207,7 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 	border-top-right-radius: 6pt;
 }
 
-.channel_header button,.channel_header button:hover
+.channel_header button, .channel_header button:hover
 {
 	background: @darker_than_bg;
 	color: #FFFFFF;

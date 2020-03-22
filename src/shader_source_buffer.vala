@@ -36,6 +36,7 @@ namespace Shady
 		private Gtk.Window _error_tooltip_window;
 		private Gtk.Label _error_tooltip_label;
 
+		private ErrorPopover _err_popover;
 		private LangDocPopover _doc_popover;
 
 		private int _error_x;
@@ -95,6 +96,7 @@ namespace Shady
 
 			buffer.tag_table.add(_error_tag);
 
+            _err_popover = new ErrorPopover(view);
             _doc_popover = new LangDocPopover(view);
 
 			key_press_event.connect((widget, event) =>
@@ -137,156 +139,51 @@ namespace Shady
 
 					_doc_popover.set_pointing_to(cursor_rect);
 
-					if (_error_tooltip_window.visible)
-					{
-					    hide_error();
-					}
-
+                    _err_popover.hide();
 					_doc_popover.popup();
 				}
 
 				return false;
 			});
 
-			_error_tooltip_window = new Gtk.Window(Gtk.WindowType.POPUP);
-			_error_tooltip_window.can_focus = false;
-            _error_tooltip_window.window_position = Gtk.WindowPosition.NONE;
-            _error_tooltip_window.get_style_context().add_class("error_tooltip");
-            _error_tooltip_window.height_request = 0;
-
-            view.set_tooltip_window(_error_tooltip_window);
-
-            _error_tooltip_label = new Gtk.Label("");
-            _error_tooltip_label.xalign = 0.0f;
-            //_error_tooltip_label.wrap = true;
-            //_error_tooltip_label.wrap_mode = Pango.WrapMode.WORD;
-            _error_tooltip_label.height_request = 0;
-            _error_tooltip_label.show();
-
-            _error_tooltip_window.add(_error_tooltip_label);
-
-            view.events |= POINTER_MOTION_MASK;
-            _error_tooltip_window.events |= ENTER_NOTIFY_MASK;
-
+            int last_line = -1;
             buffer.notify["cursor-position"].connect(() =>
             {
-                Gtk.TextIter iter;
+                Gtk.TextIter cursor_iter;
+                buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
 
-                buffer.get_iter_at_offset(out iter, buffer.cursor_position);
-
-                if (iter.has_tag(_error_tag) && !over_error(_mouse_x + _view_x, _mouse_y + _view_y))
+                if (cursor_iter.get_line() == last_line)
                 {
-                    show_error(iter.get_line());
+                    return;
                 }
+
+                last_line = cursor_iter.get_line();
+
+                if (cursor_iter.has_tag(_error_tag))
+                {
+                    _err_popover.message = _errors[cursor_iter.get_line() + 1];
+
+                    Gdk.Rectangle cursor_rect;
+                    view.get_iter_location(cursor_iter, out cursor_rect);
+
+                    int gutter_width = view.get_window(Gtk.TextWindowType.LEFT).get_width();
+                    cursor_rect.x += gutter_width;
+
+					_err_popover.set_pointing_to(cursor_rect);
+
+                    _doc_popover.hide();
+					_err_popover.popup();
+				}
                 else
                 {
-                    hide_error();
+                    _err_popover.hide();
                 }
-
-                _doc_popover.hide();
-            });
-
-            view.motion_notify_event.connect((event_motion) =>
-            {
-                view.window_to_buffer_coords(Gtk.TextWindowType.TEXT, (int) event_motion.x, (int) event_motion.y, out _mouse_x, out _mouse_y);
-
-                Gtk.Window toplevel = get_toplevel() as Gtk.Window;
-	            if (toplevel.is_toplevel())
-	            {
-	                Gtk.TextIter iter, cursor_iter;
-
-                    int trailing;
-
-                    view.translate_coordinates(toplevel, 0, 0, out _view_x, out _view_y);
-                    //print(@"$view_x, $view_y\n");
-
-	                view.get_iter_at_position(out iter, out trailing, _mouse_x, _mouse_y);
-
-	                buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
-
-                    if (!over_error(_mouse_x + _view_x, _mouse_y + _view_y) &&
-                        cursor_iter.has_tag(_error_tag) &&
-                        view.has_focus)
-	                {
-	                    if (!_error_tooltip_window.visible)
-	                    {
-	                        show_error(cursor_iter.get_line());
-	                    }
-	                }
-	            }
-
-                return false;
-            });
-
-            size_allocate.connect((allocation) =>
-            {
-                if (_error_tooltip_window.visible)
-                {
-                    Gtk.TextIter iter;
-
-                    buffer.get_iter_at_offset(out iter, buffer.cursor_position);
-
-                    show_error(iter.get_line());
-                }
-            });
-
-            _error_tooltip_window.enter_notify_event.connect((event_crossing) =>
-            {
-                _error_tooltip_window.hide();
-
-                return false;
-            });
-
-            realize.connect(() =>
-            {
-                Gtk.Window toplevel = get_toplevel() as Gtk.Window;
-
-                toplevel.configure_event.connect((event) =>
-                {
-	                if (toplevel.is_toplevel())
-	                {
-	                    Gtk.TextIter cursor_iter;
-	                    buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
-
-                        if (_error_tooltip_window.visible)
-                        {
-                            show_error(cursor_iter.get_line());
-                        }
-	                }
-
-					return false;
-                });
-
-				toplevel.focus_out_event.connect((event) =>
-				{
-					hide_error();
-
-					return false;
-				});
-
-				toplevel.focus_in_event.connect((event) =>
-				{
-				    if (toplevel.is_toplevel())
-	                {
-	                    Gtk.TextIter cursor_iter;
-	                    buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
-
-                        if (!over_error(_mouse_x + _view_x, _mouse_y + _view_y) &&
-                            cursor_iter.has_tag(_error_tag))
-                        {
-                            show_error(cursor_iter.get_line());
-                        }
-	                }
-
-					return false;
-				});
             });
 		}
 
 		public static void initialize_resources()
 		{
-
-			for(AppPreferences.GLSLVersion version=0;version<AppPreferences.GLSLVersion.INVALID;version+=1)
+			for (AppPreferences.GLSLVersion version = 0; version < AppPreferences.GLSLVersion.INVALID; version += 1)
 			{
 				string lang_suffix = "";
 
@@ -300,11 +197,11 @@ namespace Shady
 
 				AppPreferences.BackportingMode mode_array[3];
 
-				if(version == AppPreferences.GLSLVersion.GLSL_100_ES)
+				if (version == AppPreferences.GLSLVersion.GLSL_100_ES)
 				{
 					mode_array = mode_array_with_shadertoy;
 				}
-				else if(version >= AppPreferences.GLSLVersion.GLSL_150)
+				else if (version >= AppPreferences.GLSLVersion.GLSL_150)
 				{
 					mode_array = mode_array_none;
 				}
@@ -354,78 +251,6 @@ namespace Shady
 			}
 		}
 
-		private bool over_error(int x, int y)
-		{
-            if (x > _error_x &&
-                x < _error_x + _error_width &&
-                y > _error_y &&
-                y < _error_y + _error_height)
-            {
-                return true;
-            }
-
-		    return false;
-		}
-
-		private void show_error(int line)
-		{
-		    if (over_error(_mouse_x + _view_x, _mouse_y + _view_y))
-		    {
-		        return;
-		    }
-
-	        Gtk.Window toplevel = get_toplevel() as Gtk.Window;
-
-	        if (toplevel.is_toplevel())
-	        {
-	            _error_tooltip_window.set_transient_for(toplevel as Gtk.Window);
-
-                Gtk.TextIter start_iter;
-                int win_x, win_y;
-                int view_x, view_y;
-                int start_iter_x, start_iter_y;
-                Gdk.Rectangle start_iter_rectangle;
-
-                toplevel.get_position(out win_x, out win_y);
-
-                view.translate_coordinates(toplevel, 0, 0, out view_x, out view_y);
-
-                buffer.get_iter_at_line(out start_iter, line);
-
-	            view.get_iter_location(start_iter, out start_iter_rectangle);
-	            view.buffer_to_window_coords(Gtk.TextWindowType.TEXT,
-	                                         start_iter_rectangle.x,
-	                                         start_iter_rectangle.y,
-	                                         out start_iter_x,
-	                                         out start_iter_y);
-
-	            int gutter_width = view.get_window(Gtk.TextWindowType.LEFT).get_width();
-
-                // it is not entirely clear, why there has to be this additional offset in the
-                // x compenent
-                _error_tooltip_label.set_text(_errors[line + 1]);
-
-                //_error_tooltip_window.hide();
-                _error_tooltip_window.move(win_x + gutter_width,
-	                                       win_y + start_iter_y + 32 - _error_tooltip_window.get_allocated_height());
-                _error_tooltip_window.resize(view.get_allocated_width() - gutter_width, 1);
-
-                _doc_popover.popdown();
-                _error_tooltip_window.show();
-
-                _error_tooltip_window.move(win_x + gutter_width,
-	                                       win_y + start_iter_y + 32 - _error_tooltip_window.get_allocated_height());
-
-	            _error_tooltip_window.get_position(out _error_x, out _error_y);
-                _error_tooltip_window.get_size(out _error_width, out _error_height);
-		    }
-		}
-
-		private void hide_error()
-		{
-		    _error_tooltip_window.hide();
-		}
-
 		public void clear_error_messages()
 		{
 			Gtk.TextIter start_iter, end_iter;
@@ -437,7 +262,7 @@ namespace Shady
 
 		    _errors.remove_all();
 
-		    hide_error();
+		    _err_popover.hide();
 		}
 
 		public void add_error_message(int line, string name, string message)
@@ -459,12 +284,6 @@ namespace Shady
 
 			Gtk.TextIter cursor_iter;
             buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
-
-            if (!over_error(_mouse_x + _view_x, _mouse_y + _view_y) &&
-                cursor_iter.has_tag(_error_tag))
-            {
-                show_error(cursor_iter.get_line());
-            }
 
 			/*Gtk.Allocation allocation;
 			view.get_allocated_size(out allocation, null);

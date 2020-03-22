@@ -98,16 +98,6 @@ namespace Shady
 		{
 		    _shader_buffers = new HashTable<string, ShaderSourceBuffer>(str_hash, str_equal);
 
-			try
-			{
-				_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
-				_buffer_default_code = (string) (resources_lookup_data("/org/hasi/shady/data/shader/buffer_default.glsl", 0).get_data());
-			}
-			catch (Error e)
-			{
-			    warning("(shader_editor): default shader could not be loaded");
-			}
-
             _validator = new Core.GLSlangValidator();
 			_minifier = new Core.GLSLMinifier();
 
@@ -116,7 +106,7 @@ namespace Shady
 		    bool sanity = Shader.RENDERPASSES_ORDER.get_keys().data.contains("Image");
 		    debug(@"(shader-editor): sanity checking for Image: $sanity");
 			add_buffer("Image", get_insert_index_for_buffer("Image"), false);
-			set_buffer("Image", _default_code);
+			set_buffer("Image", ShadertoyResourceManager.get_default_shader_by_buffer_name("Image"));
 
 			_curr_buffer = _shader_buffers["Image"];
 
@@ -641,14 +631,16 @@ namespace Shady
 		    {
 		        debug("change_renderpass: adding $buffer_name and setting default values for it");
 
+		        string default_code = ShadertoyResourceManager.get_default_shader_by_buffer_name(buffer_name);
+
 			    add_buffer(buffer_name, get_insert_index_for_buffer(buffer_name));
-			    set_buffer(buffer_name, _buffer_default_code);
+			    set_buffer(buffer_name, default_code);
 
                 // TODO: the construction of these defaults should be moved elsewhere
 			    Shader.Renderpass renderpass = new Shader.Renderpass();
 
 			    renderpass.renderpass_name = buffer_name;
-			    renderpass.code = _buffer_default_code;
+			    renderpass.code = default_code;
 
 			    renderpass.type = Shader.RenderpassType.from_string(buffer_name);
 

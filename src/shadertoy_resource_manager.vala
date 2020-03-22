@@ -77,6 +77,8 @@ namespace Shady
 		public static Gdk.Pixbuf[,] CUBEMAP_PIXBUFS_ARRAY;
 		public static Shader.Input[] CUBEMAPS;
 
+		public static string[] DEFAULT_SHADERS;
+
 		construct
 		{
 			TEXTURE_PIXBUFS = new Gdk.Pixbuf[TEXTURE_IDS.length];
@@ -165,6 +167,12 @@ namespace Shady
 					print(@"Couldn't load cubemap: $(e.message)\n");
 				}
 			}
+
+            DEFAULT_SHADERS = new string[4];
+			DEFAULT_SHADERS[Shader.RenderpassType.IMAGE] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
+			DEFAULT_SHADERS[Shader.RenderpassType.SOUND] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/sound_default.glsl", 0).get_data());
+			DEFAULT_SHADERS[Shader.RenderpassType.BUFFER] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/buffer_default.glsl", 0).get_data());
+			DEFAULT_SHADERS[Shader.RenderpassType.COMMON] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/common_default.glsl", 0).get_data());
 		}
 
 		private static int bytes_to_int(uint8[] bytes)
@@ -396,6 +404,31 @@ namespace Shady
 		        {
 		            return cubemap;
 		        }
+		    }
+
+		    return null;
+		}
+
+		public static string? get_default_shader_by_buffer_name(string buffer_name)
+		{
+		    if (buffer_name == "Image")
+		    {
+		        return DEFAULT_SHADERS[Shader.RenderpassType.IMAGE];
+		    }
+		    else if (buffer_name == "Sound")
+		    {
+		        return DEFAULT_SHADERS[Shader.RenderpassType.SOUND];
+		    }
+		    else if (buffer_name == "Buf A" ||
+		             buffer_name == "Buf B" ||
+		             buffer_name == "Buf C" ||
+		             buffer_name == "Buf D")
+		    {
+		        return DEFAULT_SHADERS[Shader.RenderpassType.BUFFER];
+		    }
+		    else if (buffer_name == "Common")
+		    {
+		        return DEFAULT_SHADERS[Shader.RenderpassType.COMMON];
 		    }
 
 		    return null;

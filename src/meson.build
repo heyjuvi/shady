@@ -40,6 +40,7 @@ app_sources = files(
   'channel_area.vala',
   'shader_source_buffer.vala',
   'shader_source_view.vala',
+  'error_popover.vala',
   'lang_doc_popover.vala',
   'shader_source_buffer_add_popover.vala',
   'shader_channel.vala',

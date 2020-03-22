@@ -32,6 +32,8 @@ namespace Shady
 				var shader_parser = new Json.Parser();
 
 				string shader_data = (string) shader_message.response_body.flatten().data;
+				//shader_data = shader_data[3:shader_data.length];
+
 				shader_data = shader_data.replace("\\n", "\n");
 				shader_data = shader_data.replace("\\t", "\t");
 				shader_data = shader_data.replace("\\/", "/");
@@ -308,7 +310,9 @@ namespace Shady
 			try
 			{
 				var search_parser = new Json.Parser();
-				search_parser.load_from_data((string) search_message.response_body.flatten().data, -1);
+				string json_data = (string) search_message.response_body.flatten().data;
+				//json_data = json_data[3:json_data.length];
+				search_parser.load_from_data(json_data, -1);
 
 				var search_root = search_parser.get_root().get_object();
 
@@ -349,7 +353,7 @@ namespace Shady
 			}
 			catch (Error e)
 			{
-				stderr.printf("I guess something is not working...\n");
+				stderr.printf(@"I guess something is not working... $(e.message)\n");
 			}
 
 			return num_shaders;
