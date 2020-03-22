@@ -161,6 +161,7 @@
 		<file>data/shader/cubemap_channel_default.glsl</file>
 		<file>data/shader/buffer_default.glsl</file>
 		<file>data/shader/common_default.glsl</file>
+		<file>data/shader/cubemap_default.glsl</file>
 		<file>data/shader/load.glsl</file>
 		<file>data/shader/suffix.glsl</file>
 		<file>data/shader/vertex.glsl</file>
