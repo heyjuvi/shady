@@ -134,8 +134,14 @@ namespace Shady
                     Gdk.Rectangle cursor_rect;
                     view.get_iter_location(cursor_iter, out cursor_rect);
 
-                    int gutter_width = view.get_window(Gtk.TextWindowType.LEFT).get_width();
-                    cursor_rect.x += gutter_width;
+                    int win_x, win_y;
+                    view.buffer_to_window_coords(Gtk.TextWindowType.LEFT,
+                                                 cursor_rect.x,
+                                                 cursor_rect.y,
+                                                 out win_x,
+                                                 out win_y);
+                    cursor_rect.x = win_x;
+                    cursor_rect.y = win_y;
 
 					_doc_popover.set_pointing_to(cursor_rect);
 
@@ -166,8 +172,14 @@ namespace Shady
                     Gdk.Rectangle cursor_rect;
                     view.get_iter_location(cursor_iter, out cursor_rect);
 
-                    int gutter_width = view.get_window(Gtk.TextWindowType.LEFT).get_width();
-                    cursor_rect.x += gutter_width;
+                    int win_x, win_y;
+                    view.buffer_to_window_coords(Gtk.TextWindowType.LEFT,
+                                                 cursor_rect.x,
+                                                 cursor_rect.y,
+                                                 out win_x,
+                                                 out win_y);
+                    cursor_rect.x = win_x;
+                    cursor_rect.y = win_y;
 
 					_err_popover.set_pointing_to(cursor_rect);
 
@@ -210,7 +222,7 @@ namespace Shady
 					mode_array = mode_array_without_shadertoy;
 				}
 
-				foreach(AppPreferences.BackportingMode mode in mode_array)
+				foreach (AppPreferences.BackportingMode mode in mode_array)
 				{
 					lang_suffix = mode.to_lang_suffix();
 					string lang_filename = version.to_lang_name() + lang_suffix + ".lang";

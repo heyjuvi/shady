@@ -4,12 +4,14 @@ namespace Shady
 	public class ErrorPopover : Gtk.Popover
 	{
 	    private string _message;
+	    private string _display_message;
 	    public string message
 	    {
 	        get { return _message; }
 	        set
 	        {
-	            err_label.set_markup(value);
+	            _display_message = shrink_width(value, 80);
+	            err_label.set_markup(_display_message);
 	            _message = value;
 	        }
 	    }
@@ -28,6 +30,29 @@ namespace Shady
 
 		    err_label.set_markup(message);
 	        _message = message;
+		}
+
+		private string shrink_width(string text, int width)
+		{
+		    StringBuilder tmp = new StringBuilder(text);
+		    int i = 0, last_space = -1;
+		    while (i < tmp.len)
+		    {
+		        if (tmp.str[i] == ' ')
+		        {
+		            last_space = i;
+		        }
+
+		        if ((i + 1) % width == 0)
+		        {
+		            tmp.insert(last_space, "\n  ");
+		            i += 3;
+		        }
+
+		        i++;
+		    }
+
+		    return tmp.str;
 		}
 	}
 }
