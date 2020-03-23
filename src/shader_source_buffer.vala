@@ -33,21 +33,8 @@ namespace Shady
 		private Gtk.SourceTag _error_tag;
 		private HashTable<int, string> _errors = new HashTable<int, string>(direct_hash, direct_equal);
 
-		private Gtk.Window _error_tooltip_window;
-		private Gtk.Label _error_tooltip_label;
-
 		private ErrorPopover _err_popover;
 		private LangDocPopover _doc_popover;
-
-		private int _error_x;
-		private int _error_y;
-		private int _error_width;
-		private int _error_height;
-
-		private int _mouse_x;
-		private int _mouse_y;
-		private int _view_x;
-		private int _view_y;
 
 		public ShaderSourceBuffer(string new_buffer_name)
 		{

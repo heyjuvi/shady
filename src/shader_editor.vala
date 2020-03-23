@@ -94,6 +94,10 @@ namespace Shady
         private Core.GLSlangValidator _validator;
 		private Core.GLSLMinifier _minifier;
 
+		private Mutex _minify_mutex = Mutex();
+
+		private bool _destroyed = false;
+
 		public ShaderEditor()
 		{
 		    _shader_buffers = new HashTable<string, ShaderSourceBuffer>(str_hash, str_equal);
@@ -182,6 +186,49 @@ namespace Shady
 
 			    return false;
 			});
+
+			ThreadFunc<bool> run = () =>
+		    {
+		        while (!_destroyed)
+		        {
+		            _minify_mutex.lock();
+
+		            string? buffer_text = null;
+		            Idle.add(() =>
+	                {
+		                buffer_text = _curr_buffer.buffer.text;
+
+		                return false;
+		            });
+
+		            while (buffer_text == null);;
+
+	                int new_total_chars = total_chars - buffer_chars;
+	                int new_buffer_chars = _minifier.minify_kindly(buffer_text).length;
+
+	                _minify_mutex.unlock();
+
+	                new_total_chars += new_buffer_chars;
+
+	                Idle.add(() =>
+	                {
+	                    buffer_chars = new_buffer_chars;
+	                    total_chars = new_total_chars;
+
+	                    return false;
+	                });
+
+	                Thread.usleep(2000000);
+	            }
+
+	            return true;
+	        };
+	        new Thread<bool>("minify_thread", run);
+		}
+
+		public void prepare_destruction()
+		{
+		    _destroyed = true;
 		}
 
 		public void show_search()
@@ -422,14 +469,57 @@ namespace Shady
 		        return;
 		    }
 
-		    int new_total_chars = 0;
-			foreach (string key in _shader_buffers.get_keys())
-			{
-			    new_total_chars += _minifier.minify_kindly(_shader_buffers[key].buffer.text).length;
-			}
+            ThreadFunc<bool> run = () =>
+		    {
+	            _minify_mutex.lock();
 
-			buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
-			total_chars = new_total_chars;
+	            int new_total_chars = 0;
+
+	            uint keys_length = _shader_buffers.get_keys().length();
+	            int mark_curr_buffer = -1;
+
+	            int buffers_fetched = 0;
+	            Array<string> buffer_texts = new Array<string>();
+		        foreach (string key in _shader_buffers.get_keys())
+		        {
+		            string? buffer_text = null;
+	                Idle.add(() =>
+                    {
+	                    buffer_texts.append_val(_shader_buffers[key].buffer.text);
+
+	                    if (_shader_buffers[key] == _curr_buffer)
+	                    {
+	                        mark_curr_buffer = buffers_fetched;
+	                    }
+
+	                    buffers_fetched++;
+
+	                    return false;
+	                });
+	            }
+
+	            while (buffers_fetched != keys_length);
+
+                for (int i = 0; i < keys_length; i++)
+                {
+		            new_total_chars += _minifier.minify_kindly(buffer_texts.index(i)).length;
+		        }
+
+		        int new_buffer_chars = _minifier.minify_kindly(buffer_texts.index(mark_curr_buffer)).length;
+
+                _minify_mutex.unlock();
+
+                Idle.add(() =>
+                {
+                    buffer_chars = new_buffer_chars;
+                    total_chars = new_total_chars;
+
+                    return false;
+                });
+
+	            return true;
+	        };
+	        new Thread<bool>("minify_full_thread", run);
 		}
 
 		private int add_buffer(string buffer_name, int insert_index, bool show_close_button=true)
@@ -444,14 +534,6 @@ namespace Shady
 
                 _last_match_start = cursor_iter;
 		        _last_match_end = cursor_iter;
-
-		        int new_total_chars = total_chars - buffer_chars;
-		        int new_buffer_chars = _minifier.minify_kindly(shader_buffer.buffer.text).length;
-
-		        new_total_chars += new_buffer_chars;
-
-		        buffer_chars = new_buffer_chars;
-		        total_chars = new_total_chars;
 
 				_edited = true;
 			});
@@ -700,7 +782,7 @@ namespace Shady
 
 		    debug(@"switch_page: switching to $(_curr_buffer.buffer_name)");
 
-		    buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
+		    //buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
 
             if (_channels_initialized)
             {

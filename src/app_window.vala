@@ -148,6 +148,8 @@ namespace Shady
 			// remove all handlers
 			_settings.changed["switched-layout"].disconnect(switched_layout_handler);
 			Source.remove(_auto_compile_handler_id);
+
+			editor.prepare_destruction();
 		}
 
 		private bool auto_compile_handler()
