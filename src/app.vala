@@ -20,7 +20,7 @@ namespace Shady
 			SimpleAction new_action = new SimpleAction("new", null);
 			new_action.activate.connect(() =>
 			{
-				if (!newest_app_window.edited)
+				if (!newest_app_window.editor.edited)
 				{
 					newest_app_window.destroy();
 				}
@@ -67,12 +67,12 @@ namespace Shady
 
                             if (new_shader != null)
                             {
-							    if (!newest_app_window.edited)
+							    if (!newest_app_window.editor.edited)
 							    {
 								    newest_app_window.destroy();
 							    }
 
-							    // for some reason the window is display below the
+							    // for some reason the window is displayed below the
 							    // previous one
 							    var new_window = new AppWindow(this, app_preferences);
 
@@ -115,12 +115,12 @@ namespace Shady
 					switch (response_id)
 					{
 						case Gtk.ResponseType.ACCEPT:
-							if (!newest_app_window.edited)
+							if (!newest_app_window.editor.edited)
 							{
 								newest_app_window.destroy();
 							}
 
-							// for some reason the window is display below the
+							// for some reason the window is displayed below the
 							// previous one
 							var new_window = new AppWindow(this, app_preferences);
 							new_window.set_shader(shadertoy_search_dialog.selected_shader);

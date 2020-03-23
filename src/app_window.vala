@@ -7,13 +7,6 @@ namespace Shady
 	[GtkTemplate (ui = "/org/hasi/shady/ui/app-window.ui")]
 	public class AppWindow : Gtk.ApplicationWindow
 	{
-		private bool _edited;
-		public bool edited
-		{
-			get { return _edited; }
-			//default = false;
-		}
-
 		private bool _switched_layout = false;
 		public bool switched_layout
 		{
