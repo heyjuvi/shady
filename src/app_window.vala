@@ -192,7 +192,6 @@ namespace Shady
                       @"$(_editor.shader)");
 
 			    scene.compile(_editor.shader);
-			    scene._fullscreen_shadertoy_area.compile(_editor.shader);
 			}
 		}
 

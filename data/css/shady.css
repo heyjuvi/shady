@@ -142,10 +142,18 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
   /* this is just needed to let the shadow know about the border radius */
   border-bottom-left-radius: 6pt;
   border-bottom-right-radius: 6pt;
+  background: @darker_than_bg;
+  color: #FFFFFF;
 }
 
 .main_shader_container
 {
+}
+
+.main_shader_container .placeholder_box
+{
+  background: @darker_than_bg;
+	color: #FFFFFF;
 }
 
 .main_shader_controls
