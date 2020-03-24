@@ -218,6 +218,7 @@ namespace Shady
 	                    return false;
 	                });
 
+                    // TODO: this could in principle be made adaptive
 	                Thread.usleep(2000000);
 	            }
 
@@ -558,8 +559,6 @@ namespace Shady
 			    // triggers the removal, not sure, wether this could be solved more elegant
 				action_widget.set_buffer_active(buffer_name, false);
 			});
-
-			//action_widget.set_buffer_active(buffer_name, true);
 
             debug(@"add_buffer: adding $buffer_name to shader buffers");
 			_shader_buffers.insert(buffer_name, shader_buffer);

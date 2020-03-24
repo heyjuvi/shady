@@ -142,7 +142,7 @@ namespace Shady
             int last_line = -1;
             buffer.notify["cursor-position"].connect(() =>
             {
-                Gtk.TextIter cursor_iter;
+            	Gtk.TextIter cursor_iter;
                 buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
 
                 if (cursor_iter.get_line() == last_line)
@@ -152,31 +152,7 @@ namespace Shady
 
                 last_line = cursor_iter.get_line();
 
-                if (cursor_iter.has_tag(_error_tag))
-                {
-                    _err_popover.message = _errors[cursor_iter.get_line() + 1];
-
-                    Gdk.Rectangle cursor_rect;
-                    view.get_iter_location(cursor_iter, out cursor_rect);
-
-                    int win_x, win_y;
-                    view.buffer_to_window_coords(Gtk.TextWindowType.LEFT,
-                                                 cursor_rect.x,
-                                                 cursor_rect.y,
-                                                 out win_x,
-                                                 out win_y);
-                    cursor_rect.x = win_x;
-                    cursor_rect.y = win_y;
-
-					_err_popover.set_pointing_to(cursor_rect);
-
-                    _doc_popover.hide();
-					_err_popover.popup();
-				}
-                else
-                {
-                    _err_popover.hide();
-                }
+                show_error_popover();
             });
 		}
 
@@ -250,6 +226,38 @@ namespace Shady
 			}
 		}
 
+		private void show_error_popover()
+		{
+		    Gtk.TextIter cursor_iter;
+            buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
+
+            if (cursor_iter.has_tag(_error_tag) && (cursor_iter.get_line() + 1) in _errors)
+            {
+                _err_popover.message = _errors[cursor_iter.get_line() + 1];
+
+                Gdk.Rectangle cursor_rect;
+                view.get_iter_location(cursor_iter, out cursor_rect);
+
+                int win_x, win_y;
+                view.buffer_to_window_coords(Gtk.TextWindowType.LEFT,
+                                             cursor_rect.x,
+                                             cursor_rect.y,
+                                             out win_x,
+                                             out win_y);
+                cursor_rect.x = win_x;
+                cursor_rect.y = win_y;
+
+				_err_popover.set_pointing_to(cursor_rect);
+
+                _doc_popover.hide();
+				_err_popover.popup();
+			}
+            else
+            {
+                _err_popover.hide();
+            }
+		}
+
 		public void clear_error_messages()
 		{
 			Gtk.TextIter start_iter, end_iter;
@@ -284,21 +292,10 @@ namespace Shady
 			Gtk.TextIter cursor_iter;
             buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
 
-			/*Gtk.Allocation allocation;
-			view.get_allocated_size(out allocation, null);
-
-			buffer.insert(ref end_iter, "\n", -1);
-			var child_anchor = buffer.create_child_anchor(end_iter);
-
-			var label = new Gtk.Label("Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo Yoooo ");
-			label.xalign = 1.0f;
-			label.width_request = allocation.width;
-			label.wrap = true;
-			label.show();
-
-			view.add_child_at_anchor(label, child_anchor);
-
-			_error_labels.append(label);*/
+            if ((cursor_iter.get_line() + 1) in _errors)
+            {
+                show_error_popover();
+            }
 		}
 	}
 }
