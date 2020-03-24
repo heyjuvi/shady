@@ -35,7 +35,7 @@ namespace Shady
 		private string shrink_width(string text, int width)
 		{
 		    StringBuilder tmp = new StringBuilder(text);
-		    int i = 0, last_space = -1;
+		    int i = 0, j = 0, last_space = 0;
 		    while (i < tmp.len)
 		    {
 		        if (tmp.str[i] == ' ')
@@ -43,13 +43,22 @@ namespace Shady
 		            last_space = i;
 		        }
 
-		        if ((i + 1) % width == 0)
+		        if (tmp.str[i] == '\n')
+		        {
+		            j = 0;
+		        }
+
+		        if ((j + 1) % width == 0)
 		        {
 		            tmp.insert(last_space, "\n  ");
 		            i += 3;
+		            j = 3;
 		        }
-
-		        i++;
+		        else
+		        {
+		            i++;
+		            j++;
+		        }
 		    }
 
 		    return tmp.str;
