@@ -206,14 +206,14 @@ namespace Shady
 	                int new_total_chars = total_chars - buffer_chars;
 	                int new_buffer_chars = _minifier.minify_kindly(buffer_text).length;
 
-	                _minify_mutex.unlock();
-
 	                new_total_chars += new_buffer_chars;
 
 	                Idle.add(() =>
 	                {
 	                    buffer_chars = new_buffer_chars;
 	                    total_chars = new_total_chars;
+
+	                    _minify_mutex.unlock();
 
 	                    return false;
 	                });
@@ -483,7 +483,6 @@ namespace Shady
 	            Array<string> buffer_texts = new Array<string>();
 		        foreach (string key in _shader_buffers.get_keys())
 		        {
-		            string? buffer_text = null;
 	                Idle.add(() =>
                     {
 	                    buffer_texts.append_val(_shader_buffers[key].buffer.text);
@@ -506,14 +505,18 @@ namespace Shady
 		            new_total_chars += _minifier.minify_kindly(buffer_texts.index(i)).length;
 		        }
 
-		        int new_buffer_chars = _minifier.minify_kindly(buffer_texts.index(mark_curr_buffer)).length;
-
-                _minify_mutex.unlock();
+                int new_buffer_chars = 0;
+                if (mark_curr_buffer >= 0)
+                {
+		            new_buffer_chars = _minifier.minify_kindly(buffer_texts.index(mark_curr_buffer)).length;
+		        }
 
                 Idle.add(() =>
                 {
                     buffer_chars = new_buffer_chars;
                     total_chars = new_total_chars;
+
+                    _minify_mutex.unlock();
 
                     return false;
                 });
@@ -523,7 +526,7 @@ namespace Shady
 	        new Thread<bool>("minify_full_thread", run);
 		}
 
-		private int add_buffer(string buffer_name, int insert_index, bool show_close_button=true)
+		private int add_buffer(string buffer_name, int insert_index, bool show_close_button=true, bool skip_full_char_refresh=false)
 //		    requires(Shader.RENDERPASSES_ORDER.get_keys().data.contains(buffer_name))
 		{
 			ShaderSourceBuffer shader_buffer = new ShaderSourceBuffer(buffer_name);
@@ -568,17 +571,23 @@ namespace Shady
 
             shader_buffer.show();
 
-			do_full_char_count_refresh();
+            if (!skip_full_char_refresh)
+            {
+			    do_full_char_count_refresh();
+			}
 
 			return num;
 		}
 
-		public void set_buffer(string buffer_name, string content)
+		public void set_buffer(string buffer_name, string content, bool skip_full_char_refresh=false)
 //		    requires(_shader_buffers.get_keys().data.contains(buffer_name))
 		{
 			_shader_buffers[buffer_name].buffer.text = content;
 
-			do_full_char_count_refresh();
+            if (!skip_full_char_refresh)
+            {
+			    do_full_char_count_refresh();
+			}
 		}
 
 		public string get_buffer(string buffer_name)
@@ -604,7 +613,7 @@ namespace Shady
 		    return false;
 		}
 
-		private void remove_buffer(string buffer_name)
+		private void remove_buffer(string buffer_name, bool skip_full_char_refresh=false)
 //		    requires(_shader_buffers.get_keys().data.contains(buffer_name))
 		{
 		    debug("remove_buffer: removing $buffer_name from notebook");
@@ -624,7 +633,10 @@ namespace Shady
 			    }
 			}
 
-			do_full_char_count_refresh();
+			if (!skip_full_char_refresh)
+            {
+			    do_full_char_count_refresh();
+			}
 		}
 
 		private int get_insert_index_for_buffer(string buffer_name)
@@ -655,16 +667,14 @@ namespace Shady
 		    requires(shader != null)
 		{
 		    debug("set_shader: removing all buffers");
-			_shader_buffers.remove_all();
-
-		    debug("set_shader: removing all notebook pages");
-			for (int i = 0; i < notebook.get_n_pages(); i++)
-			{
-				notebook.remove_page(i);
-			}
+		    foreach (string buffer_name in _shader_buffers.get_keys())
+		    {
+		        remove_buffer(buffer_name, true);
+		    }
 
             debug("set_shader: setting current shader to new one");
-		    _curr_shader = shader;
+		    _curr_shader = new Shader();
+		    _curr_shader.assign(shader);
 
 		    debug(@"set_shader: the new shader is given by\n" +
 		          @"$shader");
@@ -679,7 +689,7 @@ namespace Shady
 
                     if (renderpass.renderpass_name == "Image")
                     {
-					    add_buffer(renderpass.renderpass_name, get_insert_index_for_buffer(renderpass.renderpass_name), false);
+					    add_buffer(renderpass.renderpass_name, get_insert_index_for_buffer(renderpass.renderpass_name), false, true);
 					}
 					else
 					{
@@ -687,7 +697,7 @@ namespace Shady
 					    action_widget.set_buffer_active(renderpass.renderpass_name, true);
 					    SignalHandler.unblock(action_widget, change_renderpass_handler_id);
 
-					    add_buffer(renderpass.renderpass_name, get_insert_index_for_buffer(renderpass.renderpass_name), true);
+					    add_buffer(renderpass.renderpass_name, get_insert_index_for_buffer(renderpass.renderpass_name), true, true);
 					}
 
 					set_buffer(renderpass.renderpass_name, renderpass.code);
@@ -697,12 +707,19 @@ namespace Shady
             debug("set_shader: switching to buffer Image");
 			switch_buffer("Image");
 
+			do_full_char_count_refresh();
+
 			// ensure the channel configuration has been set, even if the selected buffer was
 			// already Image
 			if (_channels_initialized)
             {
                 debug("set_shader: channels are already initialized, so they will be updated now");
 	            update_channels_for_current_shader();
+
+	            for (int i = 0; i < _channels.length; i++)
+			    {
+			        _channels[i].channel_buffer = "Image";
+			    }
 	        }
 		}
 
@@ -782,6 +799,7 @@ namespace Shady
 		    debug(@"switch_page: switching to $(_curr_buffer.buffer_name)");
 
 		    //buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;
+		    do_full_char_count_refresh();
 
             if (_channels_initialized)
             {
@@ -801,7 +819,6 @@ namespace Shady
 		        debug(@"update_channels_for_current_shader: setting channel content for channel $i");
 		    	_channels[i].set_content_by_shader(_curr_shader);
 		    }
-
 		}
 
 		private void update_channels_for_current_renderpass()

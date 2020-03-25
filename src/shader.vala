@@ -401,6 +401,22 @@ namespace Shady
 		    return null;
 		}
 
+		public void assign(Shader other)
+		{
+		    shader_name = other.shader_name;
+		    description = other.description;
+		    author = other.author;
+		    date = other.date;
+		    likes = other.likes;
+		    tags = other.tags;
+
+		    renderpasses = new Array<Renderpass>();
+		    for (int i = 0; i < other.renderpasses.length; i++)
+		    {
+		        renderpasses.append_val(other.renderpasses.index(i));
+		    }
+		}
+
 		public string to_string()
 		{
 		    string str = @"        name: $shader_name\n" +

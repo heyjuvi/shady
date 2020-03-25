@@ -23,223 +23,462 @@
 	  <accelerator key="Escape" modifiers="" signal="escape_pressed" />
 
 		<child type="titlebar">
-			<object class="GtkHeaderBar" id="header_bar">
-				<property name="visible">True</property>
-				<property name="can_focus">False</property>
-				<property name="show_close_button">True</property>
+		  <object class="GtkStack" id="header_stack">
+		    <property name="visible">True</property>
+        <property name="visible-child">header_bar</property>
+		    <property name="transition-type">slide-left</property>
 
-				<style>
-					<class name="header_bar" />
-				</style>
-i
-				<child>
-					<object class="GtkButton" id="reset_button">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
+		    <child>
+			    <object class="GtkHeaderBar" id="header_bar">
+				    <property name="visible">True</property>
+				    <property name="can_focus">False</property>
+				    <property name="show_close_button">True</property>
 
-						<signal name="clicked" handler="reset_button_clicked" />
+				    <style>
+					    <class name="header_bar" />
+				    </style>
 
-					  <accelerator key="b" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+				    <child>
+					    <object class="GtkButton" id="reset_button">
+						    <property name="visible">True</property>
+						    <property name="can_focus">True</property>
+						    <property name="receives_default">False</property>
 
-						<child>
-							<object class="GtkImage">
-								<property name="visible">True</property>
-								<property name="can_focus">False</property>
-								<property name="icon_name">media-skip-backward-symbolic</property>
-							</object>
-						</child>
-					</object>
-					<packing>
-						<property name="pack-type">start</property>
-						<property name="position">0</property>
-					</packing>
-				</child>
+						    <signal name="clicked" handler="reset_button_clicked" />
 
-				<child>
-					<object class="GtkButton" id="play_button">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
+					      <accelerator key="b" modifiers="GDK_CONTROL_MASK" signal="clicked" />
 
-						<signal name="clicked" handler="play_button_clicked" />
+						    <child>
+							    <object class="GtkImage">
+								    <property name="visible">True</property>
+								    <property name="can_focus">False</property>
+								    <property name="icon_name">media-skip-backward-symbolic</property>
+							    </object>
+						    </child>
+					    </object>
+					    <packing>
+						    <property name="pack-type">start</property>
+						    <property name="position">0</property>
+					    </packing>
+				    </child>
 
-					  <accelerator key="p" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+				    <child>
+					    <object class="GtkButton" id="play_button">
+						    <property name="visible">True</property>
+						    <property name="can_focus">True</property>
+						    <property name="receives_default">False</property>
 
-						<child>
-							<object class="GtkImage" id="play_button_image">
-								<property name="visible">True</property>
-								<property name="can_focus">False</property>
-								<property name="icon_name">media-playback-pause-symbolic</property>
-							</object>
-						</child>
-					</object>
-					<packing>
-						<property name="pack-type">start</property>
-						<property name="position">1</property>
-					</packing>
-				</child>
+						    <signal name="clicked" handler="play_button_clicked" />
 
-				<child>
-					<object class="GtkRevealer" id="rubber_band_revealer">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
-						<property name="transition_type">slide-right</property>
-						<property name="transition_duration">200</property>
-						<property name="reveal_child">False</property>
+					      <accelerator key="p" modifiers="GDK_CONTROL_MASK" signal="clicked" />
 
-						<child>
-							<object class="GtkScale" id="rubber_band_scale">
-								<property name="visible">True</property>
-								<property name="can_focus">False</property>
-								<property name="width_request">160</property>
-								<property name="draw_value">False</property>
-								<property name="adjustment">rubber_band_adjustment</property>
-								<property name="show_fill_level">False</property>
-								<property name="has_origin">False</property>
-								<property name="hexpand">False</property>
+						    <child>
+							    <object class="GtkImage" id="play_button_image">
+								    <property name="visible">True</property>
+								    <property name="can_focus">False</property>
+								    <property name="icon_name">media-playback-pause-symbolic</property>
+							    </object>
+						    </child>
+					    </object>
+					    <packing>
+						    <property name="pack-type">start</property>
+						    <property name="position">1</property>
+					    </packing>
+				    </child>
 
-								<signal name="value_changed" handler="rubber_band_scale_value_changed" />
-								<signal name="button_release_event" handler="rubber_band_scale_button_released" />
-							</object>
-						</child>
-					</object>
-					<packing>
-						<property name="pack-type">start</property>
-						<property name="position">2</property>
-					</packing>
-				</child>
+				    <child>
+					    <object class="GtkRevealer" id="rubber_band_revealer">
+						    <property name="visible">True</property>
+						    <property name="can_focus">True</property>
+						    <property name="receives_default">False</property>
+						    <property name="transition_type">slide-right</property>
+						    <property name="transition_duration">200</property>
+						    <property name="reveal_child">False</property>
 
-				<child type="title">
-					<object class="GtkImage">
-						<property name="visible">True</property>
-						<property name="can_focus">False</property>
-						<property name="resource">/org/hasi/shady/data/images/shady_logo_header_bar.png</property>
-					</object>
-				</child>
+						    <child>
+							    <object class="GtkScale" id="rubber_band_scale">
+								    <property name="visible">True</property>
+								    <property name="can_focus">False</property>
+								    <property name="width_request">160</property>
+								    <property name="draw_value">False</property>
+								    <property name="adjustment">rubber_band_adjustment</property>
+								    <property name="show_fill_level">False</property>
+								    <property name="has_origin">False</property>
+								    <property name="hexpand">False</property>
 
-				<child>
-					<object class="GtkToggleButton" id="live_mode_button">
-						<property name="visible">False</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
-						<property name="label">Live</property>
+								    <signal name="value_changed" handler="rubber_band_scale_value_changed" />
+								    <signal name="button_release_event" handler="rubber_band_scale_button_released" />
+							    </object>
+						    </child>
+					    </object>
+					    <packing>
+						    <property name="pack-type">start</property>
+						    <property name="position">2</property>
+					    </packing>
+				    </child>
 
-						<signal name="toggled" handler="live_mode_button_toggled" />
-					</object>
-					<packing>
-						<property name="pack-type">end</property>
-						<property name="position">4</property>
-					</packing>
-				</child>
+				    <child type="title">
+					    <object class="GtkImage">
+						    <property name="visible">True</property>
+						    <property name="can_focus">False</property>
+						    <property name="resource">/org/hasi/shady/data/images/shady_logo_header_bar.png</property>
+					    </object>
+				    </child>
 
-			  <child>
-					<object class="GtkButton" id="save_button">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
+				    <child>
+					    <object class="GtkToggleButton" id="live_mode_button">
+						    <property name="visible">False</property>
+						    <property name="can_focus">True</property>
+						    <property name="receives_default">False</property>
+						    <property name="label">Live</property>
 
-						<signal name="clicked" handler="save_button_clicked" />
+						    <signal name="toggled" handler="live_mode_button_toggled" />
+					    </object>
+					    <packing>
+						    <property name="pack-type">end</property>
+						    <property name="position">5</property>
+					    </packing>
+				    </child>
 
-					  <accelerator key="s" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+			      <child>
+					    <object class="GtkButton" id="search_button">
+						    <property name="visible">True</property>
+						    <property name="can_focus">True</property>
+						    <property name="receives_default">False</property>
 
-					  <child>
-							<object class="GtkImage">
-								<property name="visible">True</property>
-								<property name="can_focus">False</property>
-								<property name="icon_name">document-save-symbolic</property>
-							</object>
-						</child>
-					</object>
-					<packing>
-						<property name="pack-type">end</property>
-						<property name="position">3</property>
-					</packing>
-				</child>
+						    <signal name="clicked" handler="search_button_clicked" />
 
-				<child>
-					<object class="GtkButton" id="compile_button">
-						<property name="visible">True</property>
-						<property name="can_focus">True</property>
-						<property name="receives_default">False</property>
+					      <accelerator key="l" modifiers="GDK_CONTROL_MASK" signal="clicked" />
 
-						<signal name="clicked" handler="compile_button_clicked" />
+					      <child>
+							    <object class="GtkImage">
+								    <property name="visible">True</property>
+								    <property name="can_focus">False</property>
+								    <property name="icon_name">system-search-symbolic</property>
+							    </object>
+						    </child>
+					    </object>
+					    <packing>
+						    <property name="pack-type">end</property>
+						    <property name="position">4</property>
+					    </packing>
+				    </child>
 
-					  <accelerator key="r" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+			      <child>
+					    <object class="GtkButton" id="save_button">
+						    <property name="visible">True</property>
+						    <property name="can_focus">True</property>
+						    <property name="receives_default">False</property>
 
-						<style>
-							<class name="suggested-action" />
-						</style>
+						    <signal name="clicked" handler="save_button_clicked" />
 
-						<child>
-							<object class="GtkStack" id="compile_button_stack">
-								<property name="visible">True</property>
-								<property name="can_focus">False</property>
-								<property name="transition_type">none</property>
+					      <accelerator key="s" modifiers="GDK_CONTROL_MASK" signal="clicked" />
 
-								<child>
-									<object class="GtkImage">
-										<property name="visible">True</property>
-										<property name="can_focus">False</property>
-										<property name="icon_name">mail-send-symbolic</property>
-									</object>
-									<packing>
-										<property name="name">compile_image</property>
-									</packing>
-								</child>
+					      <child>
+							    <object class="GtkImage">
+								    <property name="visible">True</property>
+								    <property name="can_focus">False</property>
+								    <property name="icon_name">document-save-symbolic</property>
+							    </object>
+						    </child>
+					    </object>
+					    <packing>
+						    <property name="pack-type">end</property>
+						    <property name="position">3</property>
+					    </packing>
+				    </child>
 
-								<child>
-									<object class="GtkSpinner">
-										<property name="visible">True</property>
-										<property name="can_focus">False</property>
-										<property name="active">True</property>
-									</object>
-									<packing>
-										<property name="name">compile_spinner</property>
-									</packing>
-								</child>
-							</object>
-						</child>
-					</object>
-					<packing>
-						<property name="pack-type">end</property>
-						<property name="position">1</property>
-					</packing>
-				</child>
+				    <child>
+					    <object class="GtkButton" id="compile_button">
+						    <property name="visible">True</property>
+						    <property name="can_focus">True</property>
+						    <property name="receives_default">False</property>
 
-				<child>
-					<object class="GtkMenuButton" id="menu_button">
-						<property name="visible">False</property>
-						<property name="can_focus">True</property>
-						<property name="use-popover">True</property>
+						    <signal name="clicked" handler="compile_button_clicked" />
 
-						<child>
-							<object class="GtkImage">
-								<property name="visible">True</property>
-								<property name="can_focus">False</property>
-								<property name="icon_name">open-menu-symbolic</property>
-							</object>
-						</child>
-					</object>
-					<packing>
-						<property name="pack-type">end</property>
-						<property name="position">0</property>
-					</packing>
-				</child>
-			</object>
+					      <accelerator key="r" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+
+						    <style>
+							    <class name="suggested-action" />
+						    </style>
+
+						    <child>
+							    <object class="GtkStack" id="compile_button_stack">
+								    <property name="visible">True</property>
+								    <property name="can_focus">False</property>
+								    <property name="transition_type">none</property>
+
+								    <child>
+									    <object class="GtkImage">
+										    <property name="visible">True</property>
+										    <property name="can_focus">False</property>
+										    <property name="icon_name">mail-send-symbolic</property>
+									    </object>
+									    <packing>
+										    <property name="name">compile_image</property>
+									    </packing>
+								    </child>
+
+								    <child>
+									    <object class="GtkSpinner">
+										    <property name="visible">True</property>
+										    <property name="can_focus">False</property>
+										    <property name="active">True</property>
+									    </object>
+									    <packing>
+										    <property name="name">compile_spinner</property>
+									    </packing>
+								    </child>
+							    </object>
+						    </child>
+					    </object>
+					    <packing>
+						    <property name="pack-type">end</property>
+						    <property name="position">1</property>
+					    </packing>
+				    </child>
+
+				    <child>
+					    <object class="GtkMenuButton" id="menu_button">
+						    <property name="visible">False</property>
+						    <property name="can_focus">True</property>
+						    <property name="use-popover">True</property>
+
+						    <child>
+							    <object class="GtkImage">
+								    <property name="visible">True</property>
+								    <property name="can_focus">False</property>
+								    <property name="icon_name">open-menu-symbolic</property>
+							    </object>
+						    </child>
+					    </object>
+					    <packing>
+						    <property name="pack-type">end</property>
+						    <property name="position">0</property>
+					    </packing>
+				    </child>
+			    </object>
+		      <packing>
+            <property name="name">header_bar</property>
+          </packing>
+		    </child>
+
+		    <child>
+			    <object class="GtkHeaderBar" id="search_header_bar">
+				    <property name="visible">True</property>
+				    <property name="can_focus">False</property>
+				    <property name="show_close_button">True</property>
+
+				    <style>
+					    <class name="header_bar" />
+				    </style>
+
+			      <child>
+			        <object class="GtkButton" id="cancel_search_button">
+				        <property name="visible">True</property>
+				        <property name="can_focus">True</property>
+			          <property name="receives_default">False</property>
+
+			          <signal name="clicked" handler="cancel_search_button_clicked" />
+
+			          <child>
+							    <object class="GtkImage">
+								    <property name="visible">True</property>
+								    <property name="can_focus">False</property>
+								    <property name="icon_name">go-previous-symbolic</property>
+							    </object>
+						    </child>
+			        </object>
+			        <packing>
+						    <property name="pack-type">start</property>
+						    <property name="position">1</property>
+					    </packing>
+		        </child>
+
+				    <child type="title">
+					    <object class="GtkBox">
+						    <property name="visible">True</property>
+						    <property name="can_focus">False</property>
+						    <property name="orientation">horizontal</property>
+						    <property name="spacing">6</property>
+
+						    <child>
+							    <object class="GtkSearchEntry" id="shadertoy_search_entry">
+								    <property name="visible">True</property>
+								    <property name="can_focus">True</property>
+								    <property name="has_focus">True</property>
+								    <property name="receives_default">True</property>
+								    <property name="placeholder_text">Please enter a search string...</property>
+								    <property name="primary_icon_name">edit-find-symbolic</property>
+								    <property name="primary_icon_activatable">False</property>
+								    <property name="primary_icon_sensitive">False</property>
+								    <property name="width_request">560</property>
+
+								    <signal name="key_press_event" handler="search_key_entry_pressed" />
+							    </object>
+							    <packing>
+								    <property name="expand">False</property>
+								    <property name="fill">True</property>
+								    <property name="position">0</property>
+							    </packing>
+						    </child>
+					    </object>
+				    </child>
+
+			      <child>
+	            <object class="GtkButton" id="load_shader_button">
+		            <property name="label">Load</property>
+		            <property name="visible">True</property>
+		            <property name="can_focus">True</property>
+		            <property name="can_default">True</property>
+		            <property name="sensitive">False</property>
+
+	              <signal name="clicked" handler="load_shader_button_clicked" />
+
+	              <style>
+							    <class name="suggested-action" />
+						    </style>
+	            </object>
+			        <packing>
+				        <property name="pack-type">end</property>
+				        <property name="position">0</property>
+			        </packing>
+            </child>
+			    </object>
+		      <packing>
+            <property name="name">search_header_bar</property>
+          </packing>
+		    </child>
+		  </object>
 		</child>
 
 		<child>
-			<object class="GtkPaned" id="main_paned">
-				<property name="visible">True</property>
-				<property name="can_focus">False</property>
-			  <property name="position">772</property>
-			</object>
+		  <object class="GtkStack" id="content_stack">
+		    <property name="visible">True</property>
+        <property name="visible-child">main_paned</property>
+		    <property name="transition-type">slide-left</property>
+
+		    <child>
+			    <object class="GtkPaned" id="main_paned">
+				    <property name="visible">True</property>
+				    <property name="can_focus">False</property>
+			      <property name="position">772</property>
+			    </object>
+		      <packing>
+            <property name="name">content</property>
+          </packing>
+		    </child>
+
+		    <child>
+			    <object class="GtkBox">
+				    <property name="visible">True</property>
+				    <property name="orientation">vertical</property>
+				    <property name="spacing">0</property>
+
+				    <child>
+					    <object class="GtkStack" id="search_content_stack">
+						    <property name="visible">True</property>
+					      <property name="visible-child">search_results</property>
+						    <property name="can-focus">False</property>
+
+						    <signal name="notify::visible_child" handler="visible_child_changed" />
+
+						    <child>
+							    <object class="GtkScrolledWindow" id="search_results">
+								    <property name="visible">True</property>
+								    <property name="can_focus">False</property>
+								    <property name="hscrollbar_policy">never</property>
+
+								    <signal name="edge_reached" handler="edge_reached" />
+
+								    <child>
+									    <object class="GtkViewport">
+										    <property name="visible">True</property>
+										    <property name="can_focus">False</property>
+										    <property name="valign">start</property>
+
+										    <child>
+											    <object class="GtkFlowBox" id="shader_box">
+												    <property name="visible">True</property>
+												    <property name="can_focus">False</property>
+												    <property name="homogeneous">True</property>
+												    <property name="valign">start</property>
+												    <property name="column_spacing">6</property>
+												    <property name="row_spacing">6</property>
+												    <property name="min_children_per_line">4</property>
+
+												    <signal name="selected_children_changed" handler="selected_children_changed" />
+											    </object>
+										    </child>
+									    </object>
+								    </child>
+							    </object>
+							    <packing>
+								    <property name="name">search_results</property>
+								    <property name="position">0</property>
+							    </packing>
+						    </child>
+
+						    <child>
+							    <object class="GtkBox">
+								    <property name="visible">True</property>
+								    <property name="can_focus">false</property>
+								    <property name="orientation">vertical</property>
+								    <property name="spacing">0</property>
+
+								    <child>
+									    <object class="GtkSpinner">
+										    <property name="visible">True</property>
+										    <property name="can_focus">False</property>
+										    <property name="margin_left">48</property>
+										    <property name="margin_right">48</property>
+										    <property name="margin_top">48</property>
+										    <property name="margin_bottom">12</property>
+										    <property name="active">True</property>
+									    </object>
+									    <packing>
+										    <property name="expand">True</property>
+										    <property name="fill">True</property>
+										    <property name="position">0</property>
+									    </packing>
+								    </child>
+
+								    <child>
+									    <object class="GtkLabel" id="loading_label">
+										    <property name="visible">True</property>
+										    <property name="can_focus">False</property>
+										    <property name="margin_left">48</property>
+										    <property name="margin_right">48</property>
+										    <property name="margin_top">12</property>
+										    <property name="margin_bottom">48</property>
+										    <property name="label">Loading shaders...</property>
+									    </object>
+									    <packing>
+										    <property name="expand">False</property>
+										    <property name="fill">True</property>
+										    <property name="position">1</property>
+									    </packing>
+								    </child>
+							    </object>
+							    <packing>
+								    <property name="name">spinner</property>
+								    <property name="position">1</property>
+							    </packing>
+						    </child>
+					    </object>
+					    <packing>
+						    <property name="expand">True</property>
+						    <property name="fill">True</property>
+						    <property name="position">0</property>
+					    </packing>
+				    </child>
+			    </object>
+		      <packing>
+            <property name="name">search_content</property>
+          </packing>
+		    </child>
+		  </object>
 		</child>
 	</template>
 </interface>
-
-
-
 

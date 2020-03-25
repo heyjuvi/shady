@@ -269,10 +269,10 @@ namespace Shady
 		        }
 		    }
 
-    		/*if (!channel_in_use)
+    		if (!channel_in_use)
     		{
     			channel_input = Shader.Input.NO_INPUT;
-    		}*/
+    		}
 
     		if (renderpass.renderpass_name == _channel_buffer)
     		{

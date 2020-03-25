@@ -35,7 +35,7 @@ namespace Shady
 
 		public ShadertoySearchDialog(Gtk.Window parent)
 		{
-			set_transient_for(parent);
+			//set_transient_for(parent);
 
 			content_stack.visible_child_name = "content";
 

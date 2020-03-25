@@ -105,51 +105,6 @@ namespace Shady
 
 			this.add_action(open_action);
 
-			SimpleAction search_on_shadertoy_action = new SimpleAction("search", null);
-			search_on_shadertoy_action.activate.connect(() =>
-			{
-				var shadertoy_search_dialog = new Shady.ShadertoySearchDialog(newest_app_window);
-
-				shadertoy_search_dialog.response.connect((dialog, response_id) =>
-				{
-					switch (response_id)
-					{
-						case Gtk.ResponseType.ACCEPT:
-							if (!newest_app_window.editor.edited)
-							{
-								newest_app_window.destroy();
-							}
-
-							// for some reason the window is displayed below the
-							// previous one
-							var new_window = new AppWindow(this, app_preferences);
-							new_window.set_shader(shadertoy_search_dialog.selected_shader);
-
-							remove_window(newest_app_window);
-							add_window(new_window);
-
-							new_window.present();
-
-                            new_window.reset_time();
-							new_window.compile();
-							new_window.play();
-
-							newest_app_window = new_window;
-
-							break;
-
-						case Gtk.ResponseType.CANCEL:
-							break;
-					}
-
-					shadertoy_search_dialog.destroy();
-				});
-
-				shadertoy_search_dialog.show();
-			});
-
-			this.add_action(search_on_shadertoy_action);
-
 			SimpleAction preferences_action = new SimpleAction("preferences", null);
 			preferences_action.activate.connect(() =>
 			{
@@ -171,6 +126,10 @@ namespace Shady
 		protected override void startup()
 		{
 			base.startup();
+
+            var builder = new Gtk.Builder.from_resource ("/org/hasi/shady/gtk/menus.ui");
+            var app_menu = builder.get_object("app-menu") as GLib.MenuModel;
+			set_app_menu(app_menu);
 
 			var gtk_settings = Gtk.Settings.get_default();
 

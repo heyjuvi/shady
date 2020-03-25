@@ -564,7 +564,7 @@ namespace Shady
 		{
 			if(get_monotonic_time() - _curr_time > 500000)
 			{
-				print("WARNING: gtk is not rendering!\n");
+				//print("WARNING: gtk is not rendering!\n");
 			}
 
 			_render_resources.buffer_switch_mutex.lock();

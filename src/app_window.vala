@@ -51,6 +51,12 @@ namespace Shady
 		public signal void escape_pressed();
 
 		[GtkChild]
+		private Gtk.Stack header_stack;
+
+		[GtkChild]
+		private Gtk.Stack content_stack;
+
+		[GtkChild]
 		private Gtk.MenuButton menu_button;
 
 		[GtkChild]
@@ -68,10 +74,31 @@ namespace Shady
 		[GtkChild]
 		private Gtk.Paned main_paned;
 
+		[GtkChild]
+		private Gtk.SearchEntry shadertoy_search_entry;
+
+		[GtkChild]
+		private Gtk.Button load_shader_button;
+
+		[GtkChild]
+		private Gtk.Stack search_content_stack;
+
+		[GtkChild]
+		private Gtk.Label loading_label;
+
+		[GtkChild]
+		private Gtk.FlowBox shader_box;
+
 		private Gtk.AccelGroup _accels = new Gtk.AccelGroup();
 		private GLib.Settings _settings = new GLib.Settings("org.hasi.shady");
 
 		private uint _auto_compile_handler_id;
+
+		private int _last_index = 0;
+		private string _current_search_child = "search_results";
+
+		private Shader?[] _found_shaders = null;
+		private Shader _selected_search_shader = null;
 
 		public AppWindow(Gtk.Application app, AppPreferences preferences)
 		{
@@ -140,6 +167,11 @@ namespace Shady
 			_auto_compile_handler_id = Timeout.add(3000, auto_compile_handler, Priority.HIGH_IDLE);
 
 			_shader_filename = null;
+
+            // this is necessary, since the show-menubar value inside the ui file is not
+            // respected, if the GtkStack is the root of the titlebar instead of GtkHeaderBar,
+            // is this a bug?
+			set_show_menubar(false);
 		}
 
 		[GtkCallback]
@@ -152,6 +184,9 @@ namespace Shady
 			editor.prepare_destruction();
 		}
 
+        /*
+         * Editor part
+         */
 		private bool auto_compile_handler()
 		{
 			if (_settings.get_boolean("auto-compile"))
@@ -261,6 +296,15 @@ namespace Shady
 		}
 
 		[GtkCallback]
+		private void search_button_clicked()
+		{
+		    header_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT);
+		    header_stack.set_visible_child_name("search_header_bar");
+		    content_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT);
+		    content_stack.set_visible_child_name("search_content");
+		}
+
+		[GtkCallback]
 		private void save_button_clicked()
 		{
 		    if (_shader_filename == null)
@@ -318,6 +362,180 @@ namespace Shady
 		    });
 
 		    save_dialog.show();
+		}
+
+		/*
+         * Shadertoy search part
+         */
+        [GtkCallback]
+		private bool search_key_entry_pressed(Gdk.EventKey event_key)
+		{
+			if (event_key.keyval == Gdk.Key.Return)
+			{
+				if (shadertoy_search_entry.text != "")
+				{
+					search(shadertoy_search_entry.text);
+				}
+			}
+
+			return false;
+		}
+
+		[GtkCallback]
+		private void selected_children_changed()
+		{
+			if (shader_box.get_selected_children().length() == 1)
+			{
+				ShadertoyShaderItem selected_shadertoy_item = shader_box.get_selected_children().nth_data(0) as ShadertoyShaderItem;
+				_selected_search_shader = new Shader();
+				_selected_search_shader.assign(selected_shadertoy_item.shader);
+
+				load_shader_button.sensitive = true;
+			}
+		}
+
+		private void show_n_more_shaders(int n)
+		{
+		    if (n == 0)
+		    {
+		        return;
+		    }
+
+		    if (_found_shaders != null && _last_index < _found_shaders.length)
+			{
+			    int loc_index = _last_index;
+				_last_index++;
+
+				if (_found_shaders[loc_index] != null)
+				{
+					ShadertoyShaderItem element = new ShadertoyShaderItem();
+					shader_box.add(element);
+
+					debug(@"show_n_more_shaders: adding shader $(_found_shaders[loc_index].shader_name) with index $(loc_index)");
+
+			        element.sh_it_name = _found_shaders[loc_index].shader_name;
+			        element.author = _found_shaders[loc_index].author;
+			        element.likes = (int) _found_shaders[loc_index].likes;
+			        element.views = (int) _found_shaders[loc_index].views;
+			        element.shader = _found_shaders[loc_index];
+
+			        element._shadertoy_area.compilation_finished.connect(() =>
+			        {
+			            show_n_more_shaders(n - 1);
+			        });
+
+			        try
+			        {
+			            debug(@@"show_n_more_shaders: Compiling $(element.sh_it_name)");
+				        element.compile();
+			        }
+			        catch (ShaderError e)
+			        {
+				        warning(@"show_n_more_shaders: compilation error: $(e.message)");
+			        }
+				}
+			}
+		}
+
+		[GtkCallback]
+		private void visible_child_changed()
+		{
+			if (search_content_stack.visible_child_name == "search_results" &&
+			    search_content_stack.visible_child_name != _current_search_child)
+			{
+				_last_index = 0;
+
+				show_n_more_shaders(16);
+
+				/*for (int i = 0; i < 4; i++)
+				{
+					show_n_more_shaders(4);
+
+					Gtk.Allocation allocation;
+					shader_box.get_allocated_size(out allocation, null);
+
+					if (allocation.y > 20)
+					{
+						break;
+					}
+				}*/
+
+				/*Gtk.Allocation allocation;
+				shader_box.get_allocation(out allocation);
+				while (allocation.y < 100 && _last_index < _found_shaders.length);
+				{
+					show_n_more_shaders(4);
+
+					Thread.usleep(500000);
+
+					shader_box.get_allocation(out allocation);
+				}*/
+			}
+
+			// for some reason the corresponding signal is emitted twice, so
+			// we have to remember the state
+			_current_search_child = search_content_stack.visible_child_name;
+		}
+
+		[GtkCallback]
+		private void edge_reached(Gtk.PositionType position_type)
+		{
+			/*if (position_type == Gtk.PositionType.BOTTOM)
+			{
+				if (_last_index < _found_shaders.length)
+				{
+					show_n_more_shaders(4);
+				}
+			}*/
+		}
+
+		[GtkCallback]
+		private void cancel_search_button_clicked()
+		{
+		    header_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT);
+		    header_stack.set_visible_child_name("header_bar");
+		    content_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT);
+		    content_stack.set_visible_child_name("content");
+		}
+
+		[GtkCallback]
+		private void load_shader_button_clicked()
+		{
+		    set_shader(_selected_search_shader);
+
+		    header_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT);
+		    header_stack.set_visible_child_name("header_bar");
+		    content_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT);
+		    content_stack.set_visible_child_name("content");
+
+		    compile();
+		}
+
+		public void search(string search_string)
+		{
+			shader_box.forall((widget) =>
+			{
+				shader_box.remove(widget);
+			});
+
+			loading_label.set_text("Loading shaders...");
+			search_content_stack.visible_child_name = "spinner";
+			shadertoy_search_entry.sensitive = false;
+
+			ShadertoySearch shadertoy_search = new ShadertoySearch();
+
+			shadertoy_search.download_proceeded.connect((count, num_shaders) =>
+			{
+			    loading_label.set_text(@"Loaded $count/$num_shaders shaders...");
+			});
+
+			shadertoy_search.search.begin(search_string, (object, resource) =>
+			{
+			    _found_shaders = shadertoy_search.search.end(resource);
+
+			    search_content_stack.visible_child_name = "search_results";
+                shadertoy_search_entry.sensitive = true;
+			});
 		}
 	}
 }

@@ -47,7 +47,9 @@ namespace Shady
 			}
 		}
 
-		public Shader shader { get; set; default = null; }
+        private Shader _shader = null;
+        private Shader _backup = null;
+		public Shader shader { get { return _backup; } set { _shader = value; _backup = value; } }
 
 		[GtkChild]
 		private Gtk.Box shader_container;
@@ -72,7 +74,7 @@ namespace Shady
 			// file
 
 			Shader load_shader = ShaderArea.get_loading_shader();
-			shader = load_shader;
+			_shader = load_shader;
 
 			_shadertoy_area = new ShadertoyArea(load_shader);
 			_shadertoy_area.set_size_request(152, 140);
@@ -89,7 +91,7 @@ namespace Shady
 
 		public void compile() throws ShaderError
 		{
-			_shadertoy_area.compile(shader);
+			_shadertoy_area.compile(_shader);
 		}
 
 		[GtkCallback]
