@@ -130,6 +130,12 @@ namespace Shady
 			        return true;
 			    }
 
+			    if (event.keyval == Gdk.Key.Escape &&
+			        content_stack.visible_child_name == "search_content")
+			    {
+			        cancel_search_button_clicked();
+			    }
+
 			    if (event.keyval == Gdk.Key.ISO_Left_Tab &&
 			        event.state == (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK))
 			    {
@@ -302,6 +308,8 @@ namespace Shady
 		    header_stack.set_visible_child_name("search_header_bar");
 		    content_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT);
 		    content_stack.set_visible_child_name("search_content");
+
+		    shadertoy_search_entry.grab_focus();
 		}
 
 		[GtkCallback]

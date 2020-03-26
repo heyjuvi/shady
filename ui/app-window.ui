@@ -281,6 +281,8 @@
 
 			          <signal name="clicked" handler="cancel_search_button_clicked" />
 
+			          <accelerator key="Escape" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+
 			          <child>
 							    <object class="GtkImage">
 								    <property name="visible">True</property>
