@@ -304,6 +304,8 @@ namespace Shady
 		[GtkCallback]
 		private void search_button_clicked()
 		{
+		    scene.shadertoy_area.paused = true;
+
 		    header_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT);
 		    header_stack.set_visible_child_name("search_header_bar");
 		    content_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT);
@@ -504,18 +506,21 @@ namespace Shady
 		    header_stack.set_visible_child_name("header_bar");
 		    content_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT);
 		    content_stack.set_visible_child_name("content");
+
+		    scene.shadertoy_area.paused = false;
 		}
 
 		[GtkCallback]
 		private void load_shader_button_clicked()
 		{
-		    set_shader(_selected_search_shader);
-
 		    header_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT);
 		    header_stack.set_visible_child_name("header_bar");
 		    content_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT);
 		    content_stack.set_visible_child_name("content");
 
+		    scene.shadertoy_area.paused = false;
+
+            set_shader(_selected_search_shader);
 		    compile();
 		}
 
