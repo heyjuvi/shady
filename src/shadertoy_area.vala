@@ -79,7 +79,7 @@ namespace Shady
 
 		const double _target_time=10000.0;
 		const double _upper_time_threshold=15000;
-		const double _lower_time_threshold=1000;
+		const double _lower_time_threshold=5000;
 
 		const double _fps_interval = 0.1;
 
@@ -97,6 +97,7 @@ namespace Shady
 		double _fps_sum = 0.0;
 		int _num_fps_vals = 0;
 		private int64 _fps_time;
+		private double[] _tile_times = {};
 
 		private int _curr_renderpass = 0;
 		private bool _splitted_rendering = false;
@@ -346,7 +347,7 @@ namespace Shady
 			{
 				if(Math.isinf(ratio) == 0)
 				{
-					buf_props[i].time_delta = (int64)(buf_props[i].time_delta*ratio);
+					buf_props[i].tile_time_max = (int64)(buf_props[i].tile_time_max*ratio);
 				}
 
 				detect_tile_size(buf_props[i]);
@@ -437,12 +438,12 @@ namespace Shady
 		{
 			//TODO: is there a better way to do this? maybe another heuristic that is better than the old one?
 			//      should more "quadratic" tilings be preferred? why is this so sensitive to random fluctuations?
-			double target_pixels = (_target_time*(double)_width*(double)_height)/((double)buf_prop.time_delta*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts);
+			double target_pixels = (_target_time*(double)_width*(double)_height)/((double)buf_prop.tile_time_max*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts);
 
 			double err = double.INFINITY;
 			int best_xp = 0;
 			int best_yp = 0;
-			for(int yp=1; yp<=8; yp++)
+			for(int yp=1; yp<=16; yp++)
 			{
 				int cur_height = _height / yp;
 				int xp = (int)Math.round(_width / (target_pixels/cur_height));
@@ -459,6 +460,9 @@ namespace Shady
 				int cur_width = _width / xp;
 				double cur_err = Math.fabs(cur_width * cur_height - target_pixels);
 
+				//prefer more "quadratic" setups (not really evaluated the effect yet)
+				cur_err+=Math.fabs(cur_width-cur_height) * 3.0;
+
 				if(cur_err < err)
 				{
 					err = cur_err;
@@ -472,6 +476,8 @@ namespace Shady
 
 			buf_prop.cur_x_img_part = 0;
 			buf_prop.cur_y_img_part = 0;
+
+			buf_prop.tile_time_max = -double.INFINITY;
 		}
 
 		private void swap_buffer_textures(RenderResources.BufferProperties[] buf_props, RenderResources.BufferProperties img_prop){
@@ -605,13 +611,27 @@ namespace Shady
 					{
 						render_gl(buf_props[i]);
 
-						if(buf_props[i].time_delta > _upper_time_threshold ||
-						   (buf_props[i].time_delta < _lower_time_threshold && (buf_props[i].x_img_parts!=1 || buf_props[i].y_img_parts!=1)))
+						buf_props[i].tile_time_max = double.max(buf_props[i].tile_time_max,buf_props[i].time_delta);
+						buf_props[i].tile_time_sum += buf_props[i].time_delta;
+
+						if(buf_props[i].tile_time_max > _upper_time_threshold)
 						{
 							detect_tile_size(buf_props[i]);
 						}
 
+						//TODO: should this be done after redetecting? should i use the tile time maximum instead?
 						_time_delta_accum += buf_props[i].time_delta * buf_props[i].x_img_parts * buf_props[i].y_img_parts;
+					}
+
+					if(buf_props[i].parts_rendered)
+					{
+						if(buf_props[i].tile_time_max < _lower_time_threshold && (buf_props[i].x_img_parts!=1 || buf_props[i].y_img_parts!=1))
+						{
+							detect_tile_size(buf_props[i]);
+						}
+
+						buf_props[i].tile_time_max = -double.INFINITY;
+						buf_props[i].tile_time_sum = 0.0;
 					}
 				}
 
@@ -625,6 +645,8 @@ namespace Shady
 				}
 				else if(_time_delta_accum < _lower_time_threshold)
 				{
+					if(_splitted_rendering){
+					}
 					_splitted_rendering = false;
 				}
 

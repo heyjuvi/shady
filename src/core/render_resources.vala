@@ -44,6 +44,9 @@ namespace Shady.Core
 			public double time;
 			public double delta;
 
+			public double tile_time_max;
+			public double tile_time_sum;
+
 			public float year;
 			public float month;
 			public float day;

@@ -9,7 +9,7 @@ namespace Shady.Core
 		}
 
 		private const string _channel_string = "iChannel";
-		private const uint _default_tile_size = 16;
+		private const uint _default_tile_size = 64;
 		private const int64 _default_time_delta = 100000;
 
 		private class ThreadData
@@ -189,6 +189,8 @@ namespace Shady.Core
 					buffer_props[i].y_img_parts = compile_resources.height/_default_tile_size;
 
 					buffer_props[i].time_delta = _default_time_delta;
+					buffer_props[i].tile_time_max = -double.INFINITY;
+					buffer_props[i].tile_time_sum = 0.0;
 
 					buffer_props[i].parts_rendered = false;
 					buffer_props[i].second_resize = false;
