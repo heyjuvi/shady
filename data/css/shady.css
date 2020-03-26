@@ -90,11 +90,12 @@ notebook.live_mode textview.view border, notebook.live_mode textview border
 .search_slider
 {
   background-color: @theme_base_color;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
   padding: 6pt;
-  margin-right: 12pt;
+  margin: 0 12pt 6pt 6pt;
   border-color: @borders;
   border-radius: 0 0 3pt 3pt;
-  border-width: 0 1px 1pt 1pt;
+  border-width: 0 1px 1px 1px;
   border-style: solid;
 }
 

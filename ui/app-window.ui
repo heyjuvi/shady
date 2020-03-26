@@ -39,50 +39,105 @@
 				    </style>
 
 				    <child>
-					    <object class="GtkButton" id="reset_button">
+				      <object class="GtkBox">
 						    <property name="visible">True</property>
-						    <property name="can_focus">True</property>
-						    <property name="receives_default">False</property>
+						    <property name="can_focus">false</property>
+						    <property name="orientation">horizontal</property>
+						    <property name="spacing">0</property>
 
-						    <signal name="clicked" handler="reset_button_clicked" />
+				        <style>
+					        <class name="linked" />
+				        </style>
 
-					      <accelerator key="b" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+				        <child>
+					        <object class="GtkButton" id="reset_button">
+						        <property name="visible">True</property>
+						        <property name="can_focus">True</property>
+						        <property name="receives_default">False</property>
 
-						    <child>
-							    <object class="GtkImage">
-								    <property name="visible">True</property>
-								    <property name="can_focus">False</property>
-								    <property name="icon_name">media-skip-backward-symbolic</property>
-							    </object>
-						    </child>
-					    </object>
-					    <packing>
+						        <signal name="clicked" handler="reset_button_clicked" />
+
+					          <accelerator key="b" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+
+						        <child>
+							        <object class="GtkImage">
+								        <property name="visible">True</property>
+								        <property name="can_focus">False</property>
+								        <property name="icon_name">media-skip-backward-symbolic</property>
+							        </object>
+						        </child>
+					        </object>
+				        </child>
+
+				        <child>
+					        <object class="GtkButton" id="play_button">
+						        <property name="visible">True</property>
+						        <property name="can_focus">True</property>
+						        <property name="receives_default">False</property>
+
+						        <signal name="clicked" handler="play_button_clicked" />
+
+					          <accelerator key="p" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+
+						        <child>
+							        <object class="GtkImage" id="play_button_image">
+								        <property name="visible">True</property>
+								        <property name="can_focus">False</property>
+								        <property name="icon_name">media-playback-pause-symbolic</property>
+							        </object>
+						        </child>
+					        </object>
+				        </child>
+
+				        <child>
+					        <object class="GtkButton" id="compile_button">
+						        <property name="visible">True</property>
+						        <property name="can_focus">True</property>
+						        <property name="receives_default">False</property>
+
+						        <signal name="clicked" handler="compile_button_clicked" />
+
+					          <accelerator key="r" modifiers="GDK_CONTROL_MASK" signal="clicked" />
+
+						        <style>
+							        <class name="suggested-action" />
+						        </style>
+
+						        <child>
+							        <object class="GtkStack" id="compile_button_stack">
+								        <property name="visible">True</property>
+								        <property name="can_focus">False</property>
+								        <property name="transition_type">none</property>
+
+								        <child>
+									        <object class="GtkImage">
+										        <property name="visible">True</property>
+										        <property name="can_focus">False</property>
+										        <property name="icon_name">face-monkey-symbolic</property>
+									        </object>
+									        <packing>
+										        <property name="name">compile_image</property>
+									        </packing>
+								        </child>
+
+								        <child>
+									        <object class="GtkSpinner">
+										        <property name="visible">True</property>
+										        <property name="can_focus">False</property>
+										        <property name="active">True</property>
+									        </object>
+									        <packing>
+										        <property name="name">compile_spinner</property>
+									        </packing>
+								        </child>
+							        </object>
+						        </child>
+					        </object>
+				        </child>
+				      </object>
+			        <packing>
 						    <property name="pack-type">start</property>
 						    <property name="position">0</property>
-					    </packing>
-				    </child>
-
-				    <child>
-					    <object class="GtkButton" id="play_button">
-						    <property name="visible">True</property>
-						    <property name="can_focus">True</property>
-						    <property name="receives_default">False</property>
-
-						    <signal name="clicked" handler="play_button_clicked" />
-
-					      <accelerator key="p" modifiers="GDK_CONTROL_MASK" signal="clicked" />
-
-						    <child>
-							    <object class="GtkImage" id="play_button_image">
-								    <property name="visible">True</property>
-								    <property name="can_focus">False</property>
-								    <property name="icon_name">media-playback-pause-symbolic</property>
-							    </object>
-						    </child>
-					    </object>
-					    <packing>
-						    <property name="pack-type">start</property>
-						    <property name="position">1</property>
 					    </packing>
 				    </child>
 
@@ -113,7 +168,7 @@
 					    </object>
 					    <packing>
 						    <property name="pack-type">start</property>
-						    <property name="position">2</property>
+						    <property name="position">1</property>
 					    </packing>
 				    </child>
 
@@ -136,7 +191,7 @@
 					    </object>
 					    <packing>
 						    <property name="pack-type">end</property>
-						    <property name="position">5</property>
+						    <property name="position">3</property>
 					    </packing>
 				    </child>
 
@@ -160,7 +215,7 @@
 					    </object>
 					    <packing>
 						    <property name="pack-type">end</property>
-						    <property name="position">4</property>
+						    <property name="position">2</property>
 					    </packing>
 				    </child>
 
@@ -179,56 +234,6 @@
 								    <property name="visible">True</property>
 								    <property name="can_focus">False</property>
 								    <property name="icon_name">document-save-symbolic</property>
-							    </object>
-						    </child>
-					    </object>
-					    <packing>
-						    <property name="pack-type">end</property>
-						    <property name="position">3</property>
-					    </packing>
-				    </child>
-
-				    <child>
-					    <object class="GtkButton" id="compile_button">
-						    <property name="visible">True</property>
-						    <property name="can_focus">True</property>
-						    <property name="receives_default">False</property>
-
-						    <signal name="clicked" handler="compile_button_clicked" />
-
-					      <accelerator key="r" modifiers="GDK_CONTROL_MASK" signal="clicked" />
-
-						    <style>
-							    <class name="suggested-action" />
-						    </style>
-
-						    <child>
-							    <object class="GtkStack" id="compile_button_stack">
-								    <property name="visible">True</property>
-								    <property name="can_focus">False</property>
-								    <property name="transition_type">none</property>
-
-								    <child>
-									    <object class="GtkImage">
-										    <property name="visible">True</property>
-										    <property name="can_focus">False</property>
-										    <property name="icon_name">mail-send-symbolic</property>
-									    </object>
-									    <packing>
-										    <property name="name">compile_image</property>
-									    </packing>
-								    </child>
-
-								    <child>
-									    <object class="GtkSpinner">
-										    <property name="visible">True</property>
-										    <property name="can_focus">False</property>
-										    <property name="active">True</property>
-									    </object>
-									    <packing>
-										    <property name="name">compile_spinner</property>
-									    </packing>
-								    </child>
 							    </object>
 						    </child>
 					    </object>
