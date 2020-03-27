@@ -34,6 +34,12 @@
 	padding: 3pt;
 }
 
+.compile_button
+{
+  background: url('resource:///org/hasi/shady/data/images/compile_background.png');
+  background-size: cover;
+}
+
 /* editor */
 notebook
 {

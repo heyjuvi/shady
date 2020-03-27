@@ -100,7 +100,7 @@
 					          <accelerator key="r" modifiers="GDK_CONTROL_MASK" signal="clicked" />
 
 						        <style>
-							        <class name="suggested-action" />
+							        <class name="compile_button" />
 						        </style>
 
 						        <child>
@@ -113,7 +113,7 @@
 									        <object class="GtkImage">
 										        <property name="visible">True</property>
 										        <property name="can_focus">False</property>
-										        <property name="icon_name">face-monkey-symbolic</property>
+										        <property name="icon_name">media-playlist-repeat-symbolic</property>
 									        </object>
 									        <packing>
 										        <property name="name">compile_image</property>
