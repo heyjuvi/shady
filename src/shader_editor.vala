@@ -224,7 +224,7 @@ namespace Shady
 
 	            return true;
 	        };
-	        new Thread<bool>("minify_thread", run);
+	        new Thread<bool>("minify_thread", (owned) run);
 		}
 
 		public void prepare_destruction()
@@ -523,7 +523,7 @@ namespace Shady
 
 	            return true;
 	        };
-	        new Thread<bool>("minify_full_thread", run);
+	        new Thread<bool>("minify_full_thread", (owned) 	run);
 		}
 
 		private int add_buffer(string buffer_name, int insert_index, bool show_close_button=true, bool skip_full_char_refresh=false)

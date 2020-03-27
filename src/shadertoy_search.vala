@@ -42,7 +42,6 @@ namespace Shady
 
 				if (shader_parser.get_root() == null)
 				{
-				    print(@"\n\n\n\n\n$shader_data\n\n\n\n\n");
 				    invalid_result = true;
 				    loading_finished();
 
@@ -247,7 +246,7 @@ namespace Shady
 
 	    public async Shader?[] search(string search_string)
 		{
-		    SourceFunc callback = search.callback;
+		    SourceFunc search_callback = this.search.callback;
 
 			ThreadFunc<bool> run = () =>
 			{
@@ -275,7 +274,7 @@ namespace Shady
 						search_finished = true;
 					}
 
-					Idle.add(() =>
+					Timeout.add(0, () =>
 					{
 					    download_proceeded(count, num_shaders);
 					    return false;
@@ -284,11 +283,16 @@ namespace Shady
 					Thread.usleep(1000000);
 				}
 
-				Idle.add((owned) callback);
+                // TODO: why is the timeout necessary and Idle.add does not work?
+                // is it a race condition?
+				Timeout.add(0, () => {
+				    search_callback();
+				    return false;
+				});
 
 				return true;
 			};
-			new Thread<bool>("search_thread", run);
+			new Thread<bool>("search_thread", (owned) run);
 
 			yield;
 
@@ -322,8 +326,6 @@ namespace Shady
                     return 0;
 				}
 
-				print(@"$((string) search_message.response_body.flatten().data)\n\n\n\n\n\n\n\n");
-
 				var results = search_root.get_array_member("Results");
 
 				_found_shaders = new Shader[num_shaders];
@@ -338,9 +340,13 @@ namespace Shady
 				{
 					string shader_uri = @"https://www.shadertoy.com/api/v1/shaders/$(result_node.get_string())?key=$API_KEY";
 
+                    debug(@"starting load thread for $shader_uri");
+
 					LoadShaderThread load_thread = new LoadShaderThread(shader_uri, index);
 					load_thread.loading_finished.connect(() =>
 					{
+					    debug(@"finished loading $(load_thread.shader_uri)");
+
 						_found_shaders[load_thread.shader_index] = load_thread.shader;
 					});
 
