@@ -36,9 +36,16 @@
 
 .compile_button
 {
+  background: url('resource:///org/hasi/shady/data/images/compile_background_dimmed.png');
+  background-size: cover;
+}
+
+.compile_button:active
+{
   background: url('resource:///org/hasi/shady/data/images/compile_background.png');
   background-size: cover;
 }
+
 
 /* editor */
 notebook

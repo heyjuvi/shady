@@ -30,6 +30,7 @@
 
 		<!-- images -->
 		<file>data/images/shady_logo_header_bar.png</file>
+	  <file>data/images/compile_background_dimmed.png</file>
 	  <file>data/images/compile_background.png</file>
 	  <file>data/images/paint.png</file>
 		<file>data/images/likes.png</file>
