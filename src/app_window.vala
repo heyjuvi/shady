@@ -51,9 +51,6 @@ namespace Shady
 		public signal void escape_pressed();
 
 		[GtkChild]
-		private Gtk.Box main_box;
-
-		[GtkChild]
 		private Gtk.Stack header_stack;
 
 		[GtkChild]
@@ -126,32 +123,17 @@ namespace Shady
 
 			key_press_event.connect((widget, event) =>
 			{
-			    if (event.keyval == Gdk.Key.Escape &&
-			        content_stack.visible_child_name == "search_content")
-			    {
-			        cancel_search_button_clicked();
-			    }
-
-			    bool is_fullscreen = (get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
-
-				if (is_fullscreen &&
-				    (event.keyval == Gdk.Key.F11 ||
-				     event.keyval == Gdk.Key.Escape))
-				{
-				    unfullscreen();
-
-                    scene.shadertoy_area.hide();
-					main_box.remove(scene.shadertoy_area);
-					content_stack.show();
-
-					scene.leave_fullscreen();
-				}
-
 			    if (event.keyval == Gdk.Key.Tab &&
 			        event.state == Gdk.ModifierType.CONTROL_MASK)
 			    {
 			        editor.next_buffer();
 			        return true;
+			    }
+
+			    if (event.keyval == Gdk.Key.Escape &&
+			        content_stack.visible_child_name == "search_content")
+			    {
+			        cancel_search_button_clicked();
 			    }
 
 			    if (event.keyval == Gdk.Key.ISO_Left_Tab &&
@@ -162,17 +144,6 @@ namespace Shady
 			    }
 
 			    return false;
-			});
-
-			scene.fullscreen_requested.connect(() =>
-			{
-			    content_stack.hide();
-
-                scene.enter_fullscreen();
-                main_box.pack_start(scene.shadertoy_area, true, true);
-                scene.shadertoy_area.show();
-
-                fullscreen();
 			});
 
 			// set current switched layout state

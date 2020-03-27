@@ -35,6 +35,8 @@ namespace Shady
 	    [GtkChild]
 	    private Gtk.TextView tags_box;
 
+        //public ShadertoyArea _fullscreen_shadertoy_area;
+	    private Gtk.Window _fullscreen_window;
 	    private Gtk.Box _placeholder_box;
 
 	    private Shader _curr_shader;
@@ -42,9 +44,32 @@ namespace Shady
 		public ShaderScene()
 		{
 		    _shadertoy_area = new ShadertoyArea(ShaderArea.get_default_shader());
+		    //_fullscreen_shadertoy_area = new ShadertoyArea(ShaderArea.get_default_shader());
+
+            _fullscreen_window = new Gtk.Window();
+            _fullscreen_window.width_request = 320;
+            _fullscreen_window.height_request = 240;
 
             _placeholder_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
             _placeholder_box.get_style_context().add_class("placeholder_box");
+
+            _fullscreen_window.delete_event.connect(() =>
+            {
+                return true;
+            });
+
+            _fullscreen_window.key_press_event.connect((widget, event) =>
+			{
+			    //bool is_fullscreen = (_fullscreen_window.get_window().get_state() & Gdk.WindowState.FULLSCREEN) == Gdk.WindowState.FULLSCREEN;
+
+				if (event.keyval == Gdk.Key.F11 ||
+				    event.keyval == Gdk.Key.Escape)
+				{
+					leave_fullscreen();
+				}
+
+				return false;
+			});
 
             // TODO: it must be possible to enforce the aspect ratio in a better way
 		    main_shader_container.size_allocate.connect((allocation) =>
@@ -76,6 +101,10 @@ namespace Shady
 			});
 
 		    _shadertoy_area.show();
+
+			_fullscreen_window.realize();
+		    //_fullscreen_window.add(_fullscreen_shadertoy_area);
+		    //_fullscreen_shadertoy_area.paused = true;
 		}
 
 		public void compile(Shader shader)
@@ -107,31 +136,43 @@ namespace Shady
 		    _shadertoy_area.compile(shader);
 
 		    _curr_shader = shader;
+		    //_fullscreen_shadertoy_area.compile(shader);
 		}
 
 		public void enter_fullscreen()
 		{
+		    _fullscreen_window.show_all();
+		    //_fullscreen_shadertoy_area.paused = false;
 		    main_shader_container.remove(_shadertoy_area);
 		    _shadertoy_area.hide();
 		    main_shader_container.pack_start(_placeholder_box, false, true);
 		    _placeholder_box.show();
+		    _fullscreen_window.add(_shadertoy_area);
+		    _shadertoy_area.show();
+		    _fullscreen_window.fullscreen();
+		    _shadertoy_area.compile(_curr_shader);
 		}
 
 		public void leave_fullscreen()
 		{
+		    _fullscreen_window.unfullscreen();
 		    // TODO: BUG UNDER GNOME WAYLOAND, FULLSCREEN WINDOW WiLL NEVER
 		    // EVER UNFULLSCREEN AGAIN! EVEN AFTER CLOSING THE APPLICATION!
+		    _fullscreen_window.remove(_shadertoy_area);
 		    _shadertoy_area.hide();
 		    main_shader_container.remove(_placeholder_box);
 		    _placeholder_box.hide();
 		    main_shader_container.pack_start(_shadertoy_area, false, true);
 		    _shadertoy_area.show();
+		    _fullscreen_window.hide();
+		    _shadertoy_area.compile(_curr_shader);
+		    //_fullscreen_shadertoy_area.paused = true;
 		}
 
 		[GtkCallback]
 		private void fullscreen_button_clicked()
 		{
-		    fullscreen_requested();
+		    enter_fullscreen();
 		}
 	}
 }
