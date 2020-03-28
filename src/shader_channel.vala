@@ -76,7 +76,7 @@ namespace Shady
 			    {
 			        _last_texture_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
 			    }
-			    else if (value.type == Shader.InputType.TEXTURE)
+			    else if (value.type == Shader.InputType.CUBEMAP)
 			    {
 			        _last_cubemap_inputs[_channel_buffer].assign_content(_channel_inputs[_channel_buffer]);
 			    }
@@ -190,6 +190,8 @@ namespace Shady
 				read_sampler_to_input();
 				compile_input();
 
+				_texture_popover.popdown();
+
 				channel_input_changed(_channel_inputs[_channel_buffer]);
 			});
 
@@ -201,6 +203,8 @@ namespace Shady
 				update_for_input_type();
 				read_sampler_to_input();
 				compile_input();
+
+				_cubemap_popover.popdown();
 
 				channel_input_changed(_channel_inputs[_channel_buffer]);
 			});
@@ -214,6 +218,8 @@ namespace Shady
 				read_sampler_to_input();
 				compile_input();
 
+				_3dtexture_popover.popdown();
+
 				channel_input_changed(_channel_inputs[_channel_buffer]);
 			});
 
@@ -225,6 +231,8 @@ namespace Shady
 				update_for_input_type();
 				read_sampler_to_input();
 				compile_input();
+
+				_buffer_popover.popdown();
 
 				channel_input_changed(_channel_inputs[_channel_buffer]);
 			});
@@ -252,7 +260,7 @@ namespace Shady
 				    {
 				        _last_texture_inputs[renderpass.renderpass_name].assign_content(_channel_inputs[renderpass.renderpass_name]);
 				    }
-				    else if (_channel_inputs[renderpass.renderpass_name].type == Shader.InputType.TEXTURE)
+				    else if (_channel_inputs[renderpass.renderpass_name].type == Shader.InputType.CUBEMAP)
 				    {
 				        _last_cubemap_inputs[renderpass.renderpass_name].assign_content(_channel_inputs[renderpass.renderpass_name]);
 				    }
@@ -271,7 +279,7 @@ namespace Shady
 
     		if (!channel_in_use)
     		{
-    			channel_input = Shader.Input.NO_INPUT;
+    			_channel_inputs[renderpass.renderpass_name].assign_content(Shader.Input.NO_INPUT);
     		}
 
     		if (renderpass.renderpass_name == _channel_buffer)
@@ -315,30 +323,30 @@ namespace Shady
 
 				if (_channel_inputs[_channel_buffer].type == Shader.InputType.SOUNDCLOUD)
 				{
-					_soundcloud_popover.popdown();
+					//_soundcloud_popover.popdown();
 					_current_popover = _soundcloud_popover;
 				}
 				else if (_channel_inputs[_channel_buffer].type == Shader.InputType.TEXTURE)
 				{
-					_texture_popover.popdown();
+					//_texture_popover.popdown();
 					_current_popover = _texture_popover;
 					_channel_inputs[_channel_buffer].assign_content(_last_texture_inputs[_channel_buffer]);
 				}
 				else if (_channel_inputs[_channel_buffer].type == Shader.InputType.CUBEMAP)
 				{
-					_cubemap_popover.popdown();
+					//_cubemap_popover.popdown();
 					_current_popover = _cubemap_popover;
 					_channel_inputs[_channel_buffer].assign_content(_last_cubemap_inputs[_channel_buffer]);
 				}
 				else if (_channel_inputs[_channel_buffer].type == Shader.InputType.3DTEXTURE)
 				{
-					_3dtexture_popover.popdown();
+					//_3dtexture_popover.popdown();
 					_current_popover = _3dtexture_popover;
 					_channel_inputs[_channel_buffer].assign_content(_last_3dtexture_inputs[_channel_buffer]);
 				}
 				else if (_channel_inputs[_channel_buffer].type == Shader.InputType.BUFFER)
 				{
-				    _buffer_popover.popdown();
+				    //_buffer_popover.popdown();
 				    _current_popover = _buffer_popover;
 				    _channel_inputs[_channel_buffer].assign_content(_last_buffer_inputs[_channel_buffer]);
 				}
@@ -386,9 +394,15 @@ namespace Shady
 
 					if (buffer != null)
 					{
-						print(@"shader_channel@select_current_inputs: setting buffer_name to $buffer\n");
 						//_buffer_popover.buffer_name = buffer;
 						_buffer_popover.set_buffer_name_inconsistently(buffer);
+					}
+					else
+					{
+					    // TODO: ideally only buffers, which are present in the shader should be
+					    // selectable and if there is no buffer present, buffer shouldn't be an
+					    // option for an iChannel at all
+					    _buffer_popover.set_buffer_name_inconsistently("Buf A");
 					}
 				}
 			}

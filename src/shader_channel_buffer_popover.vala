@@ -11,8 +11,6 @@ namespace Shady
 		    get { return _buffer_name; }
 		    set
 		    {
-				print(@"shader_channel_buffer_popover@buffer_name: setting property buffer_name to $value\n");
-
 		        if (value == "Buf A")
 		        {
 		            buf_a_radio_button.active = true;

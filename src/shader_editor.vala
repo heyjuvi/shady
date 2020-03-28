@@ -376,8 +376,6 @@ namespace Shady
 				else if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.COMMON)
 				{
 					_curr_shader.renderpasses.index(i).code = get_buffer("Common");
-
-					print(@"$(_curr_shader.renderpasses.index(i))\n");
 				}
 				else if (_curr_shader.renderpasses.index(i).type == Shader.RenderpassType.SOUND)
 				{
@@ -765,7 +763,7 @@ namespace Shady
 		}
 
 		private void channel_input_changed(Shader.Input channel_input)
-		    requires(channel_input.resource != null)
+		    requires(channel_input != null)
 		{
 			Shader.Renderpass? curr_renderpass = find_current_renderpass();
 			if (curr_renderpass == null)

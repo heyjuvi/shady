@@ -312,7 +312,11 @@ namespace Shady
 				{
 					return IMAGE;
 				}
-				else if (type.down() == "buffer")
+				else if (type.down() == "buffer" ||
+				         type.down() == "buf a" ||
+				         type.down() == "buf b" ||
+				         type.down() == "buf c" ||
+				         type.down() == "buf d")
 				{
 					return BUFFER;
 				}
