@@ -100,6 +100,12 @@ namespace Shady.Core
 
 		private static void compile(ThreadData data)
 		{
+			Timeout.add(1,() =>
+			{
+				data.compile_resources.compilation_started();
+				return false;
+			});
+
 			data.context.make_current();
 
 			bool success = compile_blocking(data.shader, data.render_resources, data.compile_resources);

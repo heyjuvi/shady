@@ -12,6 +12,7 @@ namespace Shady
 
 	public class ShadertoyArea : ShaderArea
 	{
+		public signal void compilation_started();
 		public signal void compilation_finished();
 		public signal void pass_compilation_terminated(int pass_index, ShaderError? e);
 
@@ -212,6 +213,11 @@ namespace Shady
 				}
 
 				//TODO: wait for compilation to finish
+			});
+
+			_compile_resources.compilation_started.connect(() =>
+			{
+				compilation_started();
 			});
 
 			_compile_resources.compilation_finished.connect(() =>

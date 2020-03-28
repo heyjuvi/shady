@@ -5,6 +5,7 @@ namespace Shady.Core
 	public class CompileResources
 	{
 
+		public signal void compilation_started();
 		public signal void compilation_finished();
 		public signal void pass_compilation_terminated(int pass_index, ShaderError? e);
 
