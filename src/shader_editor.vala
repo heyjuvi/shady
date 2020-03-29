@@ -191,32 +191,35 @@ namespace Shady
 		    {
 		        while (!_destroyed)
 		        {
-		            _minify_mutex.lock();
+		            if (_curr_buffer != null)
+		            {
+		                _minify_mutex.lock();
 
-		            string? buffer_text = null;
-		            Idle.add(() =>
-	                {
-		                buffer_text = _curr_buffer.buffer.text;
+		                string? buffer_text = null;
+		                Idle.add(() =>
+	                    {
+		                    buffer_text = _curr_buffer.buffer.text;
 
-		                return false;
-		            });
+		                    return false;
+		                });
 
-		            while (buffer_text == null);;
+		                while (buffer_text == null);;
 
-	                int new_total_chars = total_chars - buffer_chars;
-	                int new_buffer_chars = _minifier.minify_kindly(buffer_text).length;
+	                    int new_total_chars = total_chars - buffer_chars;
+	                    int new_buffer_chars = _minifier.minify_kindly(buffer_text).length;
 
-	                new_total_chars += new_buffer_chars;
+	                    new_total_chars += new_buffer_chars;
 
-	                Idle.add(() =>
-	                {
-	                    buffer_chars = new_buffer_chars;
-	                    total_chars = new_total_chars;
+	                    Timeout.add(0, () =>
+	                    {
+	                        buffer_chars = new_buffer_chars;
+	                        total_chars = new_total_chars;
 
-	                    _minify_mutex.unlock();
+	                        _minify_mutex.unlock();
 
-	                    return false;
-	                });
+	                        return false;
+	                    });
+	                }
 
                     // TODO: this could in principle be made adaptive
 	                Thread.usleep(2000000);
@@ -481,7 +484,7 @@ namespace Shady
 	            Array<string> buffer_texts = new Array<string>();
 		        foreach (string key in _shader_buffers.get_keys())
 		        {
-	                Idle.add(() =>
+	                Timeout.add(0, () =>
                     {
 	                    buffer_texts.append_val(_shader_buffers[key].buffer.text);
 
@@ -509,7 +512,7 @@ namespace Shady
 		            new_buffer_chars = _minifier.minify_kindly(buffer_texts.index(mark_curr_buffer)).length;
 		        }
 
-                Idle.add(() =>
+                Timeout.add(0, () =>
                 {
                     buffer_chars = new_buffer_chars;
                     total_chars = new_total_chars;
