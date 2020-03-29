@@ -7,8 +7,8 @@ namespace Shady
 		public string shader_uri;
 		public int shader_index;
 
-		public Shader shader;
-		public bool invalid_result;
+		public Shader? shader = null;
+		public bool invalid_result = false;
 
 		public LoadShaderThread(string uri, int index)
 		{
@@ -43,6 +43,17 @@ namespace Shady
 				if (shader_parser.get_root() == null)
 				{
 				    invalid_result = true;
+				    shader = null;
+				    loading_finished();
+
+				    return -1;
+				}
+
+				if (shader_parser.get_root().get_object().has_member("Error"))
+				{
+				    print("found error member\n");
+				    invalid_result = true;
+				    shader = null;
 				    loading_finished();
 
 				    return -1;
@@ -214,6 +225,7 @@ namespace Shady
         private static string API_KEY = "BtnKW8";
 
 	    private Shader?[] _found_shaders;
+	    private bool[] _valid;
 	    private bool _canceled;
 
 	    private static ThreadPool<LoadShaderThread> _search_pool;
@@ -248,55 +260,106 @@ namespace Shady
 		{
 		    SourceFunc search_callback = this.search.callback;
 
-			ThreadFunc<bool> run = () =>
-			{
-				int num_shaders = (int) search_shaders(search_string);
+            string? id = null;
+		    if (search_string.has_prefix("http"))
+		    {
+		        id = search_string.split("shadertoy.com/view/")[1];
+		    }
+		    else if (search_string.has_prefix("id:"))
+		    {
+		        id = search_string.split("id:")[1];
+		    }
 
-				bool search_finished = false;
-				while (!search_finished && !_canceled)
-				{
-					int count = 0;
-					bool null_shader_found = false;
-					for (int i = 0; i < num_shaders; i++)
-					{
-						if (_found_shaders[i] == null)
-						{
-							null_shader_found = true;
-						}
-						else
-						{
-							count++;
-						}
-					}
+		    ThreadFunc<bool> run = () =>
+		    {
+			    int num_shaders = -1;
 
-					if (!null_shader_found)
-					{
-						search_finished = true;
-					}
+			    if (id != null)
+			    {
+			        num_shaders = 1;
+			        search_by_id(id);
+			    }
+			    else
+			    {
+			        num_shaders = (int) search_shaders(search_string);
+			    }
 
-					Timeout.add(0, () =>
-					{
-					    download_proceeded(count, num_shaders);
-					    return false;
-					});
+			    bool search_finished = false;
+			    while (!search_finished && !_canceled)
+			    {
+				    int count = 0;
+				    bool null_shader_found = false;
+				    for (int i = 0; i < num_shaders; i++)
+				    {
+					    if (_found_shaders[i] == null && _valid[i])
+					    {
+						    null_shader_found = true;
+					    }
+					    else
+					    {
+						    count++;
+					    }
+				    }
 
-					Thread.usleep(1000000);
-				}
+				    if (!null_shader_found)
+				    {
+					    search_finished = true;
+				    }
+
+				    Timeout.add(0, () =>
+				    {
+				        download_proceeded(count, num_shaders);
+				        return false;
+				    });
+
+				    Thread.usleep(1000000);
+			    }
 
                 // TODO: why is the timeout necessary and Idle.add does not work?
                 // is it a race condition?
-				Timeout.add(0, () => {
-				    search_callback();
-				    return false;
-				});
+			    Timeout.add(0, () =>
+			    {
+			        search_callback();
+			        return false;
+			    });
 
-				return true;
-			};
-			new Thread<bool>("search_thread", (owned) run);
+			    return true;
+		    };
+		    new Thread<bool>("search_thread", (owned) run);
 
 			yield;
 
-			return _found_shaders;
+			Array<Shader> valid_shaders = new Array<Shader>();
+			foreach (Shader shader in _found_shaders)
+			{
+			    if (shader != null)
+			    {
+			        valid_shaders.append_val(shader);
+			    }
+			}
+
+			return valid_shaders.data;
+		}
+
+		private void search_by_id(string id)
+		{
+		    string shader_uri = @"https://www.shadertoy.com/api/v1/shaders/$id?key=$API_KEY";
+
+		    _found_shaders = new Shader[1];
+		    _valid = new bool[1];
+
+		    _found_shaders[0] = null;
+		    _valid[0] = true;
+
+			LoadShaderThread load_thread = new LoadShaderThread(shader_uri, 0);
+			load_thread.loading_finished.connect(() =>
+			{
+			    debug(@"finished loading $(load_thread.shader_uri)");
+
+			    _valid[0] = !load_thread.invalid_result;
+				_found_shaders[load_thread.shader_index] = load_thread.shader;
+			});
+			new Thread<int>("shader_id_thread", load_thread.run);
 		}
 
         // TODO: handle the invalid shaders
@@ -329,10 +392,12 @@ namespace Shady
 				var results = search_root.get_array_member("Results");
 
 				_found_shaders = new Shader[num_shaders];
+				_valid = new bool[num_shaders];
 
 				for (int i = 0; i < num_shaders; i++)
 				{
 					_found_shaders[i] = null;
+					_valid[i] = true;
 				}
 
 				int index = 0;
@@ -347,6 +412,7 @@ namespace Shady
 					{
 					    debug(@"finished loading $(load_thread.shader_uri)");
 
+                        _valid[0] = !load_thread.invalid_result;
 						_found_shaders[load_thread.shader_index] = load_thread.shader;
 					});
 
