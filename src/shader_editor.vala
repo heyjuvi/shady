@@ -797,6 +797,13 @@ namespace Shady
 		    ShaderSourceBuffer old_buffer = _curr_buffer;
 		    _curr_buffer = buffer as ShaderSourceBuffer;
 
+            if (old_buffer != null)
+            {
+		        old_buffer.show_popovers = false;
+		    }
+
+		    _curr_buffer.show_popovers = true;
+
 		    debug(@"switch_page: switching to $(_curr_buffer.buffer_name)");
 
 		    //buffer_chars = _minifier.minify_kindly(_curr_buffer.buffer.text).length;

@@ -9,6 +9,8 @@ namespace Shady
 
 		public string buffer_name { get; set; default = null; }
 
+		public bool show_popovers { get; set; default = false; }
+
 		private bool _live_mode = false;
 		public bool live_mode
 		{
@@ -52,7 +54,7 @@ namespace Shady
 				{
 					glsl_version = (AppPreferences.GLSLVersion) settings.get_enum("glsl-version");
 				}
-				else if(key == "backporting")
+				else if (key == "backporting")
 				{
 					backporting_mode = (AppPreferences.BackportingMode) settings.get_enum("backporting");
 				}
@@ -292,7 +294,8 @@ namespace Shady
 			Gtk.TextIter cursor_iter;
             buffer.get_iter_at_offset(out cursor_iter, buffer.cursor_position);
 
-            if ((cursor_iter.get_line() + 1) in _errors)
+            if ((cursor_iter.get_line() + 1) in _errors &&
+                show_popovers)
             {
                 show_error_popover();
             }
