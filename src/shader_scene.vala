@@ -11,6 +11,9 @@ namespace Shady
 
 	    public signal void fullscreen_requested();
 
+	    private int64 _compilation_start_time;
+	    private int64 _compilation_finish_time;
+
 	    [GtkChild]
 	    private Gtk.Box main_shader_container;
 
@@ -19,6 +22,9 @@ namespace Shady
 
 	    [GtkChild]
 	    private Gtk.Label time_label;
+
+	    [GtkChild]
+	    private Gtk.Label compile_time_label;
 
 	    [GtkChild]
 	    private Gtk.Label title_label;
@@ -90,15 +96,32 @@ namespace Shady
 			    return false;
 			});
 
-			time_label.draw.connect(() =>
-			{
+		    time_label.draw.connect(() =>
+		    {
 			    StringBuilder time = new StringBuilder();
 
 			    time.printf("%3.2fs", _shadertoy_area.time);
 			    time_label.set_label(time.str);
 
 			    return false;
-			});
+		    });
+
+		    _shadertoy_area.compilation_started.connect(() =>
+		    {
+                _compilation_start_time = get_monotonic_time();
+		    });
+
+		    _shadertoy_area.compilation_finished.connect(() =>
+		    {
+		        _compilation_finish_time = get_monotonic_time();
+		        float compile_time_float = (float)(_compilation_finish_time - _compilation_start_time);
+
+			    StringBuilder compile_time = new StringBuilder();
+
+			    compile_time.printf("compiled in %3.2fs",
+			    (compile_time_float)/1000000);
+			    compile_time_label.set_label(compile_time.str);
+		    });
 
 		    _shadertoy_area.show();
 
