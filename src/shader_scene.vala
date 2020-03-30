@@ -156,7 +156,7 @@ namespace Shady
 			    tag_label.show();
 			}
 
-		    _shadertoy_area.compile(shader);
+		    _shadertoy_area.compile(shader, true);
 
 		    _curr_shader = shader;
 		    //_fullscreen_shadertoy_area.compile(shader);
