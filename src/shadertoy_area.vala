@@ -254,9 +254,9 @@ namespace Shady
 			update_rendering();
 		}
 
-		public void compile(Shader shader)
+		public void compile(Shader shader, bool priority = false)
 		{
-			ShaderCompiler.queue_shader_compile(shader, _render_resources, _compile_resources);
+			ShaderCompiler.queue_shader_compile(shader, _render_resources, _compile_resources, priority);
 		}
 
 		public void compile_main_thread(Shader shader)
@@ -287,9 +287,9 @@ namespace Shady
 			init_time();
 			_fps_time = _start_time;
 
-			GLContext.clear_current();
+			update_rendering();
 
-			_render_timeout = Timeout.add(_timeout_interval, render_image_part);
+			GLContext.clear_current();
 
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |

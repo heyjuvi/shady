@@ -88,6 +88,28 @@
             </child>
 
             <child>
+              <object class="GtkLabel" id="compile_time_label">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="valign">center</property>
+
+                <attributes>
+                  <attribute name="font-desc" value="Monospace 9" />
+                </attributes>
+
+                <style>
+                  <class name="highlighted" />
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">3</property>
+                <property name="pack_type">end</property>
+              </packing>
+            </child>
+
+            <child>
               <object class="GtkButton" id="fullscreen_button">
                 <property name="width_request">32</property>
                 <property name="visible">True</property>
