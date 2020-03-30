@@ -438,7 +438,7 @@ namespace Shady
 			        element.views = (int) _found_shaders[loc_index].views;
 			        element.shader = _found_shaders[loc_index];
 
-			        element._shadertoy_area.compilation_finished.connect(() =>
+			        element._shadertoy_area.initialized.connect(() =>
 			        {
 			            show_n_more_shaders(n - 1);
 			        });
@@ -499,13 +499,13 @@ namespace Shady
 		[GtkCallback]
 		private void edge_reached(Gtk.PositionType position_type)
 		{
-			/*if (position_type == Gtk.PositionType.BOTTOM)
+			if (position_type == Gtk.PositionType.BOTTOM)
 			{
 				if (_last_index < _found_shaders.length)
 				{
 					show_n_more_shaders(4);
 				}
-			}*/
+			}
 		}
 
 		[GtkCallback]

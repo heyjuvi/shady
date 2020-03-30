@@ -617,11 +617,11 @@ namespace Shady
 		private void remove_buffer(string buffer_name, bool skip_full_char_refresh=false)
 //		    requires(_shader_buffers.get_keys().data.contains(buffer_name))
 		{
-		    debug("remove_buffer: removing $buffer_name from notebook");
-			notebook.remove_page(notebook.page_num(_shader_buffers[buffer_name]));
-
 			debug("remove_buffer: removing $buffer_name from shader buffers");
 			_shader_buffers.remove(buffer_name);
+
+		    debug("remove_buffer: removing $buffer_name from notebook");
+			notebook.remove_page(notebook.page_num(_shader_buffers[buffer_name]));
 
 			for (int i = 0; i < shader.renderpasses.length; i++)
 			{

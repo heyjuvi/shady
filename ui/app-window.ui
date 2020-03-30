@@ -413,6 +413,7 @@
 												    <property name="column_spacing">6</property>
 												    <property name="row_spacing">6</property>
 												    <property name="min_children_per_line">4</property>
+											      <property name="max_children_per_line">4</property>
 
 												    <signal name="selected_children_changed" handler="selected_children_changed" />
 											    </object>
