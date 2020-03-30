@@ -18,6 +18,7 @@ namespace Shady.Core
 			public Gdk.GLContext context;
 			public RenderResources render_resources;
 			public CompileResources compile_resources;
+			public bool quiet;
 		}
 
 		private static ThreadPool<ThreadData> _compile_pool;
@@ -65,7 +66,7 @@ namespace Shady.Core
 				render_resources.set_buffer_props(RenderResources.Purpose.COMPILE, buf_props);
 				render_resources.set_image_prop_index(RenderResources.Purpose.COMPILE, 0);
 
-				ThreadData data = new ThreadData(){shader=shader, context = thread_context, render_resources=render_resources, compile_resources=compile_resources};
+				ThreadData data = new ThreadData(){shader=shader, context = thread_context, render_resources=render_resources, compile_resources=compile_resources, quiet=false};
 
 				try
 				{
@@ -93,18 +94,21 @@ namespace Shady.Core
 			render_resources.set_buffer_props(RenderResources.Purpose.COMPILE, buf_props);
 			render_resources.set_image_prop_index(RenderResources.Purpose.COMPILE, 0);
 
-			ThreadData data = new ThreadData(){shader=shader, context = current_context, render_resources=render_resources, compile_resources=compile_resources};
+			ThreadData data = new ThreadData(){shader=shader, context = current_context, render_resources=render_resources, compile_resources=compile_resources, quiet=true};
 
 			compile(data);
 		}
 
 		private static void compile(ThreadData data)
 		{
-			Timeout.add(1,() =>
+			if(!data.quiet)
 			{
-				data.compile_resources.compilation_started();
-				return false;
-			});
+				Timeout.add(1,() =>
+				{
+					data.compile_resources.compilation_started();
+					return false;
+				});
+			}
 
 			data.context.make_current();
 
@@ -124,11 +128,14 @@ namespace Shady.Core
 
 			data.compile_resources.mutex.unlock();
 
-			Timeout.add(1,() =>
+			if(!data.quiet)
 			{
-				data.compile_resources.compilation_finished();
-				return false;
-			});
+				Timeout.add(1,() =>
+				{
+					data.compile_resources.compilation_finished();
+					return false;
+				});
+			}
 		}
 
 		private static bool compile_blocking(Shader new_shader, RenderResources render_resources, CompileResources compile_resources)
