@@ -160,6 +160,9 @@ namespace Shady
 			add_window(newest_app_window);
 
 			newest_app_window.present();
+
+			newest_app_window.reset_time();
+			newest_app_window.play();
 		}
 
 		private void load_css()
