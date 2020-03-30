@@ -181,6 +181,11 @@ namespace Shady
 			// compile every 5 seconds, if auto compile is enabled
 			_auto_compile_handler_id = Timeout.add(3000, auto_compile_handler, Priority.HIGH_IDLE);
 
+			scene.shadertoy_area.compilation_started.connect(() =>
+			{
+			    compile_button_stack.visible_child_name = "compile_spinner";
+			});
+
 			scene.shadertoy_area.compilation_finished.connect(() =>
 		    {
 			    compile_button_stack.visible_child_name = "compile_image";
@@ -234,8 +239,6 @@ namespace Shady
 			bool compilable = editor.validate_shader();
 			if (compilable)
 			{
-			    compile_button_stack.visible_child_name = "compile_spinner";
-
                 editor.gather_shader();
 
                 debug(@"compile: compiling shader, which is given by\n" +
