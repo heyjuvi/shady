@@ -28,15 +28,15 @@ namespace Shady
 				// for some reason the window is displayed below the
 				// previous one
 				var new_window = new AppWindow(this, app_preferences);
-				new_window.reset_time();
-				new_window.play();
 
-				remove_window(newest_app_window);
 				add_window(new_window);
+
+				newest_app_window = new_window;
 
 				new_window.present();
 
-				newest_app_window = new_window;
+				new_window.reset_time();
+				new_window.play();
 			});
 
 			this.add_action(new_action);
@@ -76,15 +76,14 @@ namespace Shady
 							    // previous one
 							    var new_window = new AppWindow(this, app_preferences);
 
-							    remove_window(newest_app_window);
 							    add_window(new_window);
 
 							    newest_app_window = new_window;
 
-							    new_window.set_shader(new_shader);
-							    new_window.shader_filename = file.get_path();
-
 							    new_window.present();
+
+							    new_window.shader_filename = file.get_path();
+                                new_window.set_shader(new_shader);
 
                                 new_window.compile();
 							    new_window.reset_time();

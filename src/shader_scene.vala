@@ -47,9 +47,9 @@ namespace Shady
 
 	    private Shader _curr_shader;
 
-		public ShaderScene()
+		public ShaderScene(Shader shader=ShaderArea.get_default_shader())
 		{
-		    _shadertoy_area = new ShadertoyArea(ShaderArea.get_default_shader());
+		    _shadertoy_area = new ShadertoyArea(shader);
 		    //_fullscreen_shadertoy_area = new ShadertoyArea(ShaderArea.get_default_shader());
 
             _fullscreen_window = new Gtk.Window();

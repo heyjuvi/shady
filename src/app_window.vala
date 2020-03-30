@@ -100,13 +100,21 @@ namespace Shady
 		private Shader?[] _found_shaders = null;
 		private Shader _selected_search_shader = null;
 
-		public AppWindow(Gtk.Application app, AppPreferences preferences)
+		public AppWindow(Gtk.Application app, AppPreferences preferences, Shader? shader=null)
 		{
 			Object(application: app);
 
 			add_accel_group(_accels);
 
-            scene = new ShaderScene();
+            if (shader == null)
+            {
+                scene = new ShaderScene();
+            }
+            else
+            {
+                scene = new ShaderScene(shader);
+            }
+
 			editor = new ShaderEditor();
 
 			search_toggled.connect(() =>
@@ -118,7 +126,14 @@ namespace Shady
 
 			escape_pressed.connect(() =>
 			{
-			    _editor.hide_search();
+			    if (content_stack.visible_child_name == "content")
+			    {
+			        _editor.hide_search();
+			    }
+			    else if (content_stack.visible_child_name == "search_content")
+			    {
+			        cancel_search_button_clicked();
+			    }
 			});
 
 			key_press_event.connect((widget, event) =>
@@ -128,12 +143,6 @@ namespace Shady
 			    {
 			        editor.next_buffer();
 			        return true;
-			    }
-
-			    if (event.keyval == Gdk.Key.Escape &&
-			        content_stack.visible_child_name == "search_content")
-			    {
-			        cancel_search_button_clicked();
 			    }
 
 			    if (event.keyval == Gdk.Key.ISO_Left_Tab &&
@@ -171,6 +180,11 @@ namespace Shady
 
 			// compile every 5 seconds, if auto compile is enabled
 			_auto_compile_handler_id = Timeout.add(3000, auto_compile_handler, Priority.HIGH_IDLE);
+
+			scene.shadertoy_area.compilation_finished.connect(() =>
+		    {
+			    compile_button_stack.visible_child_name = "compile_image";
+		    });
 
 			_shader_filename = null;
 
@@ -220,11 +234,6 @@ namespace Shady
 			bool compilable = editor.validate_shader();
 			if (compilable)
 			{
-			    scene.shadertoy_area.compilation_finished.connect(() =>
-			    {
-				    compile_button_stack.visible_child_name = "compile_image";
-			    });
-
 			    compile_button_stack.visible_child_name = "compile_spinner";
 
                 editor.gather_shader();
