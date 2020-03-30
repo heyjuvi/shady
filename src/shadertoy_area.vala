@@ -254,9 +254,9 @@ namespace Shady
 			update_rendering();
 		}
 
-		public void compile(Shader shader)
+		public void compile(Shader shader, bool priority = false)
 		{
-			ShaderCompiler.queue_shader_compile(shader, _render_resources, _compile_resources);
+			ShaderCompiler.queue_shader_compile(shader, _render_resources, _compile_resources, priority);
 		}
 
 		public void compile_main_thread(Shader shader)

@@ -39,7 +39,7 @@ namespace Shady.Core
 			}
 		}
 
-		public static void queue_shader_compile(Shader shader, RenderResources render_resources, CompileResources compile_resources)
+		public static void queue_shader_compile(Shader shader, RenderResources render_resources, CompileResources compile_resources, bool priority)
 		{
 			if (compile_resources.mutex.trylock())
 			{
@@ -71,6 +71,11 @@ namespace Shady.Core
 				try
 				{
 					_compile_pool.add(data);
+
+					if(priority)
+					{
+						_compile_pool.move_to_front(data);
+					}
 				}
 				catch(Error e)
 				{
