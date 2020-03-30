@@ -287,9 +287,9 @@ namespace Shady
 			init_time();
 			_fps_time = _start_time;
 
-			GLContext.clear_current();
+			update_rendering();
 
-			_render_timeout = Timeout.add(_timeout_interval, render_image_part);
+			GLContext.clear_current();
 
 			add_events(EventMask.BUTTON_PRESS_MASK |
 					   EventMask.BUTTON_RELEASE_MASK |

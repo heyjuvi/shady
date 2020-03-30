@@ -14,7 +14,7 @@ namespace Shady
 
 		/* Properties */
 		protected double _time_slider = 0.0;
-		protected bool _paused = false;
+		protected bool _paused = true;
 
 		/* Constants */
 		private const double _time_slider_factor = 2.0;
@@ -256,6 +256,7 @@ namespace Shady
 		protected void init_time()
 		{
 			_start_time = get_monotonic_time();
+			_pause_time = _start_time;
 		}
 	}
 }
