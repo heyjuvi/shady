@@ -75,6 +75,7 @@ namespace Shady.Core
 					if(priority)
 					{
 						_compile_pool.move_to_front(data);
+						_compile_pool.set_max_threads((int) GLib.get_num_processors());
 					}
 				}
 				catch(Error e)
@@ -138,6 +139,7 @@ namespace Shady.Core
 				Timeout.add(1,() =>
 				{
 					data.compile_resources.compilation_finished();
+					_compile_pool.set_max_threads((int) GLib.get_num_processors() - 1);
 					return false;
 				});
 			}
