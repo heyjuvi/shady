@@ -114,7 +114,7 @@ namespace Shady
 		    _shadertoy_area.compilation_finished.connect(() =>
 		    {
 		        _compilation_finish_time = get_monotonic_time();
-		        float compile_time_float = (float)(_compilation_finish_time - _compilation_start_time);
+		        float compile_time_float = (float) (_compilation_finish_time - _compilation_start_time);
 
 			    StringBuilder compile_time = new StringBuilder();
 

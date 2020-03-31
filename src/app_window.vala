@@ -532,6 +532,8 @@ namespace Shady
 
 		    scene.shadertoy_area.paused = false;
 
+		    scene.compile(ShaderArea.get_loading_shader());
+
             set_shader(_selected_search_shader);
 		    compile();
 		}

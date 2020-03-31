@@ -74,7 +74,7 @@ namespace Shady
 
 							    // for some reason the window is displayed below the
 							    // previous one
-							    var new_window = new AppWindow(this, app_preferences);
+							    var new_window = new AppWindow(this, app_preferences, ShaderArea.get_loading_shader());
 
 							    add_window(new_window);
 
