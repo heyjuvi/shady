@@ -1,0 +1,6 @@
+[Shell Search Provider]
+DesktopId=@appid@.desktop
+BusName=@appid@
+ObjectPath=/org/hasi/shady@profile@/SearchProvider
+Version=2
+

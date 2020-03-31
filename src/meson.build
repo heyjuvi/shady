@@ -1,8 +1,9 @@
 add_project_arguments([
     '--vapidir', join_paths(meson.current_source_dir(), 'vapi'),
-    '--pkg', 'shady-gl',     # those are handled extra, because they
-    '--pkg', 'shady-epoxy',  # are in the custom vapi directory of
-    '--pkg', 'shady-glslang' # the project
+    '--pkg', 'shady-gl',      # those are handled extra, because they
+    '--pkg', 'shady-epoxy',   # are in the custom vapi directory of
+    '--pkg', 'shady-glslang', # the project
+    '--pkg', 'config'
   ],
   language: 'vala'
 )
@@ -16,6 +17,21 @@ gtksourceview_dep = dependency('gtksourceview-4')
 libsoup_dep = dependency('libsoup-2.4')
 json_glib_dep = dependency('json-glib-1.0')
 libxml2_dep = dependency('libxml-2.0')
+
+conf = configuration_data()
+conf.set_quoted('APP_ID', app_id)
+conf.set_quoted('G_LOG_DOMAIN', 'org.hasi.Shady@0@'.format(profile))
+conf.set_quoted('NAME_PREFIX', name_prefix)
+conf.set_quoted('PACKAGE_NAME', meson.project_name())
+conf.set_quoted('PACKAGE_VERSION', meson.project_version())
+conf.set_quoted('PROFILE', profile)
+conf.set_quoted('VERSION', meson.project_version())
+conf.set_quoted('GETTEXT_PACKAGE', meson.project_name())
+conf.set_quoted('DATADIR', join_paths(get_option('prefix'), get_option('datadir')))
+conf.set_quoted('GNOMELOCALEDIR', join_paths(get_option('prefix'), get_option('localedir')))
+
+configure_file(output: 'config.h', configuration: conf)
+config_h_dir = include_directories('.')
 
 app_sources = files(
   'core/glslang_validator.vala',
@@ -31,6 +47,7 @@ app_sources = files(
   'main.vala',
   'io_sugar.vala',
   'app.vala',
+  'search_provider.vala',
   'app_window.vala',
   'app_preferences.vala',
   'shader.vala',

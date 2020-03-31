@@ -12,6 +12,16 @@ app_resources = gnome.compile_resources(
   source_dir : '.',
   c_name : 'shady_resources')
 
+if get_option('profile') == 'development'
+  name_prefix = '(Development) '
+  profile = 'Devel'
+else
+  name_prefix = ''
+  profile = ''
+endif
+
+app_id = 'org.hasi.shady@0@'.format(profile)
+
 subdir('src')
 subdir('data')
 

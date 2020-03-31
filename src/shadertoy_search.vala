@@ -312,7 +312,10 @@ namespace Shady
 				        return false;
 				    });
 
-				    Thread.usleep(1000000);
+                    /*if (!search_finished)
+                    {
+				        Thread.usleep(10000);
+				    }*/
 			    }
 
                 // TODO: why is the timeout necessary and Idle.add does not work?
@@ -341,6 +344,49 @@ namespace Shady
 			return valid_shaders.data;
 		}
 
+		public string[]? search_shader_ids(string search_string)
+		{
+		    var search_session = new Soup.Session();
+
+			string search_uri = @"https://www.shadertoy.com/api/v1/shaders/query/$search_string?key=$API_KEY";
+			var search_message = new Soup.Message("GET", search_uri);
+
+			search_session.send_message(search_message);
+
+			uint64 num_shaders = 0;
+
+			try
+			{
+				var search_parser = new Json.Parser();
+				string json_data = (string) search_message.response_body.flatten().data;
+				//json_data = json_data[3:json_data.length];
+				search_parser.load_from_data(json_data, -1);
+
+				var search_root = search_parser.get_root().get_object();
+
+				num_shaders = search_root.get_int_member("Shaders");
+				if (num_shaders == 0)
+				{
+                    return {};
+				}
+
+				var results = search_root.get_array_member("Results");
+				string[] result_ids = new string[num_shaders];
+				foreach (var result_node in results.get_elements())
+				{
+				    result_ids += result_node.get_string();
+				}
+
+				return result_ids;
+			}
+			catch (Error e)
+			{
+				stderr.printf(@"I guess something is not working... $(e.message)\n");
+			}
+
+			return null;
+		}
+
 		private void search_by_id(string id)
 		{
 		    string shader_uri = @"https://www.shadertoy.com/api/v1/shaders/$id?key=$API_KEY";
@@ -365,32 +411,11 @@ namespace Shady
         // TODO: handle the invalid shaders
 		private uint64 search_shaders(string search_string)
 		{
-			var search_session = new Soup.Session();
-
-			string search_uri = @"https://www.shadertoy.com/api/v1/shaders/query/$search_string?key=$API_KEY";
-			var search_message = new Soup.Message("GET", search_uri);
-
-			search_session.send_message(search_message);
-
-			uint64 num_shaders = 0;
+            string[] result_ids = search_shader_ids(search_string);
+			uint64 num_shaders = result_ids.length;
 
 			try
 			{
-				var search_parser = new Json.Parser();
-				string json_data = (string) search_message.response_body.flatten().data;
-				//json_data = json_data[3:json_data.length];
-				search_parser.load_from_data(json_data, -1);
-
-				var search_root = search_parser.get_root().get_object();
-
-				num_shaders = search_root.get_int_member("Shaders");
-				if (num_shaders == 0)
-				{
-                    return 0;
-				}
-
-				var results = search_root.get_array_member("Results");
-
 				_found_shaders = new Shader[num_shaders];
 				_valid = new bool[num_shaders];
 
@@ -401,9 +426,9 @@ namespace Shady
 				}
 
 				int index = 0;
-				foreach (var result_node in results.get_elements())
+				foreach (var result_id in result_ids)
 				{
-					string shader_uri = @"https://www.shadertoy.com/api/v1/shaders/$(result_node.get_string())?key=$API_KEY";
+					string shader_uri = @"https://www.shadertoy.com/api/v1/shaders/$(result_id)?key=$API_KEY";
 
                     debug(@"starting load thread for $shader_uri");
 

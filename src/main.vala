@@ -21,5 +21,10 @@ using GLSlang;
 
 int main(string[] args)
 {
-	return new Shady.App().run(args);
+    Environment.set_prgname(Config.APP_ID);
+    Environment.set_application_name("Shady");
+
+    var app = new Shady.App();
+
+	return app.run(args);
 }

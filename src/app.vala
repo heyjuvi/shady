@@ -2,6 +2,9 @@ namespace Shady
 {
 	public class App : Gtk.Application
 	{
+	    private SearchProvider search_provider;
+        private uint search_provider_id = 0;
+
 		private Gtk.CssProvider css_provider;
 
 		private AppWindow newest_app_window = null;
@@ -9,7 +12,7 @@ namespace Shady
 
 		public App()
 		{
-			GLib.Object(application_id: "org.hasi.shady",
+			GLib.Object(application_id: Config.APP_ID,
 			            flags: ApplicationFlags.HANDLES_OPEN);
 
 			add_actions();
@@ -120,12 +123,56 @@ namespace Shady
 			});
 
 			this.add_action(quit_action);
+
+			search_provider = new SearchProvider();
+            search_provider.activate.connect((timestamp) =>
+            {
+                // show the search?
+            });
 		}
+
+		public override bool dbus_register(DBusConnection connection, string object_path)
+		{
+            try
+            {
+                search_provider_id = connection.register_object(object_path + "/SearchProvider", search_provider);
+            }
+            catch (IOError error)
+            {
+                printerr("Could not register search provider service: %s\n", error.message);
+            }
+
+            return true;
+        }
+
+        public override void dbus_unregister(DBusConnection connection, string object_path)
+        {
+            if (search_provider_id != 0)
+            {
+                connection.unregister_object(search_provider_id);
+                search_provider_id = 0;
+            }
+        }
 
 		protected override void startup()
 		{
 			base.startup();
 
+
+            // enforce being keeping alive for at least 30 seconds, if started as service
+            if ((get_flags() & ApplicationFlags.IS_SERVICE) == ApplicationFlags.IS_SERVICE)
+            {
+                hold();
+			    Timeout.add(60000, () =>
+			    {
+			        release();
+			        return false;
+			    });
+            }
+		}
+
+		protected override void activate()
+		{
             var builder = new Gtk.Builder.from_resource ("/org/hasi/shady/gtk/menus.ui");
             var app_menu = builder.get_object("app-menu") as GLib.MenuModel;
 			set_app_menu(app_menu);
@@ -135,10 +182,7 @@ namespace Shady
 			// use only minimal window decorations
 			gtk_settings.gtk_decoration_layout = ":close";
 			gtk_settings.gtk_application_prefer_dark_theme = true;
-		}
 
-		protected override void activate()
-		{
 			// don't ask
 			//new ShaderArea();
 			new ShaderSourceView();

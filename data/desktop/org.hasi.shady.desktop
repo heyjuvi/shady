@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=Shady
-Comment=A comprehensive shadertoy compatible shader editor
-Exec=shady
-Terminal=0
-Type=Application
-Icon=shady
-Categories=Application;GTK;Development;
-StartupNotify=true

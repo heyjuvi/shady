@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Shady
+GenericName=Shady
+X-GNOME-FullName=Shady
+Comment=A comprehensive shadertoy compatible shader editor
+Keywords=shader;shadertoy;graphics;
+Exec=shady
+Terminal=false
+Type=Application
+Icon=@icon@
+Categories=GNOME;GTK;Development;
+StartupNotify=true
+DBusActivatable=true
