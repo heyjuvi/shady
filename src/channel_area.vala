@@ -20,6 +20,7 @@ namespace Shady
 			realize.connect(() =>
 			{
 				init_gl(get_loading_shader());
+				_paused = false;
 			});
 
 			resize.connect((width, height) =>
