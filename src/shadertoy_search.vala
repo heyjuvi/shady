@@ -51,7 +51,6 @@ namespace Shady
 
 				if (shader_parser.get_root().get_object().has_member("Error"))
 				{
-				    print("found error member\n");
 				    invalid_result = true;
 				    shader = null;
 				    loading_finished();
@@ -312,10 +311,10 @@ namespace Shady
 				        return false;
 				    });
 
-                    /*if (!search_finished)
+                    if (!search_finished)
                     {
 				        Thread.usleep(10000);
-				    }*/
+				    }
 			    }
 
                 // TODO: why is the timeout necessary and Idle.add does not work?
@@ -371,13 +370,13 @@ namespace Shady
 				}
 
 				var results = search_root.get_array_member("Results");
-				string[] result_ids = new string[num_shaders];
+				Array<string> result_ids = new Array<string>();
 				foreach (var result_node in results.get_elements())
 				{
-				    result_ids += result_node.get_string();
+				    result_ids.append_val(result_node.get_string());
 				}
 
-				return result_ids;
+				return result_ids.data;
 			}
 			catch (Error e)
 			{
