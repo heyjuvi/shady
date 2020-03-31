@@ -87,6 +87,21 @@ namespace Shady.Core
 		private uint _image_prop_index1;
 		private uint _image_prop_index2;
 
+		private const uint _timeout_interval=16;
+
+		private uint _render_timeout;
+
+		private static uint _num_render_timeouts = 0;
+		private static uint _num_update_timeouts = 0;
+
+		private const double _effective_target_time = 10000.0;
+		private const double _effective_upper_time_threshold = 15000.0;
+		private const double _effective_lower_time_threshold = 5000.0;
+
+		public static double target_time = _effective_target_time;
+		public static double upper_time_threshold = _effective_upper_time_threshold;
+		public static double lower_time_threshold = _effective_lower_time_threshold;
+
 		public RenderResources()
 		{
 	 	}
@@ -156,6 +171,42 @@ namespace Shady.Core
 			buffer_switch_mutex.lock();
 			_buffer_switch=!_buffer_switch;
 			buffer_switch_mutex.unlock();
+		}
+
+		public void update_target_time()
+		{
+			double divisor = 1.0;
+
+			if(_num_render_timeouts > 0)
+			{
+				divisor = _num_render_timeouts;
+			}
+
+			target_time = _effective_target_time / divisor;
+			upper_time_threshold = _effective_upper_time_threshold / divisor;
+			lower_time_threshold = _effective_lower_time_threshold / divisor;
+		}
+
+		public void add_render_timeout(SourceFunc render_func)
+		{
+			_render_timeout = Timeout.add(_timeout_interval, render_func);
+			_num_render_timeouts++;
+
+			update_target_time();
+		}
+
+		public void remove_render_timeout()
+		{
+			Source.remove(_render_timeout);
+			_num_render_timeouts--;
+
+			update_target_time();
+		}
+
+		public void add_update_timeout(SourceFunc update_func)
+		{
+			Timeout.add(_timeout_interval, update_func);
+			_num_update_timeouts++;
 		}
 	}
 }

@@ -27,7 +27,7 @@ namespace Shady
 					_pause_time = get_monotonic_time();
 					if(!_paused)
 					{
-						Source.remove(_render_timeout);
+						_render_resources.remove_render_timeout();
 					}
 				}
 				else
@@ -35,7 +35,7 @@ namespace Shady
 					_start_time += get_monotonic_time() - _pause_time;
 					if(_paused)
 					{
-						_render_timeout = Timeout.add(_timeout_interval, render_image_part);
+						_render_resources.add_render_timeout(render_image_part);
 					}
 				}
 
@@ -50,11 +50,11 @@ namespace Shady
 			{
 				if(value == 0.0)
 				{
-					Source.remove(_render_timeout);
+					_render_resources.remove_render_timeout();
 				}
 				else if(_time_slider == 0.0)
 				{
-					_render_timeout = Timeout.add(_timeout_interval, render_image_part);
+					_render_resources.add_render_timeout(render_image_part);
 				}
 				_time_slider = value;
 			}
@@ -76,12 +76,6 @@ namespace Shady
 		private CompileResources _compile_resources = new CompileResources();
 
 		/* Constants */
-		const uint _timeout_interval=16;
-
-		const double _target_time=10000.0;
-		const double _upper_time_threshold=15000;
-		const double _lower_time_threshold=5000;
-
 		const double _fps_interval = 0.1;
 
 		/* Flags */
@@ -91,7 +85,6 @@ namespace Shady
 		/* Shader render buffer variables */
 		private int64 _time_delta_accum = 0;
 
-		private uint _render_timeout;
 		private uchar[] _updated_keys = {};
 		private bool[] _keys_pressed = new bool[256];
 
@@ -163,7 +156,7 @@ namespace Shady
 
 					if(_paused)
 					{
-						_render_timeout = Timeout.add(_timeout_interval, render_image_part);
+						_render_resources.add_render_timeout(render_image_part);
 					}
 				}
 
@@ -180,7 +173,7 @@ namespace Shady
 
 					if(_paused)
 					{
-						Source.remove(_render_timeout);
+						_render_resources.remove_render_timeout();
 					}
 				}
 
@@ -209,7 +202,7 @@ namespace Shady
 			{
 				if(!_paused)
 				{
-					Source.remove(_render_timeout);
+					_render_resources.remove_render_timeout();
 				}
 
 				//TODO: wait for compilation to finish
@@ -306,7 +299,7 @@ namespace Shady
 
 				if(_initialized && _paused && _image_updated)
 				{
-					Timeout.add(_timeout_interval, () =>
+					_render_resources.add_update_timeout(() =>
 					{
 						RenderResources.BufferProperties[] buf_props = _render_resources.get_buffer_props(RenderResources.Purpose.RENDER);
 
@@ -444,7 +437,7 @@ namespace Shady
 		{
 			//TODO: is there a better way to do this? maybe another heuristic that is better than the old one?
 			//      should more "quadratic" tilings be preferred? why is this so sensitive to random fluctuations?
-			double target_pixels = (_target_time*(double)_width*(double)_height)/((double)buf_prop.tile_time_max*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts);
+			double target_pixels = (_render_resources.target_time*(double)_width*(double)_height)/((double)buf_prop.tile_time_max*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts);
 
 			double err = double.INFINITY;
 			int best_xp = 0;
@@ -620,7 +613,7 @@ namespace Shady
 						buf_props[i].tile_time_max = double.max(buf_props[i].tile_time_max,buf_props[i].time_delta);
 						buf_props[i].tile_time_sum += buf_props[i].time_delta;
 
-						if(buf_props[i].tile_time_max > _upper_time_threshold)
+						if(buf_props[i].tile_time_max > _render_resources.upper_time_threshold)
 						{
 							detect_tile_size(buf_props[i]);
 						}
@@ -631,7 +624,7 @@ namespace Shady
 
 					if(buf_props[i].parts_rendered)
 					{
-						if(buf_props[i].tile_time_max < _lower_time_threshold && (buf_props[i].x_img_parts!=1 || buf_props[i].y_img_parts!=1))
+						if(buf_props[i].tile_time_max < _render_resources.lower_time_threshold && (buf_props[i].x_img_parts!=1 || buf_props[i].y_img_parts!=1))
 						{
 							detect_tile_size(buf_props[i]);
 						}
@@ -641,7 +634,7 @@ namespace Shady
 					}
 				}
 
-				if(_time_delta_accum > _upper_time_threshold)
+				if(_time_delta_accum > _render_resources.upper_time_threshold)
 				{
 					if(!_splitted_rendering)
 					{
@@ -649,7 +642,7 @@ namespace Shady
 					}
 					_splitted_rendering = true;
 				}
-				else if(_time_delta_accum < _lower_time_threshold)
+				else if(_time_delta_accum < _render_resources.lower_time_threshold)
 				{
 					if(_splitted_rendering){
 					}
