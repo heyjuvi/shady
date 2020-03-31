@@ -77,6 +77,8 @@ namespace Shady.Core
 			RENDER;
 		}
 
+		public signal bool update();
+
 		private bool _buffer_switch = false;
 
 		public Mutex buffer_switch_mutex = Mutex();
@@ -92,7 +94,6 @@ namespace Shady.Core
 		private uint _render_timeout;
 
 		private static uint _num_render_timeouts = 0;
-		private static uint _num_update_timeouts = 0;
 
 		private const double _effective_target_time = 10000.0;
 		private const double _effective_upper_time_threshold = 15000.0;
@@ -101,6 +102,11 @@ namespace Shady.Core
 		public static double target_time = _effective_target_time;
 		public static double upper_time_threshold = _effective_upper_time_threshold;
 		public static double lower_time_threshold = _effective_lower_time_threshold;
+
+		public bool update_wanted = false;
+		public bool updated_once = false;
+
+		private static Queue<RenderResources> _waiting_resources = new Queue<RenderResources>();
 
 		public RenderResources()
 		{
@@ -203,10 +209,47 @@ namespace Shady.Core
 			update_target_time();
 		}
 
-		public void add_update_timeout(SourceFunc update_func)
+		public void add_update_timeout()
 		{
-			Timeout.add(_timeout_interval, update_func);
-			_num_update_timeouts++;
+			if(!update_wanted)
+			{
+				update_wanted = true;
+
+				if(_waiting_resources.is_empty())
+				{
+					Timeout.add(_timeout_interval, update_func);
+				}
+				_waiting_resources.push_tail(this);
+			}
+		}
+
+		public static void update_done()
+		{
+			if(!_waiting_resources.is_empty())
+			{
+				RenderResources updated_resource = _waiting_resources.peek_head();
+				if(!updated_resource.updated_once)
+				{
+					updated_resource.updated_once = true;
+					Timeout.add(_timeout_interval, updated_resource.update_func);
+				}
+				else
+				{
+					_waiting_resources.pop_head();
+					updated_resource.update_wanted = false;
+					updated_resource.updated_once = false;
+					if(!_waiting_resources.is_empty())
+					{
+						RenderResources next_resource = _waiting_resources.pop_head();
+						Timeout.add(_timeout_interval, next_resource.update_func);
+					}
+				}
+			}
+		}
+
+		public bool update_func()
+		{
+			return update();
 		}
 	}
 }

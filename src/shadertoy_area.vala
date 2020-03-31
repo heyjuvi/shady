@@ -280,6 +280,8 @@ namespace Shady
 			init_time();
 			_fps_time = _start_time;
 
+			_render_resources.update.connect(update_func);
+
 			update_rendering();
 
 			GLContext.clear_current();
@@ -292,44 +294,43 @@ namespace Shady
 
 		private void update_rendering()
 		{
-			//render twice to fill up front and back buffer
-			for(int i=0;i<2;i++)
+			_curr_renderpass = 0;
+
+			if(_initialized && _paused)
 			{
-				_curr_renderpass = 0;
+				_render_resources.add_update_timeout();
+			}
+		}
 
-				if(_initialized && _paused && _image_updated)
-				{
-					_render_resources.add_update_timeout(() =>
-					{
-						RenderResources.BufferProperties[] buf_props = _render_resources.get_buffer_props(RenderResources.Purpose.RENDER);
+		public bool update_func()
+		{
+			RenderResources.BufferProperties[] buf_props = _render_resources.get_buffer_props(RenderResources.Purpose.RENDER);
 
-						_image_updated = false;
+			_image_updated = false;
 
-						for(int j=0;j<buf_props.length;j++)
-						{
-							buf_props[j].updated = false;
-						}
+			for(int j=0;j<buf_props.length;j++)
+			{
+				buf_props[j].updated = false;
+			}
 
-						render_image_part();
+			render_image_part();
 
-						bool all_updated = true;
-						for(int j=0;j<buf_props.length;j++)
-						{
-							all_updated &= buf_props[j].updated;
-						}
+			bool all_updated = true;
+			for(int j=0;j<buf_props.length;j++)
+			{
+				all_updated &= buf_props[j].updated;
+			}
 
-						_image_updated = all_updated;
+			_image_updated = all_updated;
 
-						if(_image_updated)
-						{
-							return false;
-						}
-						else
-						{
-							return true;
-						}
-					});
-				}
+			if(_image_updated)
+			{
+				RenderResources.update_done();
+				return false;
+			}
+			else
+			{
+				return true;
 			}
 		}
 
