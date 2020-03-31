@@ -94,6 +94,8 @@ namespace Shady
 
 		private uint _auto_compile_handler_id;
 
+		private bool _was_paused_before_search;
+
 		private int _last_index = 0;
 		private string _current_search_child = "search_results";
 
@@ -193,6 +195,8 @@ namespace Shady
 
 			_shader_filename = null;
 
+			_was_paused_before_search = scene.shadertoy_area.paused;
+
             // this is necessary, since the show-menubar value inside the ui file is not
             // respected, if the GtkStack is the root of the titlebar instead of GtkHeaderBar,
             // is this a bug?
@@ -256,6 +260,7 @@ namespace Shady
 		public void play()
 		{
 			scene.shadertoy_area.paused = false;
+			_was_paused_before_search = false;
 
 			play_button_image.set_from_icon_name("media-playback-pause-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(false);
@@ -264,6 +269,7 @@ namespace Shady
 		public void pause()
 		{
 			scene.shadertoy_area.paused = true;
+			_was_paused_before_search = true;
 
 			play_button_image.set_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.BUTTON);
 			rubber_band_revealer.set_reveal_child(true);
@@ -519,7 +525,7 @@ namespace Shady
 		    content_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT);
 		    content_stack.set_visible_child_name("content");
 
-		    scene.shadertoy_area.paused = false;
+		    scene.shadertoy_area.paused = _was_paused_before_search;
 		}
 
 		[GtkCallback]
@@ -530,9 +536,9 @@ namespace Shady
 		    content_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT);
 		    content_stack.set_visible_child_name("content");
 
-		    scene.shadertoy_area.paused = false;
-
 		    scene.compile(ShaderArea.get_loading_shader());
+		    reset_time();
+		    play();
 
             set_shader(_selected_search_shader);
 		    compile();
