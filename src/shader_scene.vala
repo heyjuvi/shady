@@ -108,7 +108,8 @@ namespace Shady
 
 		    _shadertoy_area.compilation_started.connect(() =>
 		    {
-                _compilation_start_time = get_monotonic_time();
+			compile_time_label.show();	
+                	_compilation_start_time = get_monotonic_time();
 		    });
 
 		    _shadertoy_area.compilation_finished.connect(() =>

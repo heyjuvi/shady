@@ -89,7 +89,7 @@
 
             <child>
               <object class="GtkLabel" id="compile_time_label">
-                <property name="visible">True</property>
+                <property name="visible">False</property>
                 <property name="can_focus">True</property>
                 <property name="valign">center</property>
 
