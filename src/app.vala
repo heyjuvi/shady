@@ -125,9 +125,28 @@ namespace Shady
 			this.add_action(quit_action);
 
 			search_provider = new SearchProvider();
-            search_provider.activate.connect((timestamp) =>
+            search_provider.activate.connect((shader_id) =>
             {
-                // show the search?
+                var shadertoy_search = new ShadertoySearch();
+                shadertoy_search.search.begin(@"id:$shader_id", (object, resource) =>
+			    {
+			        var shader = shadertoy_search.search.end(resource)[0];
+
+                    if (shader != null)
+                    {
+                        initialize_ui();
+
+                        add_window(newest_app_window);
+
+			            newest_app_window.present();
+
+			            newest_app_window.set_shader(shader);
+
+                        newest_app_window.compile();
+			            newest_app_window.reset_time();
+			            newest_app_window.play();
+			        }
+                });
             });
 		}
 
@@ -139,7 +158,7 @@ namespace Shady
             }
             catch (IOError error)
             {
-                printerr("Could not register search provider service: %s\n", error.message);
+                stderr.printf("Could not register search provider service: %s\n", error.message);
             }
 
             return true;
@@ -158,7 +177,6 @@ namespace Shady
 		{
 			base.startup();
 
-
             // enforce being keeping alive for at least 30 seconds, if started as service
             if ((get_flags() & ApplicationFlags.IS_SERVICE) == ApplicationFlags.IS_SERVICE)
             {
@@ -171,7 +189,7 @@ namespace Shady
             }
 		}
 
-		protected override void activate()
+		private void initialize_ui()
 		{
             var builder = new Gtk.Builder.from_resource ("/org/hasi/shady/gtk/menus.ui");
             var app_menu = builder.get_object("app-menu") as GLib.MenuModel;
@@ -183,7 +201,7 @@ namespace Shady
 			gtk_settings.gtk_decoration_layout = ":close";
 			gtk_settings.gtk_application_prefer_dark_theme = true;
 
-			// don't ask
+		    // don't ask
 			//new ShaderArea();
 			new ShaderSourceView();
 			new ShaderChannelTypePopover();
@@ -197,9 +215,14 @@ namespace Shady
 			ShaderSourceBuffer.initialize_resources();
 
 			app_preferences = new AppPreferences();
-			newest_app_window = new AppWindow(this, app_preferences);
+		    newest_app_window = new AppWindow(this, app_preferences);
 
-			load_css();
+		    load_css();
+		}
+
+		protected override void activate()
+		{
+		    initialize_ui();
 
 			add_window(newest_app_window);
 
