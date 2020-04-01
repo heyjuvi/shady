@@ -80,9 +80,6 @@ namespace Shady
 
 		private HashTable<string, ShaderSourceBuffer> _shader_buffers;
 
-		private string _default_code;
-		private string _buffer_default_code;
-
         private Shader _curr_shader = null;
 		private ShaderSourceBuffer _curr_buffer = null;
 
@@ -827,41 +824,6 @@ namespace Shady
 		        debug(@"update_channels_for_current_shader: setting channel content for channel $i");
 		    	_channels[i].set_content_by_shader(_curr_shader);
 		    }
-		}
-
-		private void update_channels_for_current_renderpass()
-		{
-		    Shader.Renderpass? curr_renderpass = find_current_renderpass();
-		    if (curr_renderpass == null)
-			{
-			    warning("update_channels_for_current_renderpass: current renderpass is null");
-				return;
-			}
-
-		    for (int i = 0; i < _channels.length; i++)
-		    {
-		        debug(@"update_channels_for_current_renderpass: setting channel content for channel $i");
-		    	_channels[i].set_content_by_renderpass(curr_renderpass);
-		    }
-
-			/*int[] channels_in_use = {};
-
-		    for (int i = 0; i < curr_renderpass.inputs.length; i++)
-		    {
-		        int channel_index = curr_renderpass.inputs.index(i).channel;
-		        if (channel_index >= 0 &&
-		            channel_index < 4)
-		        {
-		        	print(@"shader_editor@update_channels: setting channel input for channel $(channel_index)\n");
-		        	print(@"                               type: $(curr_renderpass.inputs.index(i).type)\n");
-		        	print(@"                               name: $(curr_renderpass.inputs.index(i).name)\n");
-		        	print(@"                               buffer id: $(curr_renderpass.inputs.index(i).id)\n");
-		        	print(@"                               resource: $(curr_renderpass.inputs.index(i).resource)\n");
-		            _channels[channel_index].channel_input = curr_renderpass.inputs.index(i);
-
-		            channels_in_use += channel_index;
-		        }
-		    }*/
 		}
 	}
 }

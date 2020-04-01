@@ -168,11 +168,19 @@ namespace Shady
 				}
 			}
 
-            DEFAULT_SHADERS = new string[4];
-			DEFAULT_SHADERS[Shader.RenderpassType.IMAGE] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
-			DEFAULT_SHADERS[Shader.RenderpassType.SOUND] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/sound_default.glsl", 0).get_data());
-			DEFAULT_SHADERS[Shader.RenderpassType.BUFFER] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/buffer_default.glsl", 0).get_data());
-			DEFAULT_SHADERS[Shader.RenderpassType.COMMON] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/common_default.glsl", 0).get_data());
+			try
+			{
+				DEFAULT_SHADERS = new string[4];
+				DEFAULT_SHADERS[Shader.RenderpassType.IMAGE] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/default.glsl", 0).get_data());
+				DEFAULT_SHADERS[Shader.RenderpassType.SOUND] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/sound_default.glsl", 0).get_data());
+				DEFAULT_SHADERS[Shader.RenderpassType.BUFFER] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/buffer_default.glsl", 0).get_data());
+				DEFAULT_SHADERS[Shader.RenderpassType.COMMON] = (string) (resources_lookup_data("/org/hasi/shady/data/shader/common_default.glsl", 0).get_data());
+			}
+			catch(Error e)
+			{
+				print("Couldn't load default shader code for renderpass type!\n");
+				return;
+			}
 		}
 
 		private static int bytes_to_int(uint8[] bytes)

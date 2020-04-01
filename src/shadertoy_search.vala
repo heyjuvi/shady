@@ -221,7 +221,7 @@ namespace Shady
 	{
 	    public signal void download_proceeded(int count, int num_shaders);
 
-        public static const string API_KEY = "BtnKW8";
+        public const string API_KEY = "BtnKW8";
 
 	    private Shader?[] _found_shaders;
 	    private bool[] _valid;

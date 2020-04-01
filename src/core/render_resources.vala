@@ -77,6 +77,7 @@ namespace Shady.Core
 			RENDER;
 		}
 
+		public signal bool render();
 		public signal bool update();
 
 		private bool _buffer_switch = false;
@@ -193,7 +194,7 @@ namespace Shady.Core
 			lower_time_threshold = _effective_lower_time_threshold / divisor;
 		}
 
-		public void add_render_timeout(SourceFunc render_func)
+		public void add_render_timeout()
 		{
 			_render_timeout = Timeout.add(_timeout_interval, render_func);
 			_num_render_timeouts++;
@@ -245,6 +246,11 @@ namespace Shady.Core
 					}
 				}
 			}
+		}
+
+		public bool render_func()
+		{
+			return render();
 		}
 
 		public bool update_func()

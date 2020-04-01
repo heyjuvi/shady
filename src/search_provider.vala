@@ -3,7 +3,7 @@ namespace Shady
     [DBus (name = "org.gnome.Shell.SearchProvider2")]
     public class SearchProvider : Object
     {
-        private static const uint STABILIZING_TIME = 500000;
+        private const uint STABILIZING_TIME = 500000;
 
         [DBus (visible = false)]
         public signal void activate(string shader_id);

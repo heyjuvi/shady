@@ -139,7 +139,14 @@ namespace Shady.Core
 				Timeout.add(1,() =>
 				{
 					data.compile_resources.compilation_finished();
-					_compile_pool.set_max_threads((int) GLib.get_num_processors() - 1);
+					try
+					{
+						_compile_pool.set_max_threads((int) GLib.get_num_processors() - 1);
+					}
+					catch(ThreadError e)
+					{
+						print("Error setting max threads\n");
+					}
 					return false;
 				});
 			}

@@ -35,7 +35,7 @@ namespace Shady
 					_start_time += get_monotonic_time() - _pause_time;
 					if(_paused)
 					{
-						_render_resources.add_render_timeout(render_image_part);
+						_render_resources.add_render_timeout();
 					}
 				}
 
@@ -54,7 +54,7 @@ namespace Shady
 				}
 				else if(_time_slider == 0.0)
 				{
-					_render_resources.add_render_timeout(render_image_part);
+					_render_resources.add_render_timeout();
 				}
 				_time_slider = value;
 			}
@@ -91,7 +91,6 @@ namespace Shady
 		double _fps_sum = 0.0;
 		int _num_fps_vals = 0;
 		private int64 _fps_time;
-		private double[] _tile_times = {};
 
 		private int _curr_renderpass = 0;
 		private bool _splitted_rendering = false;
@@ -156,7 +155,7 @@ namespace Shady
 
 					if(_paused)
 					{
-						_render_resources.add_render_timeout(render_image_part);
+						_render_resources.add_render_timeout();
 					}
 				}
 
@@ -280,6 +279,7 @@ namespace Shady
 			init_time();
 			_fps_time = _start_time;
 
+			_render_resources.render.connect(render_image_part);
 			_render_resources.update.connect(update_func);
 
 			update_rendering();
@@ -438,7 +438,7 @@ namespace Shady
 		{
 			//TODO: is there a better way to do this? maybe another heuristic that is better than the old one?
 			//      should more "quadratic" tilings be preferred? why is this so sensitive to random fluctuations?
-			double target_pixels = (_render_resources.target_time*(double)_width*(double)_height)/((double)buf_prop.tile_time_max*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts);
+			double target_pixels = (RenderResources.target_time*(double)_width*(double)_height)/((double)buf_prop.tile_time_max*(double)buf_prop.x_img_parts*(double)buf_prop.y_img_parts);
 
 			double err = double.INFINITY;
 			int best_xp = 0;
@@ -614,7 +614,7 @@ namespace Shady
 						buf_props[i].tile_time_max = double.max(buf_props[i].tile_time_max,buf_props[i].time_delta);
 						buf_props[i].tile_time_sum += buf_props[i].time_delta;
 
-						if(buf_props[i].tile_time_max > _render_resources.upper_time_threshold)
+						if(buf_props[i].tile_time_max > RenderResources.upper_time_threshold)
 						{
 							detect_tile_size(buf_props[i]);
 						}
@@ -625,7 +625,7 @@ namespace Shady
 
 					if(buf_props[i].parts_rendered)
 					{
-						if(buf_props[i].tile_time_max < _render_resources.lower_time_threshold && (buf_props[i].x_img_parts!=1 || buf_props[i].y_img_parts!=1))
+						if(buf_props[i].tile_time_max < RenderResources.lower_time_threshold && (buf_props[i].x_img_parts!=1 || buf_props[i].y_img_parts!=1))
 						{
 							detect_tile_size(buf_props[i]);
 						}
@@ -635,7 +635,7 @@ namespace Shady
 					}
 				}
 
-				if(_time_delta_accum > _render_resources.upper_time_threshold)
+				if(_time_delta_accum > RenderResources.upper_time_threshold)
 				{
 					if(!_splitted_rendering)
 					{
@@ -643,7 +643,7 @@ namespace Shady
 					}
 					_splitted_rendering = true;
 				}
-				else if(_time_delta_accum < _render_resources.lower_time_threshold)
+				else if(_time_delta_accum < RenderResources.lower_time_threshold)
 				{
 					if(_splitted_rendering){
 					}
