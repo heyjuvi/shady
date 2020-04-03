@@ -79,6 +79,7 @@ namespace Shady
 		const double _fps_interval = 0.1;
 
 		/* Flags */
+		private bool _resized_while_compiling = false;
 		private bool _image_updated = true;
 		private bool _synchronized_rendering = false;
 
@@ -116,6 +117,16 @@ namespace Shady
 			resize.connect((width, height) =>
 			{
 				update_size(width, height);
+
+				if(_compile_resources.mutex.trylock())
+				{
+					_compile_resources.mutex.unlock();
+				}
+				else
+				{
+					_resized_while_compiling = true;
+				}
+
 				update_rendering();
 			});
 
@@ -217,6 +228,12 @@ namespace Shady
 				_fps_sum = 0.0;
 				_num_fps_vals = 0;
 				_fps_time = get_monotonic_time();
+
+				if(_resized_while_compiling)
+				{
+					render_size_update(_render_resources.get_buffer_props(RenderResources.Purpose.RENDER));
+					_resized_while_compiling = false;
+				}
 
 				update_rendering();
 
