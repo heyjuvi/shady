@@ -61,10 +61,18 @@ namespace Shady
 
         private async HashTable<string, Variant>? get_meta_for_id(string id)
         {
+            var meta = new HashTable<string, Variant>(str_hash, str_equal);
+
             string shader_uri = @"https://www.shadertoy.com/api/v1/shaders/$id?key=$(ShadertoySearch.API_KEY)";
 			var shader_message = new Soup.Message("GET", shader_uri);
 			shader_message.priority = Soup.MessagePriority.VERY_HIGH;
-			InputStream shader_stream;
+			InputStream shader_stream = null;
+
+			string thumb_uri = @"https://www.shadertoy.com/media/shaders/$id.jpg";
+			var thumb_message = new Soup.Message("GET", thumb_uri);
+			thumb_message.priority = Soup.MessagePriority.VERY_HIGH;
+			InputStream thumb_stream = null;
+			bool no_thumb = false;
 
             try
             {
@@ -73,6 +81,15 @@ namespace Shady
             catch (Error e)
 			{
 				return null;
+			}
+
+			try
+            {
+			    thumb_stream = yield _search_session.send_async(thumb_message);
+			}
+            catch (Error e)
+			{
+				no_thumb = true;
 			}
 
 			try
@@ -96,18 +113,36 @@ namespace Shady
 				string shader_name = info_node.get_string_member("name");
 				string description = info_node.get_string_member("description");
 
-				var meta = new HashTable<string, Variant>(str_hash, str_equal);
 				meta.insert("name", shader_name);
                 meta.insert("description", description);
-
-                return meta;
 			}
 			catch (Error e)
 			{
 				stderr.printf("Could not load shader with id $id\n");
 			}
 
-			return null;
+            if (!no_thumb)
+            {
+			    try
+			    {
+			        var pixbuf = yield new Gdk.Pixbuf.from_stream_async(thumb_stream);
+			        var size = pixbuf.height < pixbuf.width ? pixbuf.height : pixbuf.width;
+			        var subpixbuf = new Gdk.Pixbuf.subpixbuf(pixbuf, 0, 0, size, size);
+			        //var scaled_pixbuf = subpixbuf.scale_simple(128, 128, Gdk.InterpType.NEAREST);
+
+                    uint8[] buffer;
+			        subpixbuf.save_to_buffer(out buffer, "png");
+
+			        var icon = new BytesIcon(new Bytes(buffer));
+			        meta.insert("icon", icon.serialize());
+			    }
+			    catch (Error e)
+			    {
+				    stderr.printf("Could not load thumbnail for shader with id $id\n");
+			    }
+			}
+
+			return meta;
         }
 
         public async string[] get_initial_result_set(string[] terms) throws GLib.DBusError, GLib.IOError
