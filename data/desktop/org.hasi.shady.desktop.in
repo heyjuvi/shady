@@ -11,3 +11,4 @@ Icon=@icon@
 Categories=GNOME;GTK;Development;
 StartupNotify=true
 DBusActivatable=true
+PrefersNonDefaultGPU=true
