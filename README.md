@@ -18,6 +18,21 @@ For not yet implemented features, please have a look at the current issues.
 
 # Building instructions
 
+## Install dependencies
+
+Ubuntu:
+```
+sudo apt install meson valac libsoup2.4-dev libgtksourceview-4-dev glslang-dev libjson-glib-dev
+```
+Fedora:
+```
+sudo dnf install gcc-c++ meson vala libsoup-devel gtksourceview4-devel glslang-devel json-glib-devel
+```
+Arch Linux:
+```
+sudo pacman -S meson vala libsoup gtksourceview4 glslang json-glib
+```
+
 ## Meson
 
 Run the following lines:
