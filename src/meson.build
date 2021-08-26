@@ -86,6 +86,8 @@ lib_epoxy = cc.find_library('epoxy')
 
 cxx = meson.get_compiler('cpp')
 lib_hlsl = cxx.find_library('HLSL')
+lib_generic_codegen = cxx.find_library('GenericCodeGen')
+lib_machine_independent = cxx.find_library('MachineIndependent')
 lib_ogl_compiler = cxx.find_library('OGLCompiler')
 lib_os_dependent = cxx.find_library('OSDependent')
 lib_spirv = cxx.find_library('SPIRV')
@@ -105,6 +107,8 @@ executable('shady',
     libxml2_dep,
     lib_epoxy,
     lib_hlsl,
+    lib_machine_independent,
+    lib_generic_codegen,
     lib_ogl_compiler,
     lib_os_dependent,
     lib_spirv,
